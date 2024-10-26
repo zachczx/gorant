@@ -17,15 +17,17 @@ var db *sqlx.DB
 func main() {
 	var p string = ":7000"
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.StarterWelcome("Hello world!"))
 	})
 
-	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.StarterWelcome("Error!"))
 	})
 
-	http.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /posts", func(w http.ResponseWriter, r *http.Request) {
 		posts, err := posts.View()
 		if err != nil {
 			http.Redirect(w, r, "/error", 500)
@@ -33,7 +35,11 @@ func main() {
 		TemplRender(w, r, templates.Post("Posts", posts))
 	})
 
-	http.HandleFunc("/posts/new", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /posts/new", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/posts", http.StatusSeeOther)
+	})
+
+	mux.HandleFunc("POST /posts/new", func(w http.ResponseWriter, r *http.Request) {
 		name := r.FormValue("name")
 		msg := r.FormValue("message")
 		fmt.Println(name)
@@ -50,8 +56,8 @@ func main() {
 		}
 	})
 
-	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
-	http.ListenAndServe(p, nil)
+	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
+	http.ListenAndServe(p, mux)
 }
 
 func TemplRender(w http.ResponseWriter, r *http.Request, c templ.Component) {
