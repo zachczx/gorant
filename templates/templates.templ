@@ -1,0 +1,121 @@
+package templates
+
+import "gostart/posts"
+
+templ Base(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta description="Gostart: Go starter kit"/>
+			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
+			<title>{ title }</title>
+			<link href="/static/css/output/styles.css" rel="stylesheet"/>
+			<script src="/static/js/htmx.min.js"></script>
+		</head>
+		<body class="font-sans grid min-h-[100dvh] grid-rows-[auto_1fr_auto]">
+			<header class="navbar bg-base-100 mb-10">
+				<div class="navbar-start">
+					<div class="dropdown">
+						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-5 w-5"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 6h16M4 12h8m-8 6h16"
+								></path>
+							</svg>
+						</div>
+						<ul
+							tabindex="0"
+							class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+						>
+							<li>
+								<a>Posts</a>
+								<ul class="p-2">
+									<li><a>Submenu 1</a></li>
+									<li><a>Submenu 2</a></li>
+								</ul>
+							</li>
+							<li><a>Contact</a></li>
+							<li><a>About</a></li>
+						</ul>
+					</div>
+					<a href="/" class="btn btn-ghost font-bold text-xl">GoStart</a>
+				</div>
+				<div class="navbar-center hidden lg:flex">
+					<ul class="menu menu-horizontal px-1">
+						<li>
+							<details>
+								<summary>Posts</summary>
+								<ul class="p-2">
+									<li><a>Submenu 1</a></li>
+									<li><a>Submenu 2</a></li>
+								</ul>
+							</details>
+						</li>
+						<li><a>Contact</a></li>
+						<li><a>About</a></li>
+					</ul>
+				</div>
+				<div class="navbar-end">
+					<span class="btn opacity-0">Button</span>
+				</div>
+			</header>
+			<div>
+				{ children... }
+			</div>
+			<footer class="text-sm text-center">
+				<p>Copyright © 2024 Zixian Chen. All rights reserved.</p>
+				<div>
+					<a href="https://zixianchen.com/projects" class="underline">Portfolio</a> | <a href="https://zixianchen.com/contact/" class="underline">Feedback</a>
+				</div>
+			</footer>
+		</body>
+	</html>
+}
+
+templ Post(message string, posts []posts.Post) {
+	@Base("Post Page") {
+		<main class="grid place-items-center space-y-8 content-center">
+			<h1 class="text-5xl font-extrabold">Posts</h1>
+			<article class="space-y-4">
+				for i := 0; i < len(posts); i++ {
+					<div class="bg-base-200 p-4 border border-primary">
+						<p class="text-2xl">{ posts[i].Content }</p>
+					</div>
+				}
+			</article>
+		</main>
+	}
+}
+
+templ StarterWelcome(message string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta description="Gostart: Go starter kit"/>
+			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
+			<title>Gostart</title>
+			<link href="/static/css/output/styles.css" rel="stylesheet"/>
+			<script src="/static/js/htmx.min.js"></script>
+		</head>
+		<body class="font-sans">
+			<main class="grid min-h-dvh place-items-center content-center">
+				<h1 class="text-5xl font-extrabold">GoStart Kit</h1>
+				<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="500px" height="576px"/>
+				<p class="text-2xl">{ message }</p>
+			</main>
+		</body>
+	</html>
+}

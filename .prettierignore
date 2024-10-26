@@ -1,0 +1,7 @@
+*.min.*
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+**/static/css/styles.css
+**/static/js/output/*

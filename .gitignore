@@ -1,0 +1,13 @@
+*templ.go
+*templ.txt
+static/css/tailwind.css
+static/js/output
+node_modules/
+bin/
+.env
+.vscode
+tmp/
+handlers/
+*.old
+starter.db
+*.code-workspace
