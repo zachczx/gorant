@@ -89,25 +89,25 @@ templ Post(message string, posts []posts.Post) {
 			<h1 class="text-5xl font-extrabold lg:col-span-2">Posts</h1>
 			<article id="posts" class="w-full space-y-4 p-8">
 				for i := 0; i < len(posts); i++ {
-					<div class="content border border-primary bg-base-200 p-4">
+					<div class="content border border-neutral/30 bg-base-200 p-4">
 						<p class="text-2xl">{ posts[i].Content }</p>
 					</div>
 				}
 			</article>
 			<div class="w-full">
 				<div class="grid justify-items-center p-8">
-					<form method="post" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-8 bg-base-300 p-8">
+					<form method="post" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-8 bg-base-300 p-8 shadow-lg">
 						<label class="form-control">
 							<div class="label">
 								<span class="label-text">Name</span>
 							</div>
-							<input type="text" name="name" class="input input-bordered text-sm"/>
+							<input type="text" name="name" class="input rounded-none input-bordered text-sm"/>
 						</label>
 						<label class="form-control">
 							<div class="label">
 								<span class="label-text">Message</span>
 							</div>
-							<textarea name="message" class="textarea textarea-bordered h-24"></textarea>
+							<textarea name="message" class="textarea rounded-none textarea-bordered h-24"></textarea>
 						</label>
 						<button class="btn btn-primary w-full rounded-none text-lg">+ Add</button>
 					</form>

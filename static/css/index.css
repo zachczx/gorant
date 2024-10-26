@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-	/* * {
-		font-family: 'Inter Variable', sans-serif;
-	} */
+	* {
+		border-radius: 0px !important;
+	}
 
 	@font-face {
 		font-family: 'Inter Variable';
