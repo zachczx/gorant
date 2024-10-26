@@ -1,6 +1,6 @@
 *templ.go
 *templ.txt
-static/css/tailwind.css
+static/css/output
 static/js/output
 node_modules/
 bin/
