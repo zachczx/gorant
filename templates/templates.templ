@@ -94,28 +94,27 @@ templ Post(message string, posts []posts.Post) {
 					</div>
 				}
 			</article>
-			<div class="grid w-full justify-items-center p-8">
-				<form method="post" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-8 bg-base-300 p-8">
-					<label class="form-control">
-						<div class="label">
-							<span class="label-text">Name</span>
-						</div>
-						<input type="text" name="name" class="input input-bordered text-sm"/>
-					</label>
-					<label class="form-control">
-						<div class="label">
-							<span class="label-text">Message</span>
-						</div>
-						<textarea name="message" class="textarea textarea-bordered h-24"></textarea>
-					</label>
-					<button class="btn btn-primary w-full rounded-none text-lg">+ Add</button>
-				</form>
+			<div class="w-full">
+				<div class="grid justify-items-center p-8">
+					<form method="post" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-8 bg-base-300 p-8">
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text">Name</span>
+							</div>
+							<input type="text" name="name" class="input input-bordered text-sm"/>
+						</label>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text">Message</span>
+							</div>
+							<textarea name="message" class="textarea textarea-bordered h-24"></textarea>
+						</label>
+						<button class="btn btn-primary w-full rounded-none text-lg">+ Add</button>
+					</form>
+				</div>
 			</div>
 		</main>
 		<script src="/static/js/output/index.js"></script>
-		<nav>
-			<p>aaa</p>
-		</nav>
 	}
 }
 
