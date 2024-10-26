@@ -4,11 +4,11 @@
 	"trailingComma": "all",
 	"bracketSameLine": true,
 	"printWidth": 120,
-	"plugins": ["prettier-plugin-tailwindcss-extra", "prettier-plugin-tailwindcss"],
+	"plugins": ["prettier-plugin-tailwindcss-extra-plus", "prettier-plugin-tailwindcss"],
 	"overrides": [
 		{
 			"files": "*.templ",
-			"options": { "parser": "tailwindcss-extra" }
+			"options": { "parser": "tailwindcss-extra-plus" }
 		}
 	]
 }

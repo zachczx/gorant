@@ -1,0 +1,11 @@
+package templates
+
+import "gostart/posts"
+
+templ PartialPostNew(posts []posts.Post) {
+	for i := 0; i < len(posts); i++ {
+		<div class="content border border-primary bg-base-200 p-4">
+			<p class="text-2xl">{ posts[i].Content }</p>
+		</div>
+	}
+}

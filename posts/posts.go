@@ -12,29 +12,32 @@ const (
 )
 
 type Post struct {
-	UserID    int32     `db:"user_id"`
-	Content   string    `db:"content"`
-	CreatedAt time.Time `db:"created_at"`
+	UserID    int32  `db:"user_id"`
+	Content   string `db:"content"`
+	CreatedAt string `db:"created_at"`
 }
 
-func Insert() {
+func Insert(name string, msg string) error {
 	db := Connect()
-	post := Post{UserID: 1, Content: "This is some test content.\r\nHere is a new line.", CreatedAt: time.Now()}
+	t := time.Now().String()
+	post := Post{UserID: 1, Content: msg, CreatedAt: t}
 	fmt.Println(post)
 
 	r, err := db.NamedExec(`INSERT INTO post VALUES (:user_id, :content, :created_at)`, &post)
 	if err != nil {
 		fmt.Println("Error inserting values: ", err)
-		return
+		return err
 	}
 	fmt.Println("Successfully inserted: ", r)
+	return nil
 }
 
-func View() []Post {
+func View() ([]Post, error) {
 	db := Connect()
 	rows, err := db.Query(`SELECT * FROM post`)
 	if err != nil {
 		fmt.Println("Error fetching posts: ", err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -44,13 +47,14 @@ func View() []Post {
 		var p Post
 
 		if err := rows.Scan(&p.UserID, &p.Content, &p.CreatedAt); err != nil {
-			fmt.Println("Scanning error")
+			fmt.Println("Scanning error: ", err)
+			return nil, err
 		}
 
 		posts = append(posts, p)
 	}
 
-	return posts
+	return posts, nil
 }
 
 func Connect() *sqlx.DB {

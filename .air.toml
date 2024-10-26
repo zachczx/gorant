@@ -3,12 +3,8 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-args_bin = []
-bin = "./tmp/main.exe"
-cmd = "go build -o ./tmp/main.exe ."
-delay = 100
 exclude_dir = ["tmp", "vendor", "testdata", "node_modules"]
-exclude_file = ["./.prettierrc", "./README.md"]
+exclude_file = ["./.prettierrc", "./README.md", "./LICENSE"]
 exclude_regex = ["_test.go"]
 exclude_unchanged = false
 follow_symlink = false
@@ -18,7 +14,7 @@ include_ext = ["go", "tpl", "tmpl", "templ", "html"]
 include_file = []
 kill_delay = "0s"
 log = "build-errors.log"
-poll = false
+poll = true
 poll_interval = 0
 post_cmd = []
 pre_cmd = []
@@ -35,6 +31,10 @@ runner = "green"
 watcher = "cyan"
 
 [log]
+args_bin = []
+bin = "./tmp/main.exe"
+cmd = "go build -o ./tmp/main.exe ."
+delay = 100
 main_only = false
 time = false
 

@@ -2,17 +2,10 @@
 	"devDependencies": {
 		"daisyui": "^4.12.10",
 		"esbuild": "^0.23.1",
+		"gsap": "^3.12.5",
 		"prettier": "^3.3.3",
-		"prettier-plugin-tailwindcss-extra": "^0.2.0",
+		"prettier-plugin-tailwindcss": "^0.6.8",
+		"prettier-plugin-tailwindcss-extra-plus": "^0.3.0",
 		"tailwindcss": "^3.2.0"
-	},
-	"dependencies": {
-		"@fontsource-variable/inter": "^5.1.0",
-		"prettier-plugin-tailwindcss": "^0.6.6"
-	},
-	"overrides": {
-		"prettier-plugin-tailwindcss-extra": {
-			"prettier-plugin-tailwindcss": "$prettier-plugin-tailwindcss"
-		}
 	}
 }

@@ -14,8 +14,8 @@ templ Base(title string) {
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
 			<script src="/static/js/htmx.min.js"></script>
 		</head>
-		<body class="font-sans grid min-h-[100dvh] grid-rows-[auto_1fr_auto]">
-			<header class="navbar bg-base-100 mb-10">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans">
+			<header class="navbar mb-10 bg-base-100">
 				<div class="navbar-start">
 					<div class="dropdown">
 						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -36,7 +36,7 @@ templ Base(title string) {
 						</div>
 						<ul
 							tabindex="0"
-							class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+							class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
 						>
 							<li>
 								<a>Posts</a>
@@ -49,7 +49,7 @@ templ Base(title string) {
 							<li><a>About</a></li>
 						</ul>
 					</div>
-					<a href="/" class="btn btn-ghost font-bold text-xl">GoStart</a>
+					<a href="/" class="btn btn-ghost text-xl font-bold">GoStart</a>
 				</div>
 				<div class="navbar-center hidden lg:flex">
 					<ul class="menu menu-horizontal px-1">
@@ -73,7 +73,7 @@ templ Base(title string) {
 			<div>
 				{ children... }
 			</div>
-			<footer class="text-sm text-center">
+			<footer class="mt-12 text-center text-sm">
 				<p>Copyright © 2024 Zixian Chen. All rights reserved.</p>
 				<div>
 					<a href="https://zixianchen.com/projects" class="underline">Portfolio</a> | <a href="https://zixianchen.com/contact/" class="underline">Feedback</a>
@@ -85,16 +85,37 @@ templ Base(title string) {
 
 templ Post(message string, posts []posts.Post) {
 	@Base("Post Page") {
-		<main class="grid place-items-center space-y-8 content-center">
-			<h1 class="text-5xl font-extrabold">Posts</h1>
-			<article class="space-y-4">
+		<main class="grid content-center justify-items-center space-y-8 lg:grid-cols-2">
+			<h1 class="text-5xl font-extrabold lg:col-span-2">Posts</h1>
+			<article id="posts" class="w-full space-y-4 p-8">
 				for i := 0; i < len(posts); i++ {
-					<div class="bg-base-200 p-4 border border-primary">
+					<div class="content border border-primary bg-base-200 p-4">
 						<p class="text-2xl">{ posts[i].Content }</p>
 					</div>
 				}
 			</article>
+			<div class="grid w-full justify-items-center p-8">
+				<form method="post" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-8 bg-base-300 p-8">
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Name</span>
+						</div>
+						<input type="text" name="name" class="input input-bordered text-sm"/>
+					</label>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Message</span>
+						</div>
+						<textarea name="message" class="textarea textarea-bordered h-24"></textarea>
+					</label>
+					<button class="btn btn-primary w-full rounded-none text-lg">+ Add</button>
+				</form>
+			</div>
 		</main>
+		<script src="/static/js/output/index.js"></script>
+		<nav>
+			<p>aaa</p>
+		</nav>
 	}
 }
 

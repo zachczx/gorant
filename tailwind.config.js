@@ -3,7 +3,8 @@ module.exports = {
 	content: ['./templates/*.{templ,txt}', './static/js/output/*.js'],
 	theme: {
 		fontFamily: {
-			sans: ['Inter Variable'],
+			sans: '"Inter Variable"',
+			mono: '"Fira Code Variable"',
 		},
 	},
 	plugins: [require('daisyui')],
