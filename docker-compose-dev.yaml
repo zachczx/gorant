@@ -1,0 +1,12 @@
+name: gostart
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '7000:7000'
+    restart: unless-stopped
+    env_file:
+      - .env

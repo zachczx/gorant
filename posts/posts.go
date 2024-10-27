@@ -2,9 +2,9 @@ package posts
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/rezakhademix/govalidator/v2"
 )
 
 const (
@@ -19,15 +19,9 @@ type Post struct {
 	PostID    string `db:"post_id"`
 }
 
-func Insert(name string, msg string, postID string) error {
+func Insert(post Post) error {
 	db := Connect()
-	t := time.Now().String()
-	post := Post{UserID: 1, Content: msg, CreatedAt: t, Name: name, PostID: postID}
 	fmt.Println(post)
-
-	if vErr := Validate(post); vErr != nil {
-		fmt.Println("Error: ", vErr)
-	}
 
 	r, err := db.NamedExec(`INSERT INTO posts VALUES (:user_id, :content, :created_at, :name, :post_id)`, &post)
 	if err != nil {
@@ -78,4 +72,17 @@ func Connect() *sqlx.DB {
 	fmt.Println("DB connected!")
 
 	return db
+}
+
+func Validate(p Post) map[string](string) {
+	v := govalidator.New()
+
+	v.RequiredString(p.Name, "name", "Please enter a name")
+	v.RequiredString(p.Content, "content", "Please enter a message").MaxString(p.Content, 2000, "content", "Max length exceeded")
+
+	if v.IsFailed() {
+		return v.Errors()
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"gostart/posts"
 	"gostart/templates"
@@ -46,11 +47,17 @@ func main() {
 	})
 
 	mux.HandleFunc("POST /posts/{id}/new", func(w http.ResponseWriter, r *http.Request) {
-		name := r.FormValue("name")
-		msg := r.FormValue("message")
 		postID := r.PathValue("id")
+		post := posts.Post{UserID: 1, Content: r.FormValue("message"), CreatedAt: time.Now().String(), Name: r.FormValue("name"), PostID: postID}
 
-		if err := posts.Insert(name, msg, postID); err != nil {
+		if vErr := posts.Validate(post); vErr != nil {
+			fmt.Println("Error: ", vErr)
+			posts, _ := posts.View(postID)
+			TemplRender(w, r, templates.PartialPostNewError(posts, postID, vErr))
+			return
+		}
+
+		if err := posts.Insert(post); err != nil {
 			fmt.Println("Error inserting")
 		}
 		posts, err := posts.View(postID)
@@ -58,7 +65,7 @@ func main() {
 			http.Redirect(w, r, "/error", 500)
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNew(posts))
+			TemplRender(w, r, templates.PartialPostNewSuccess(posts, postID))
 		}
 	})
 
