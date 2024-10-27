@@ -15,15 +15,21 @@ type Post struct {
 	UserID    int32  `db:"user_id"`
 	Content   string `db:"content"`
 	CreatedAt string `db:"created_at"`
+	Name      string `db:"name"`
+	PostID    string `db:"post_id"`
 }
 
-func Insert(name string, msg string) error {
+func Insert(name string, msg string, postID string) error {
 	db := Connect()
 	t := time.Now().String()
-	post := Post{UserID: 1, Content: msg, CreatedAt: t}
+	post := Post{UserID: 1, Content: msg, CreatedAt: t, Name: name, PostID: postID}
 	fmt.Println(post)
 
-	r, err := db.NamedExec(`INSERT INTO post VALUES (:user_id, :content, :created_at)`, &post)
+	if vErr := Validate(post); vErr != nil {
+		fmt.Println("Error: ", vErr)
+	}
+
+	r, err := db.NamedExec(`INSERT INTO posts VALUES (:user_id, :content, :created_at, :name, :post_id)`, &post)
 	if err != nil {
 		fmt.Println("Error inserting values: ", err)
 		return err
@@ -32,9 +38,12 @@ func Insert(name string, msg string) error {
 	return nil
 }
 
-func View() ([]Post, error) {
+func View(postID string) ([]Post, error) {
 	db := Connect()
-	rows, err := db.Query(`SELECT * FROM post`)
+	if postID == "" {
+		postID = "demo"
+	}
+	rows, err := db.Query(`SELECT user_id, content, created_at, IFNULL(name, "[]"), post_id FROM posts WHERE post_id=?`, postID)
 	if err != nil {
 		fmt.Println("Error fetching posts: ", err)
 		return nil, err
@@ -46,11 +55,12 @@ func View() ([]Post, error) {
 	for rows.Next() {
 		var p Post
 
-		if err := rows.Scan(&p.UserID, &p.Content, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.UserID, &p.Content, &p.CreatedAt, &p.Name, &p.PostID); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return nil, err
 		}
 
+		p.CreatedAt = p.CreatedAt[:16]
 		posts = append(posts, p)
 	}
 
