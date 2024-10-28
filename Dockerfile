@@ -1,4 +1,4 @@
-FROM golang:1.23.2-alpine3.20 AS first
+FROM golang:1.23.2 AS first
 ENV GO111MODULE=on
 WORKDIR /app
 COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./starter.db ./
@@ -26,13 +26,13 @@ RUN templ generate && \
 
 ####################################################################################
 
-FROM node:22 AS second
+FROM node:23 AS second
 WORKDIR /app
 COPY --from=first /app/tailwind.config.js /app/starter.db /app/package.json /app/gostart /app/package-lock.json /app/
 COPY --from=first /app/templates /app/templates
 COPY --from=first /app/static /app/static
 # COPY package*.json ./
-RUN npm install
+RUN npm install --verbose
 RUN npx esbuild ./static/js/comment-form.js --bundle --outdir=./static/js/output --minify &&\
     npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify
 
