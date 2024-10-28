@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -13,16 +12,10 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-swiss/compress"
 
-	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
-	e := godotenv.Load()
-	if e != nil {
-		log.Fatal("Error loading env", e)
-	}
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.StarterWelcome(""))
