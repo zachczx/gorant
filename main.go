@@ -2,24 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"gostart/posts"
 	"gostart/templates"
 
 	"github.com/a-h/templ"
-	"github.com/jmoiron/sqlx"
+	"github.com/go-swiss/compress"
+
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
-var db *sqlx.DB
-
 func main() {
-	var p string = ":7000"
+	e := godotenv.Load()
+	if e != nil {
+		log.Fatal("Error loading env", e)
+	}
 
 	mux := http.NewServeMux()
-
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.StarterWelcome(""))
 	})
@@ -35,11 +39,11 @@ func main() {
 
 	mux.HandleFunc("GET /posts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("id")
-		posts, err := posts.View(postID)
+		comments, err := posts.View(postID)
 		if err != nil {
 			http.Redirect(w, r, "/error", 500)
 		}
-		TemplRender(w, r, templates.Post("Posts", posts, postID))
+		TemplRender(w, r, templates.Post("Posts", comments, postID))
 	})
 
 	mux.HandleFunc("GET /posts/{id}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -48,25 +52,60 @@ func main() {
 
 	mux.HandleFunc("POST /posts/{id}/new", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("id")
-		post := posts.Post{UserID: 1, Content: r.FormValue("message"), CreatedAt: time.Now().String(), Name: r.FormValue("name"), PostID: postID}
+		c := posts.Comment{
+			UserID:    "1",
+			Name:      r.FormValue("name"),
+			Content:   r.FormValue("message"),
+			CreatedAt: time.Now().String(),
+			PostID:    postID,
+		}
 
-		if vErr := posts.Validate(post); vErr != nil {
+		if vErr := posts.Validate(c); vErr != nil {
 			fmt.Println("Error: ", vErr)
-			posts, _ := posts.View(postID)
-			TemplRender(w, r, templates.PartialPostNewError(posts, postID, vErr))
+			comments, err := posts.View(postID)
+			if err != nil {
+				http.Redirect(w, r, "/error", 500)
+			}
+			TemplRender(w, r, templates.PartialPostNewError(comments, postID, vErr))
 			return
 		}
 
-		if err := posts.Insert(post); err != nil {
+		if err := posts.Insert(c); err != nil {
 			fmt.Println("Error inserting")
 		}
-		posts, err := posts.View(postID)
+		comments, err := posts.View(postID)
 		if err != nil {
 			http.Redirect(w, r, "/error", 500)
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(posts, postID))
+			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID))
 		}
+	})
+
+	mux.HandleFunc("POST /posts/{id}/comment/{commentID}/{voteAction}", func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("id")
+		commentID := r.PathValue("commentID")
+		voteAction := r.PathValue("voteAction")
+
+		fmt.Println(commentID)
+
+		var err error
+		if voteAction == "upvote" {
+			err = posts.UpVote(commentID)
+		} else if voteAction == "downvote" {
+			err = posts.DownVote(commentID)
+		}
+		if err != nil {
+			fmt.Println("Error executing upvote", err)
+		}
+
+		var comments []posts.Comment
+		comments, err = posts.View(postID)
+		if err != nil {
+			fmt.Println("Error fetching posts", err)
+		}
+
+		TemplRender(w, r, templates.PartialPostVote(comments, postID))
 	})
 
 	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
@@ -74,10 +113,12 @@ func main() {
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
-	http.ListenAndServe(p, mux)
+
+	wrappedMux := compress.Middleware(Sandwicher(mux))
+	var p string = os.Getenv("LISTEN_ADDR")
+	http.ListenAndServe(p, wrappedMux)
 }
 
 func TemplRender(w http.ResponseWriter, r *http.Request, c templ.Component) {
-	posts.Connect()
 	c.Render(r.Context(), w)
 }

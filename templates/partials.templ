@@ -1,46 +1,50 @@
 package templates
 
-import "gostart/posts"
+import (
+	"fmt"
+	"gostart/posts"
+)
 
-templ PartialPostNew(posts []posts.Post, postID string) {
+templ PartialPostNew(comments []posts.Comment, postID string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
-		for i := 0; i < len(posts); i++ {
+		for i := 0; i < len(comments); i++ {
 			<div class="flex space-y-2 border border-neutral/30 bg-base-200 p-4">
 				<div class="grid content-center pe-4">
-					<button class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg></button>
-					<button class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" lass="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15l-5-5h10z"></path></svg></button>
+					<a hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg></a>
+					<a hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/downvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" lass="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15l-5-5h10z"></path></svg></a>
 				</div>
 				<div class="grow">
 					<div class="flex text-base text-base-content/60">
-						<div class="grow font-bold">{ posts[i].Name }</div>
-						<div class="">{ posts[i].CreatedAt }</div>
+						<div class="grow font-bold">{ comments[i].Name }</div>
+						<div class="">{ comments[i].CreatedAt }</div>
 					</div>
-					<div class="text-2xl">{ posts[i].Content }</div>
+					<div class="text-2xl">{ comments[i].Content }</div>
 				</div>
 			</div>
 		}
 	</article>
-	<form method="post" id="post-form" hx-post={ "/posts/" + postID + "/new" } hx-swap="outerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg" hx-swap-oob="true">
+	<form method="post" id="comment-form" hx-post={ "/posts/" + postID + "/new" } hx-swap="outerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg" hx-swap-oob="true">
 		<label class="form-control">
 			<div class="label">
 				<span class="label-text">Name</span>
 			</div>
-			<input type="text" name="name" class="input input-bordered rounded-none text-sm"/>
+			<input type="text" name="name" id="comment-form-name-input" class="input input-bordered rounded-none text-sm"/>
 			<div id="form-name-error"></div>
 		</label>
 		<label class="form-control">
 			<div class="label">
 				<span class="label-text">Message</span>
 			</div>
-			<textarea name="message" class="textarea textarea-bordered h-24 rounded-none" maxlength="2000"></textarea>
+			<textarea name="message" id="comment-form-message-input" class="textarea textarea-bordered h-24 rounded-none" maxlength="2000"></textarea>
 			<div id="form-message-error"></div>
 		</label>
-		<button class="btn btn-accent w-full rounded-none text-lg">+ Add</button>
+		<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg">+ Add</button>
+		<script src="/static/js/output/comment-form.js"></script>
 	</form>
 }
 
-templ PartialPostNewError(posts []posts.Post, postID string, messages map[string]string) {
-	@PartialPostNew(posts, postID)
+templ PartialPostNewError(comments []posts.Comment, postID string, messages map[string]string) {
+	@PartialPostNew(comments, postID)
 	<div class="w-full pb-4" id="form-message" hx-swap-oob="true">
 		<div class="grid content-center space-y-2 border border-error p-2 text-error">
 			<h2 class="flex items-center text-xl font-bold">
@@ -48,8 +52,12 @@ templ PartialPostNewError(posts []posts.Post, postID string, messages map[string
 				Error!
 			</h2>
 			<ul class="list-disc ps-6">
-				<li>{ messages["name"] }</li>
-				<li>{ messages["content"] }</li>
+				if messages["name"] != "" {
+					<li>{ messages["name"] }</li>
+				}
+				if messages["content"] != "" {
+					<li>{ messages["content"] }</li>
+				}
 			</ul>
 		</div>
 	</div>
@@ -57,8 +65,8 @@ templ PartialPostNewError(posts []posts.Post, postID string, messages map[string
 	<div id="form-message-error" class="text-error" hx-swap-oob="true">{ messages["content"] }</div>
 }
 
-templ PartialPostNewSuccess(posts []posts.Post, postID string) {
-	@PartialPostNew(posts, postID)
+templ PartialPostNewSuccess(comments []posts.Comment, postID string) {
+	@PartialPostNew(comments, postID)
 	<div class="w-full pb-4" id="form-message" hx-swap-oob="true">
 		<div class="flex items-center border border-success p-2 text-success">
 			<h2 class="flex items-center text-xl">
@@ -67,6 +75,10 @@ templ PartialPostNewSuccess(posts []posts.Post, postID string) {
 			</h2>
 		</div>
 	</div>
+}
+
+templ PartialPostVote(comments []posts.Comment, postID string) {
+	@PartialPostNew(comments, postID)
 }
 
 templ PartialPostErrorMessage(message string) {

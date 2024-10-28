@@ -9,5 +9,4 @@ bin/
 tmp/
 handlers/
 *.old
-starter.db
 *.code-workspace

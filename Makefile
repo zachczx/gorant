@@ -23,7 +23,7 @@ dev/air:
 	air -c .air.toml
 
 dev/esbuild:
-	npx esbuild ./static/js/index.js --bundle --outdir=./static/js/output --minify --watch
+	npx esbuild ./static/js/comment-form.js --bundle --outdir=./static/js/output --minify --watch
 
 dev/prettier:
 	npx prettier . --write
