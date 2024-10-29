@@ -107,7 +107,7 @@ func main() {
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
-	wrappedMux := compress.Middleware(Sandwicher(mux))
+	wrappedMux := StatusLogger(compress.Middleware(mux))
 	var p string = os.Getenv("LISTEN_ADDR")
 	http.ListenAndServe(p, wrappedMux)
 }
