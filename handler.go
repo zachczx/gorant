@@ -37,6 +37,6 @@ func StatusLogger(next http.Handler) http.Handler {
 		next.ServeHTTP(&rec, r)
 		since := time.Since(start)
 
-		log.Printf(">>>>[%v] --- Route[%v] --- [%v] --- [%v]\r\n\r\n", rec.status, r.URL, since, r.Proto)
+		log.Printf(">>>>[%v] --- Route[%v] --- [%v] --- [%v] --- [%v]\r\n\r\n", rec.status, r.URL, since, r.Proto, w.Header().Get("Content-Encoding"))
 	})
 }
