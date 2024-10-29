@@ -95,8 +95,8 @@ templ Post(message string, comments []posts.Comment, postID string) {
 					for i := 0; i < len(comments); i++ {
 						<div class="flex space-y-2 border border-neutral/30 bg-base-200 p-4">
 							<div class="grid content-center pe-4">
-								<a hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg></a>
-								<a hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/downvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" lass="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15l-5-5h10z"></path></svg></a>
+								<button hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg></button>
+								<button hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/downvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" lass="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15l-5-5h10z"></path></svg></button>
 							</div>
 							<div class="grow">
 								<div class="flex text-base text-base-content/60">
