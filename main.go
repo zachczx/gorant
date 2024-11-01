@@ -75,24 +75,20 @@ func main() {
 		}
 	})
 
-	mux.HandleFunc("POST /posts/{id}/comment/{commentID}/{voteAction}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /posts/{id}/comment/{commentID}/upvote", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("id")
 		commentID := r.PathValue("commentID")
-		voteAction := r.PathValue("voteAction")
 
 		fmt.Println(commentID)
 
 		var err error
-		if voteAction == "upvote" {
-			err = posts.UpVote(commentID)
-		} else if voteAction == "downvote" {
-			err = posts.DownVote(commentID)
-		}
+
+		err = posts.UpVote(commentID)
 		if err != nil {
 			fmt.Println("Error executing upvote", err)
 		}
 
-		var comments []posts.Comment
+		var comments []posts.JoinComment
 		comments, err = posts.View(postID)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)

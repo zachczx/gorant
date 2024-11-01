@@ -86,19 +86,31 @@ templ Base(title string) {
 	</html>
 }
 
-templ Post(message string, comments []posts.Comment, postID string) {
+templ Post(message string, comments []posts.JoinComment, postID string) {
 	@Base("Gostart - Post " + postID) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8 lg:grid-cols-3">
 			<h1 class="text-5xl font-extrabold lg:col-span-3">Post { postID }</h1>
 			<article id="posts" class="w-full space-y-4 lg:col-span-2">
 				if len(comments) > 0 {
 					for i := 0; i < len(comments); i++ {
-						<div class="flex space-y-2 border border-neutral/30 bg-base-200 p-4">
-							<div class="grid content-center pe-4">
-								<button hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg></button>
-								<button hx-target="#posts" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/downvote", postID, comments[i].RowID))) } class="hover:bg-accent hover:text-accent-content"><svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" lass="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15l-5-5h10z"></path></svg></button>
+						<div class="flex h-auto border border-neutral/30 bg-lime-300/20">
+							<div class="w-24 p-2 text-center me-8">
+								<button
+									hx-target="#posts"
+									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
+									class="inline-block h-auto hover:bg-accent hover:text-accent-content"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
+								</button>
+								<div>
+									if len(comments[i].CountString) >0 {
+										{ comments[i].CountString }
+									} else {
+										0
+									}
+								</div>
 							</div>
-							<div class="grow">
+							<div class="grow p-2">
 								<div class="flex text-base text-base-content/60">
 									<div class="grow font-bold">{ comments[i].Name }</div>
 									<div class="">(#{ comments[i].RowID }) { comments[i].CreatedAt }</div>

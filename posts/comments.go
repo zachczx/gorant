@@ -1,7 +1,9 @@
 package posts
 
 import (
+	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rezakhademix/govalidator/v2"
@@ -26,6 +28,17 @@ type CommentVote struct {
 	Score     int `db:"score"`
 }
 
+type JoinComment struct {
+	RowID       string        `db:"rowid"`
+	UserID      string        `db:"user_id"`
+	Name        string        `db:"name"`
+	Content     string        `db:"content"`
+	CreatedAt   string        `db:"created_at"`
+	PostID      string        `db:"post_id"`
+	Count       sql.NullInt64 `db:"cnt"`
+	CountString string
+}
+
 func Insert(c Comment) error {
 	db := Connect()
 
@@ -38,31 +51,42 @@ func Insert(c Comment) error {
 	return nil
 }
 
-func View(postID string) ([]Comment, error) {
+func View(postID string) ([]JoinComment, error) {
 	db := Connect()
 	if postID == "" {
 		postID = "demo"
 	}
-	rows, err := db.Query(`SELECT rowid, user_id, IFNULL(name, "[]"),content, created_at, post_id FROM comments WHERE post_id=?`, postID)
+	// rows, err := db.Query(`SELECT rowid, user_id, IFNULL(name, "[]"),content, created_at, post_id FROM comments WHERE post_id=?`, postID)
+	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.name, comments.content, comments.created_at, comments.post_id, cnt FROM comments 
+					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt 
+					FROM comments_votes 
+					GROUP BY comments_votes.comment_id) as comments_votes 
+					ON comments.rowid = comments_votes.comment_id AND comments.post_id=?;`, postID)
 	if err != nil {
 		fmt.Println("Error fetching comments: ", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	var comments []Comment
+	var comments []JoinComment
 
 	for rows.Next() {
-		var c Comment
+		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Name, &c.Content, &c.CreatedAt, &c.PostID); err != nil {
+		if err := rows.Scan(&c.RowID, &c.UserID, &c.Name, &c.Content, &c.CreatedAt, &c.PostID, &c.Count); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return nil, err
 		}
 
+		if c.Count.Valid {
+			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
+		} else {
+			c.CountString = ""
+		}
+
 		c.CreatedAt = c.CreatedAt[:16]
 		comments = append(comments, c)
-
+		fmt.Println(c.Count)
 	}
 
 	return comments, nil
@@ -140,27 +164,27 @@ func UpVote(commentID string) error {
 	return nil
 }
 
-func DownVote(commentID string) error {
-	db := Connect()
+// func DownVote(commentID string) error {
+// 	db := Connect()
 
-	res, err := db.Query("SELECT * FROM comments_votes WHERE comment_id=?", commentID)
-	if err != nil {
-		fmt.Println("Error querying db", err)
-	}
-	defer res.Close()
+// 	res, err := db.Query("SELECT * FROM comments_votes WHERE comment_id=?", commentID)
+// 	if err != nil {
+// 		fmt.Println("Error querying db", err)
+// 	}
+// 	defer res.Close()
 
-	var q string
-	if res.Next() {
-		q = "UPDATE comments_votes SET score=-1 WHERE comment_id=? AND user_id=1"
-	} else {
-		q = "INSERT INTO comments_votes VALUES (1, ?, -1)"
-	}
-	res.Close()
+// 	var q string
+// 	if res.Next() {
+// 		q = "UPDATE comments_votes SET score=-1 WHERE comment_id=? AND user_id=1"
+// 	} else {
+// 		q = "INSERT INTO comments_votes VALUES (1, ?, -1)"
+// 	}
+// 	res.Close()
 
-	_, err = db.Exec(q, commentID)
-	if err != nil {
-		fmt.Println("Error inserting upvote value: ", err)
-		return err
-	}
-	return nil
-}
+// 	_, err = db.Exec(q, commentID)
+// 	if err != nil {
+// 		fmt.Println("Error inserting upvote value: ", err)
+// 		return err
+// 	}
+// 	return nil
+// }
