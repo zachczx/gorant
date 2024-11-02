@@ -101,6 +101,22 @@ func main() {
 		TemplRender(w, r, templates.About())
 	})
 
+	mux.HandleFunc("POST /posts/{id}/comment/{commentID}/delete", func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("id")
+		commentID := r.PathValue("commentID")
+
+		if err := posts.Delete(commentID); err != nil {
+			fmt.Println("Error deleting comment: ", err)
+			return
+		}
+
+		comments, err := posts.View(postID)
+		if err != nil {
+			fmt.Println("Error fetching posts", err)
+		}
+		TemplRender(w, r, templates.PartialPostVote(comments, postID))
+	})
+
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
 	wrappedMux := StatusLogger(compress.Middleware(mux))

@@ -9,16 +9,27 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
 		for i := 0; i < len(comments); i++ {
 			<div class="flex h-auto border border-neutral/30 bg-lime-300/20">
-				<div class="w-24 p-2 text-center me-8">
-					<button
-						hx-target="#posts"
-						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
-						class="inline-block h-auto hover:bg-accent hover:text-accent-content"
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
-					</button>
+				<div class="me-8 w-24 p-2 text-center">
+					if len(comments[i].ScoreString) > 0 {
+						<button
+							hx-target="#posts"
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
+							class="inline-block h-auto text-orange-600"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
+						</button>
+					} else {
+						<button
+							hx-target="#posts"
+							hx-trigger="click"
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
+							class="inline-block h-auto hover:text-orange-600 active:-translate-y-1"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
+						</button>
+					}
 					<div>
-						if len(comments[i].CountString) >0 {
+						if len(comments[i].CountString) > 0 {
 							{ comments[i].CountString }
 						} else {
 							0
@@ -30,7 +41,20 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 						<div class="grow font-bold">{ comments[i].Name }</div>
 						<div class="">(#{ comments[i].RowID }) { comments[i].CreatedAt }</div>
 					</div>
-					<div class="text-2xl">{ comments[i].Content }</div>
+					<div class="flex">
+						<div class="grow text-2xl">{ comments[i].Content }</div>
+						<div>
+							<button
+								hx-target="#posts"
+								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
+								class="py-2 ps-2 text-error"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+								</svg>
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		}
