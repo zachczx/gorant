@@ -9,7 +9,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
 		for i := 0; i < len(comments); i++ {
 			<div class="flex h-auto border border-neutral/30 bg-lime-300/20">
-				<div class="me-8 w-24 p-2 text-center">
+				<div class="w-24 p-2 text-center">
 					if len(comments[i].ScoreString) > 0 {
 						<button
 							hx-target="#posts"
@@ -36,18 +36,15 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 						}
 					</div>
 				</div>
-				<div class="grow p-2">
+				<div class="w-full grow p-2">
 					<div class="flex text-base text-base-content/60">
 						<div class="grow font-bold">{ comments[i].Name }</div>
-						<div class="">(#{ comments[i].RowID }) { comments[i].CreatedAt }</div>
-					</div>
-					<div class="flex">
-						<div class="grow text-2xl">{ comments[i].Content }</div>
-						<div>
+						<div class="flex items-center">
+							(#{ comments[i].RowID }) { comments[i].CreatedAt }
 							<button
 								hx-target="#posts"
 								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
-								class="py-2 ps-2 text-error"
+								class="py-2 ps-2 hover:text-error"
 							>
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
 									<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
@@ -55,6 +52,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 							</button>
 						</div>
 					</div>
+					<div class="py-4 text-2xl">{ comments[i].Content }</div>
 				</div>
 			</div>
 		}
@@ -115,6 +113,11 @@ templ PartialPostNewSuccess(comments []posts.JoinComment, postID string) {
 
 templ PartialPostVote(comments []posts.JoinComment, postID string) {
 	@PartialPostNew(comments, postID)
+}
+
+templ PartialPostVoteError(comments []posts.JoinComment, postID string) {
+	@PartialPostNew(comments, postID)
+	@Toast("error", "You need to be logged in to upvote!")
 }
 
 templ PartialPostErrorMessage(message string) {

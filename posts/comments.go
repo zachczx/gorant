@@ -98,7 +98,6 @@ func View(postID string) ([]JoinComment, error) {
 
 		c.CreatedAt = c.CreatedAt[:16]
 		comments = append(comments, c)
-		fmt.Println(c.Count)
 	}
 
 	return comments, nil
@@ -141,7 +140,7 @@ func Validate(c Comment) map[string](string) {
 	return nil
 }
 
-func UpVote(commentID string) error {
+func UpVote(commentID string, username string) error {
 	db := Connect()
 
 	res, err := db.Query("SELECT * FROM comments_votes WHERE comment_id=?", commentID)
@@ -152,13 +151,13 @@ func UpVote(commentID string) error {
 
 	var q string
 	if res.Next() {
-		q = "DELETE FROM comments_votes WHERE comment_id=? AND user_id=1"
+		q = "DELETE FROM comments_votes WHERE comment_id=? AND user_id=?"
 	} else {
-		q = "INSERT INTO comments_votes VALUES (1, ?, 1)"
+		q = "INSERT INTO comments_votes (comment_id, user_id, score) VALUES (?, ?, 1)"
 	}
 	res.Close()
 
-	_, err = db.Exec(q, commentID)
+	_, err = db.Exec(q, commentID, username)
 	if err != nil {
 		fmt.Println("Error inserting upvote value: ", err)
 		return err
