@@ -71,7 +71,12 @@ func main() {
 			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 			user.LoggedIn = "true"
 		}
-		TemplRender(w, r, templates.StarterWelcome("", user.Username, user.LoggedIn))
+		p, err := posts.ListPosts()
+		if err != nil {
+			fmt.Println("Error fetching posts")
+		}
+
+		TemplRender(w, r, templates.StarterWelcome("", p, user.Username, user.LoggedIn))
 	})))
 
 	mux.Handle("GET /error", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

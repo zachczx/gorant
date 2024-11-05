@@ -228,17 +228,25 @@ templ About() {
 	}
 }
 
-templ StarterWelcome(message string, username string, loggedIn string) {
+templ StarterWelcome(message string, posts []posts.Post, username string, loggedIn string) {
 	@Base("GoRant", username, loggedIn) {
-		<main class="grid place-items-center content-center">
-			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
-			<p class="text-2xl">{ message }</p>
-			<form method="post" action="/posts" class="join flex w-full justify-center pt-10 lg:order-last lg:pt-0">
+		<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
+		<div class="grid place-items-center content-center">
+			<p class="text-2xl pb-8">{ message }</p>
+			<form method="post" action="/posts" class="join flex w-full justify-center lg:pt-0">
 				<input type="text" name="postID" hx-post="/posts" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
 				<button class="btn btn-accent join-item text-lg">Go</button>
 			</form>
-			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="py-10"/>
-		</main>
+			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="lg:order-first py-4"/>
+			<div class="pt-8 lg:pt-16 grid grid-cols-4 gap-4">
+				for i := 0; i < len(posts); i++ {
+					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="grid content-center border border-neutral/80 p-8">
+						<h3 class="text-lg font-bold">{ posts[i].ID }</h3>
+						<div>Posted by { posts[i].UserID }</div>
+					</a>
+				}
+			</div>
+		</div>
 	}
 }
 
