@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rezakhademix/govalidator/v2"
@@ -16,7 +17,6 @@ const (
 type Comment struct {
 	RowID     string `db:"rowid"`
 	UserID    string `db:"user_id"`
-	Name      string `db:"name"`
 	Content   string `db:"content"`
 	CreatedAt string `db:"created_at"`
 	PostID    string `db:"post_id"`
@@ -35,18 +35,22 @@ type JoinComment struct {
 	Content   string `db:"content"`
 	CreatedAt string `db:"created_at"`
 	PostID    string `db:"post_id"`
+	Initials  string
 
 	// Null handling for counts from DB, since counts are calculated from the query
-	Score       sql.NullInt64 `db:"score"`
-	ScoreString string
-	Count       sql.NullInt64 `db:"cnt"`
-	CountString string
+	Score            sql.NullInt64 `db:"score"`
+	ScoreString      string
+	Count            sql.NullInt64 `db:"cnt"`
+	CountString      string
+	IDsVoted         sql.NullString `db:"cnt"`
+	IDsVotedString   string         // String separated by "," with the user_ids grouped
+	CurrentUserVoted string         // Returns a true or false for use in Templ template
 }
 
 func Insert(c Comment) error {
 	db := Connect()
 
-	r, err := db.NamedExec(`INSERT INTO comments (user_id, name, content, created_at, post_id) VALUES (:user_id, :name, :content, :created_at, :post_id)`, &c)
+	r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
 	if err != nil {
 		fmt.Println("Error inserting values: ", err)
 		return err
@@ -55,19 +59,20 @@ func Insert(c Comment) error {
 	return nil
 }
 
-func View(postID string) ([]JoinComment, error) {
+func View(postID string, currentUser string) ([]JoinComment, error) {
 	db := Connect()
 	if postID == "" {
 		postID = "demo"
 	}
 
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
-	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.name, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt FROM comments 
-					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt 
+	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
+					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
 					FROM comments_votes 
 					GROUP BY comments_votes.comment_id) as comments_votes 
 					ON comments.rowid = comments_votes.comment_id 
-					AND comments.post_id=?;`, postID)
+					AND comments.post_id=?
+					ORDER BY cnt DESC;`, postID)
 	if err != nil {
 		fmt.Println("Error fetching comments: ", err)
 		return nil, err
@@ -79,10 +84,12 @@ func View(postID string) ([]JoinComment, error) {
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Name, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count); err != nil {
+		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return nil, err
 		}
+
+		c.Initials = strings.ToUpper(c.UserID[:2])
 
 		if c.Score.Valid {
 			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
@@ -94,6 +101,12 @@ func View(postID string) ([]JoinComment, error) {
 			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
 		} else {
 			c.CountString = ""
+		}
+
+		if c.IDsVoted.Valid && currentUser != "" {
+			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
+		} else {
+			c.CurrentUserVoted = "false"
 		}
 
 		c.CreatedAt = c.CreatedAt[:16]
@@ -130,7 +143,7 @@ func Connect() *sqlx.DB {
 func Validate(c Comment) map[string](string) {
 	v := govalidator.New()
 
-	v.RequiredString(c.Name, "name", "Please enter a name")
+	// v.RequiredString(c.Name, "name", "Please enter a name")
 	v.RequiredString(c.Content, "content", "Please enter a message").MaxString(c.Content, 2000, "content", "Max length exceeded")
 
 	if v.IsFailed() {
@@ -143,7 +156,7 @@ func Validate(c Comment) map[string](string) {
 func UpVote(commentID string, username string) error {
 	db := Connect()
 
-	res, err := db.Query("SELECT * FROM comments_votes WHERE comment_id=?", commentID)
+	res, err := db.Query("SELECT rowid FROM comments_votes WHERE comment_id=? AND user_id=?", commentID, username)
 	if err != nil {
 		fmt.Println("Error querying db", err)
 	}

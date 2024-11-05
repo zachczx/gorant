@@ -16,22 +16,29 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/zitadel-go/v3/pkg/authentication"
 	openid "github.com/zitadel/zitadel-go/v3/pkg/authentication/oidc"
 	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
 )
 
+type User struct {
+	Username string
+	LoggedIn string
+}
+
+type ZitadelConfig struct {
+	Domain      string
+	Key         string
+	ClientID    string
+	RedirectURI string
+}
+
 func main() {
+	user := &User{Username: "", LoggedIn: "false"}
 	////////////////////////////////////////////////
 	// Zitadel
 	///////////////////////////////////////////////
-	var (
-		domain      string = os.Getenv("DOMAIN")
-		key         string = os.Getenv("KEY")
-		clientID    string = os.Getenv("CLIENT_ID")
-		redirectURI string = os.Getenv("REDIRECT_URI")
-	)
+	z := &ZitadelConfig{os.Getenv("DOMAIN"), os.Getenv("KEY"), os.Getenv("CLIENT_ID"), os.Getenv("REDIRECT_URI")}
 
 	flag.Parse()
 
@@ -39,8 +46,8 @@ func main() {
 
 	// Initiate the authentication by providing a zitadel configuration and handler.
 	// This example will use OIDC/OAuth2 PKCE Flow, therefore you will also need to initialize that with the generated client_id:
-	authN, err := authentication.New(ctx, zitadel.New(domain), key,
-		openid.DefaultAuthentication(clientID, redirectURI, key),
+	authN, err := authentication.New(ctx, zitadel.New(z.Domain), z.Key,
+		openid.DefaultAuthentication(z.ClientID, z.RedirectURI, z.Key),
 	)
 	if err != nil {
 		slog.Error("zitadel sdk could not initialize", "error", err)
@@ -58,9 +65,14 @@ func main() {
 	// - /logout (handles the logout process)
 
 	///////////////////////////////////////////////////
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.StarterWelcome(""))
-	})
+	mux.Handle("/", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if authentication.IsAuthenticated(r.Context()) {
+			fmt.Println("Logged in!")
+			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
+			user.LoggedIn = "true"
+		}
+		TemplRender(w, r, templates.StarterWelcome("", user.Username, user.LoggedIn))
+	})))
 
 	mux.Handle("GET /error", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// if authentication.IsAuthenticated(r.Context()) {
@@ -74,54 +86,54 @@ func main() {
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 	})
 
-	mux.Handle("/posts/{id}", mw.RequireAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var authCtx *openid.UserInfoContext[*oidc.IDTokenClaims, *oidc.UserInfo]
-		var u string
-		loggedIn := "false"
-
+	mux.Handle("/posts/{id}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if authentication.IsAuthenticated(r.Context()) {
-			authCtx = mw.Context(r.Context())
-			u = authCtx.UserInfo.PreferredUsername
-			loggedIn = "true"
+			fmt.Println("Logged in!")
+			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
+			user.LoggedIn = "true"
 		}
+
 		postID := r.PathValue("id")
-		comments, err := posts.View(postID) //
+		comments, err := posts.View(postID, user.Username)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
-		TemplRender(w, r, templates.Post("Posts", comments, postID, u, loggedIn))
+
+		fmt.Println("Current user: ", user.Username)
+		fmt.Println(comments[0].CurrentUserVoted)
+		TemplRender(w, r, templates.Post("Posts", comments, postID, user.Username, user.LoggedIn))
 	})))
 
 	mux.HandleFunc("GET /posts/{id}/new", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/posts/{id}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{id}/new", mw.RequireAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{id}/new", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("id")
 		authCtx := mw.Context(r.Context())
-		u := authCtx.UserInfo.PreferredUsername
+
+		if !authCtx.IsAuthenticated() {
+			fmt.Println("Not authenticated")
+			var comments []posts.JoinComment
+			comments, err = posts.View(postID, user.Username)
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID))
+			return
+		}
 
 		c := posts.Comment{
-			UserID:    u,
-			Name:      r.FormValue("name"),
+			UserID: user.Username,
+			// Name:      r.FormValue("name"),
 			Content:   r.FormValue("message"),
 			CreatedAt: time.Now().String(),
 			PostID:    postID,
 		}
 
-		if !authCtx.IsAuthenticated() || authCtx.GetUserInfo().PreferredUsername == "" {
-			fmt.Println("Not authenticated")
-			var comments []posts.JoinComment
-			comments, err = posts.View(postID)
-			TemplRender(w, r, templates.PartialPostVoteError(comments, postID))
-			return
-		}
-
 		if vErr := posts.Validate(c); vErr != nil {
 			fmt.Println("Error: ", vErr)
-			comments, err := posts.View(postID)
+			comments, err := posts.View(postID, user.Username)
 			if err != nil {
+				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
 				return
 			}
@@ -132,7 +144,7 @@ func main() {
 		if err := posts.Insert(c); err != nil {
 			fmt.Println("Error inserting")
 		}
-		comments, err := posts.View(postID)
+		comments, err := posts.View(postID, user.Username)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Oops, something went wrong."))
 			return
@@ -142,30 +154,29 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts/{id}/comment/{commentID}/upvote", mw.RequireAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{id}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("id")
 		commentID := r.PathValue("commentID")
 
 		authCtx := mw.Context(r.Context())
-		u := authCtx.UserInfo.PreferredUsername
-
-		if !authCtx.IsAuthenticated() || authCtx.GetUserInfo().PreferredUsername == "" {
-			fmt.Println("Not authenticated")
-			var comments []posts.JoinComment
-			comments, err = posts.View(postID)
+		if !authCtx.IsAuthenticated() {
+			comments, err := posts.View(postID, user.Username)
+			if err != nil {
+				fmt.Println("Error fetching posts")
+			}
 			TemplRender(w, r, templates.PartialPostVoteError(comments, postID))
 			return
 		}
 
 		var err error
 
-		err = posts.UpVote(commentID, u)
+		err = posts.UpVote(commentID, user.Username)
 		if err != nil {
 			fmt.Println("Error executing upvote", err)
 		}
 
 		var comments []posts.JoinComment
-		comments, err = posts.View(postID)
+		comments, err = posts.View(postID, user.Username)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -186,7 +197,7 @@ func main() {
 			return
 		}
 
-		comments, err := posts.View(postID)
+		comments, err := posts.View(postID, user.Username)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
