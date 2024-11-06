@@ -26,19 +26,19 @@ RUN templ generate && \
 
 ####################################################################################
 
-FROM node:23 AS second
+FROM node:22 AS second
 WORKDIR /app
 COPY --from=first /app/tailwind.config.js /app/starter.db /app/package.json /app/gostart /app/package-lock.json /app/
 COPY --from=first /app/templates /app/templates
 COPY --from=first /app/static /app/static
 # COPY package*.json ./
-RUN npm install --verbose
+RUN npm install
 RUN npx esbuild ./static/js/comment-form.js --bundle --outdir=./static/js/output --minify &&\
     npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify
 
 ####################################################################################
 
-FROM scratch
+FROM alpine:3.20.3
 WORKDIR /app
 COPY --from=second /app/gostart ./gostart
 COPY --from=second /app/static ./static

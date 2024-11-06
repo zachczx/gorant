@@ -202,7 +202,7 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 							<div class="label">
 								<span class="label-text">Message</span>
 							</div>
-							<textarea name="message" id="comment-form-message-input" class="textarea textarea-bordered h-24 rounded-none" maxlength="2000"></textarea>
+							<textarea name="message" id="comment-form-message-input" class="textarea textarea-bordered h-24 rounded-none" minlength="10" maxlength="2000"></textarea>
 							<div id="form-message-error"></div>
 						</label>
 						if loggedIn == "true" {
