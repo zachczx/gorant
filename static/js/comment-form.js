@@ -9,6 +9,7 @@ document.addEventListener('keydown', (evt) => {
 				'<span class="loading loading-spinner loading-md"></span>';
 			setTimeout(() => {
 				document.getElementById('comment-form').requestSubmit();
+				document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
 			}, 1000);
 		}
 	}
@@ -18,6 +19,7 @@ document.addEventListener('keydown', (evt) => {
 			'<span class="loading loading-spinner loading-md"></span>';
 		setTimeout(() => {
 			document.getElementById('comment-form').requestSubmit();
+			document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
 		}, 1000);
 	}
 });
@@ -30,6 +32,7 @@ document.addEventListener('click', (evt) => {
 				'<span class="loading loading-spinner loading-md"></span>';
 			setTimeout(() => {
 				document.getElementById('comment-form').requestSubmit();
+				document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
 			}, 1000);
 		}
 	}
@@ -40,6 +43,23 @@ document.addEventListener('click', (evt) => {
 			'<span class="loading loading-spinner loading-md"></span>';
 		setTimeout(() => {
 			document.getElementById('comment-form').requestSubmit();
+			document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
 		}, 1000);
 	}
+});
+
+var commentFormMessageInputEl = document.getElementById('comment-form-message-input');
+var commentFormCharsRemainingEl = document.getElementById('form-message-chars-remaining');
+var total = 2000;
+commentFormCharsRemainingEl.innerHTML = total;
+function calculate(value, total) {
+	var count = value.trim().length;
+	console.log(count);
+	remaining = total - count;
+
+	return remaining;
+}
+
+commentFormMessageInputEl.addEventListener('keyup', () => {
+	commentFormCharsRemainingEl.innerHTML = calculate(commentFormMessageInputEl.value, total);
 });

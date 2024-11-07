@@ -79,56 +79,75 @@ func main() {
 		TemplRender(w, r, templates.StarterWelcome("", p, user.Username, user.LoggedIn))
 	})))
 
-	mux.Handle("GET /error", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// if authentication.IsAuthenticated(r.Context()) {
-		// 	http.Redirect(w, r, "/", http.StatusSeeOther)
-		// }
+	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
-	})))
-
-	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
-		postID := r.FormValue("postID")
-		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 	})
 
-	mux.Handle("/posts/{id}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.FormValue("post-id")
+		fmt.Println("Form value received: ", postID)
+
+		if !authentication.IsAuthenticated(r.Context()) {
+			exists := posts.VerifyPostID(postID)
+
+			if !exists {
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+			}
+			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+			return
+		}
+		username := mw.Context(r.Context()).UserInfo.PreferredUsername
+
+		err := posts.NewPost(postID, username)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+	})))
+
+	mux.Handle("/posts/{postID}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if authentication.IsAuthenticated(r.Context()) {
 			fmt.Println("Logged in!")
 			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 			user.LoggedIn = "true"
 		}
 
-		postID := r.PathValue("id")
+		postID := r.PathValue("postID")
 		comments, err := posts.View(postID, user.Username)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		fmt.Println("Current user: ", user.Username)
-		fmt.Println(comments[0].CurrentUserVoted)
 		TemplRender(w, r, templates.Post("Posts", comments, postID, user.Username, user.LoggedIn))
 	})))
 
-	mux.HandleFunc("GET /posts/{id}/new", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/posts/{id}", http.StatusSeeOther)
+	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{id}/new", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("id")
+	mux.Handle("POST /posts/{postID}/new", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
 		authCtx := mw.Context(r.Context())
+		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
 		if !authCtx.IsAuthenticated() {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
 			comments, err = posts.View(postID, user.Username)
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID))
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID, user.Username))
+			return
+		}
+
+		if !posts.VerifyPostID(postID) {
+			fmt.Println("Error verifying post exists")
+			TemplRender(w, r, templates.Error("Error! Post doesn't exist!"))
 			return
 		}
 
 		c := posts.Comment{
-			UserID: user.Username,
-			// Name:      r.FormValue("name"),
+			UserID:    user.Username,
 			Content:   r.FormValue("message"),
 			CreatedAt: time.Now().String(),
 			PostID:    postID,
@@ -142,7 +161,7 @@ func main() {
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewError(comments, postID, vErr))
+			TemplRender(w, r, templates.PartialPostNewError(comments, postID, user.Username, vErr))
 			return
 		}
 
@@ -155,21 +174,23 @@ func main() {
 			return
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID))
+			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID, user.Username))
 		}
 	})))
 
-	mux.Handle("POST /posts/{id}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("id")
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
 		authCtx := mw.Context(r.Context())
+		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
+
 		if !authCtx.IsAuthenticated() {
 			comments, err := posts.View(postID, user.Username)
 			if err != nil {
-				fmt.Println("Error fetching posts")
+				fmt.Println("Error fetching posts: ", err)
 			}
-			TemplRender(w, r, templates.PartialPostVoteError(comments, postID))
+			TemplRender(w, r, templates.PartialPostVoteError(comments, postID, user.Username))
 			return
 		}
 
@@ -186,18 +207,30 @@ func main() {
 			fmt.Println("Error fetching posts", err)
 		}
 
-		TemplRender(w, r, templates.PartialPostVote(comments, postID))
+		TemplRender(w, r, templates.PartialPostVote(comments, postID, user.Username))
 	})))
 
 	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.About())
 	})
 
-	mux.HandleFunc("POST /posts/{id}/comment/{commentID}/delete", func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("id")
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
+		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
-		if err := posts.Delete(commentID); err != nil {
+		authCtx := mw.Context(r.Context())
+		if !authCtx.IsAuthenticated() {
+			fmt.Println("I'm inside unauthenticated")
+			comments, err := posts.View(postID, user.Username)
+			if err != nil {
+				fmt.Println(err)
+			}
+			TemplRender(w, r, templates.PartialPostDeleteError(comments, postID, user.Username))
+			return
+		}
+
+		if err := posts.Delete(commentID, user.Username); err != nil {
 			fmt.Println("Error deleting comment: ", err)
 			return
 		}
@@ -206,10 +239,24 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-		TemplRender(w, r, templates.PartialPostVote(comments, postID))
-	})
+		TemplRender(w, r, templates.PartialPostDelete(comments, postID, user.Username))
+	})))
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
+
+	mux.HandleFunc("/admin/reset", func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("DEV_ENV") == "TRUE" {
+			err := posts.ResetDB()
+			if err != nil {
+				w.Write([]byte("Reset failed, errored out"))
+				return
+			}
+
+			t := time.Now().String()
+
+			TemplRender(w, r, templates.Reset("", t))
+		}
+	})
 
 	wrappedMux := StatusLogger(ExcludeCompression(mux))
 	var p string = os.Getenv("LISTEN_ADDR")

@@ -31,7 +31,6 @@ type CommentVote struct {
 type JoinComment struct {
 	RowID     string `db:"rowid"`
 	UserID    string `db:"user_id"`
-	Name      string `db:"name"`
 	Content   string `db:"content"`
 	CreatedAt string `db:"created_at"`
 	PostID    string `db:"post_id"`
@@ -61,9 +60,6 @@ func Insert(c Comment) error {
 
 func View(postID string, currentUser string) ([]JoinComment, error) {
 	db := Connect()
-	if postID == "" {
-		postID = "demo"
-	}
 
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
@@ -116,10 +112,10 @@ func View(postID string, currentUser string) ([]JoinComment, error) {
 	return comments, nil
 }
 
-func Delete(commentID string) error {
+func Delete(commentID string, username string) error {
 	db := Connect()
 
-	_, err := db.Exec(`DELETE FROM comments WHERE rowid=? AND user_id=1`, commentID)
+	_, err := db.Exec(`DELETE FROM comments WHERE rowid=? AND user_id=?`, commentID, username)
 	if err != nil {
 		return err
 	}
@@ -144,7 +140,7 @@ func Validate(c Comment) map[string](string) {
 	v := govalidator.New()
 
 	// v.RequiredString(c.Name, "name", "Please enter a name")
-	v.RequiredString(c.Content, "content", "Please enter a message").MaxString(c.Content, 2000, "content", "Max length exceeded")
+	v.RequiredString(c.Content, "content", "Please enter a message").MinString(c.Content, 10, "content", "Message needs to be at least 10 characters long.").MaxString(c.Content, 2000, "content", "Message is more than 2000 characters.")
 
 	if v.IsFailed() {
 		return v.Errors()

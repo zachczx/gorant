@@ -5,7 +5,7 @@ import (
 	"gostart/posts"
 )
 
-templ PartialPostNew(comments []posts.JoinComment, postID string) {
+templ PartialPostNew(comments []posts.JoinComment, postID string, username string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
@@ -37,8 +37,8 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 							}
 						</div>
 					</div>
-					<div class="w-full grow bg-lime-300/10 px-8">
-						<div class="flex border-b border-accent/20 py-2 text-xl text-base-content/60">
+					<div class="w-full grow bg-lime-300/10 p-4">
+						<div class="flex border-b border-accent/20 pb-2 text-xl text-base-content/60">
 							<div class="flex grow items-center font-bold">
 								// <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="me-2 inline text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.85 17.1q1.275-.975 2.85-1.537T12 15t3.3.563t2.85 1.537q.875-1.025 1.363-2.325T20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.475.488 2.775T5.85 17.1M12 13q-1.475 0-2.488-1.012T8.5 9.5t1.013-2.488T12 6t2.488 1.013T15.5 9.5t-1.012 2.488T12 13m0 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 								<div class="me-2 w-10 rounded-full bg-neutral/70 text-center text-neutral-content">{ comments[i].Initials }</div>
@@ -46,48 +46,45 @@ templ PartialPostNew(comments []posts.JoinComment, postID string) {
 							</div>
 							<div class="flex items-center text-base">
 								(#{ comments[i].RowID }) { comments[i].CreatedAt }
-								<button
-									hx-target="#posts"
-									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
-									class="py-2 ps-4 hover:text-error"
-								>
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
-									</svg>
-								</button>
 							</div>
 						</div>
 						<div class="py-4 text-base">{ comments[i].Content }</div>
+						if comments[i].UserID == username {
+							<div class="w-full mt-4 flex justify-end">
+								<div class="dropdown dropdown-end dropdown-bottom">
+									<div tabindex="0" role="button" class="flex items-center btn btn-sm bg-transparent border border-neutral/60 hover:bg-neutral text-neutral/60 hover:text-neutral-content">
+										More Actions<svg xmlns="http://www.w3.org/2000/svg" class="" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+									</div>
+									<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
+										<li>
+											<button
+												hx-target="#posts"
+												hx-swap="outerHTML"
+												hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
+												class="py-2 ps-4 hover:bg-error hover:text-error-content"
+											>
+												<svg xmlns="http://www.w3.org/2000/svg" class="me-2" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+													<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+												</svg>Delete
+											</button>
+										</li>
+									</ul>
+								</div>
+							</div>
+						}
 					</div>
 				</div>
 			}
 		}
+		<!-- Children props are for Toasts -->
 		{ children... }
 	</article>
-	<form method="post" id="comment-form" hx-post={ "/posts/" + postID + "/new" } hx-swap="outerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg" hx-swap-oob="true">
-		// <label class="form-control">
-		// 	<div class="label">
-		// 		<span class="label-text">Name</span>
-		// 	</div>
-		// 	<input type="text" name="name" id="comment-form-name-input" class="input input-bordered rounded-none text-sm"/>
-		// 	<div id="form-name-error"></div>
-		// </label>
-		<label class="form-control">
-			<div class="label">
-				<span class="label-text">Message</span>
-			</div>
-			<textarea name="message" id="comment-form-message-input" class="textarea textarea-bordered h-24 rounded-none" minlength="10" maxlength="2000"></textarea>
-			<div id="form-message-error"></div>
-		</label>
-		<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg">+ Add</button>
-		<script src="/static/js/output/comment-form.js"></script>
-	</form>
 }
 
-templ PartialPostNewError(comments []posts.JoinComment, postID string, messages map[string]string) {
-	@PartialPostNew(comments, postID)
-	<div class="w-full pb-4" id="form-message" hx-swap-oob="true">
-		<div class="grid content-center space-y-2 border border-error p-2 text-error">
+templ PartialPostNewError(comments []posts.JoinComment, postID string, username string, messages map[string]string) {
+	@PartialPostNew(comments, postID, username)
+	<div class="w-full" id="form-message" hx-swap-oob="true">
+		<div class="grid w-full content-center space-y-2 border border-error p-2 pb-4 text-error">
 			<h2 class="flex items-center text-xl font-bold">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 				Error!
@@ -102,15 +99,14 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, messages 
 			</ul>
 		</div>
 	</div>
-	// <div id="form-name-error" class="text-error" hx-swap-oob="true">{ messages["name"] }</div>
 	<div id="form-message-error" class="text-error" hx-swap-oob="true">{ messages["content"] }</div>
 }
 
-templ PartialPostNewSuccess(comments []posts.JoinComment, postID string) {
-	@PartialPostNew(comments, postID)
+templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username)
 	<div class="w-full pb-4" id="form-message" hx-swap-oob="true">
-		<div class="flex items-center border border-success p-2 text-success">
-			<h2 class="flex items-center text-xl">
+		<div class="flex w-full items-center border border-success p-2 text-success">
+			<h2 class="flex items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 				Successfully added!
 			</h2>
@@ -118,19 +114,29 @@ templ PartialPostNewSuccess(comments []posts.JoinComment, postID string) {
 	</div>
 }
 
-templ PartialPostVote(comments []posts.JoinComment, postID string) {
-	@PartialPostNew(comments, postID)
+templ PartialPostVote(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username)
 }
 
-templ PartialPostVoteError(comments []posts.JoinComment, postID string) {
-	@PartialPostNew(comments, postID) {
+templ PartialPostVoteError(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username) {
 		@Toast("error", "You need to be logged in to upvote!")
 	}
 }
 
-templ PartialPostNewErrorLogin(comments []posts.JoinComment, postID string) {
-	@PartialPostNew(comments, postID) {
+templ PartialPostNewErrorLogin(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username) {
 		@Toast("error", "You need to be logged in to add a new comment!")
+	}
+}
+
+templ PartialPostDelete(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username)
+}
+
+templ PartialPostDeleteError(comments []posts.JoinComment, postID string, username string) {
+	@PartialPostNew(comments, postID, username) {
+		@Toast("error", "You can only delete comments you posted!")
 	}
 }
 

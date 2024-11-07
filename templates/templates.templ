@@ -102,13 +102,6 @@ templ Base(title string, username string, loggedIn string) {
 					<a href="https://zixianchen.com/projects" class="underline">Portfolio</a> | <a href="https://zixianchen.com/contact/" class="underline">Feedback</a>
 				</div>
 			</footer>
-			<script>
-				window.addEventListener('load', async function () {
-					await Clerk.load()
-
-					console.log('ClerkJS is loaded')
-				})
-			</script>
 		</body>
 	</html>
 }
@@ -148,8 +141,8 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 									}
 								</div>
 							</div>
-							<div class="w-full grow bg-lime-300/10 px-8">
-								<div class="flex border-b border-accent/20 py-2 text-xl text-base-content/60">
+							<div class="w-full grow bg-lime-300/10 p-4">
+								<div class="flex border-b border-accent/20 pb-2 text-xl text-base-content/60">
 									<div class="flex grow items-center font-bold">
 										// <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="me-2 inline text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.85 17.1q1.275-.975 2.85-1.537T12 15t3.3.563t2.85 1.537q.875-1.025 1.363-2.325T20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.475.488 2.775T5.85 17.1M12 13q-1.475 0-2.488-1.012T8.5 9.5t1.013-2.488T12 6t2.488 1.013T15.5 9.5t-1.012 2.488T12 13m0 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 										<div class="me-2 w-10 rounded-full bg-neutral/70 text-center text-neutral-content">{ comments[i].Initials }</div>
@@ -157,18 +150,32 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 									</div>
 									<div class="flex items-center text-base">
 										(#{ comments[i].RowID }) { comments[i].CreatedAt }
-										<button
-											hx-target="#posts"
-											hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
-											class="py-2 ps-4 hover:text-error"
-										>
-											<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-												<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
-											</svg>
-										</button>
 									</div>
 								</div>
 								<div class="py-4 text-base">{ comments[i].Content }</div>
+								if comments[i].UserID == username {
+									<div class="w-full mt-4 flex justify-end">
+										<div class="dropdown dropdown-end dropdown-bottom">
+											<div tabindex="0" role="button" class="flex items-center btn btn-sm bg-transparent border border-neutral/60 hover:bg-neutral text-neutral/60 hover:text-neutral-content">
+												More Actions<svg xmlns="http://www.w3.org/2000/svg" class="" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+											</div>
+											<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
+												<li>
+													<button
+														hx-target="#posts"
+														hx-swap="outerHTML"
+														hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
+														class="py-2 ps-4 hover:bg-error hover:text-error-content"
+													>
+														<svg xmlns="http://www.w3.org/2000/svg" class="me-2" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+															<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+														</svg>Delete
+													</button>
+												</li>
+											</ul>
+										</div>
+									</div>
+								}
 							</div>
 						</div>
 					}
@@ -180,38 +187,34 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 			</article>
 			<div class="w-full">
 				<div class="grid justify-items-center">
-					if loggedIn == "false" {
-						<div class="w-full pb-4 " id="form-message">
-							<div class="flex items-center border border-neutral/20 p-2 text-neutral/80">
-								<h2 class="flex items-center text-xl">
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-									Please login before posting!
-								</h2>
+					<div class="w-full" id="form-message">
+						if loggedIn == "false" {
+							<div class="w-full pb-4" id="">
+								<div class="flex items-center border border-neutral/20 p-4 text-neutral/80">
+									<a href="/auth/login" class="flex items-center">
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+										Please login before posting!
+									</a>
+								</div>
 							</div>
-						</div>
-					}
+						}
+					</div>
 					<form method="post" id="comment-form" hx-post={ "/posts/" + postID + "/new" } hx-swap="outerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg">
-						// <label class="form-control">
-						// 	<div class="label">
-						// 		<span class="label-text">Name</span>
-						// 	</div>
-						// 	<input type="text" name="name" id="comment-form-name-input" class="input input-bordered rounded-none text-sm"/>
-						// 	<div id="form-name-error"></div>
-						// </label>
 						<label class="form-control">
-							<div class="label">
-								<span class="label-text">Message</span>
+							<div class="label flex">
+								<div class="label-text grow">Message</div>
+								<div class="italic text-xs"><span id="form-message-chars-remaining"></span> characters left</div>
 							</div>
-							<textarea name="message" id="comment-form-message-input" class="textarea textarea-bordered h-24 rounded-none" minlength="10" maxlength="2000"></textarea>
+							<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 rounded-none" minlength="10" maxlength="2000" rows="7" required></textarea>
 							<div id="form-message-error"></div>
 						</label>
 						if loggedIn == "true" {
 							<div>
-								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;">+ Add</button>
+								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;">Add Comment</button>
 							</div>
 						} else {
 							<div>
-								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;" disabled>+ Add</button>
+								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;" disabled>Add Comment</button>
 							</div>
 						}
 						<script src="/static/js/output/comment-form.js"></script>
@@ -232,16 +235,16 @@ templ StarterWelcome(message string, posts []posts.Post, username string, logged
 	@Base("GoRant", username, loggedIn) {
 		<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
 		<div class="grid place-items-center content-center">
-			<p class="text-2xl pb-8">{ message }</p>
+			<p class="pb-8 text-2xl">{ message }</p>
 			<form method="post" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<input type="text" name="postID" hx-post="/posts" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
+				<input type="text" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
 				<button class="btn btn-accent join-item text-lg">Go</button>
 			</form>
-			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="lg:order-first py-4"/>
-			<div class="pt-8 lg:pt-16 grid grid-cols-4 gap-4">
+			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="py-4 lg:order-first"/>
+			<div class="grid grid-cols-4 gap-4 pt-8 lg:pt-16">
 				for i := 0; i < len(posts); i++ {
-					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="grid content-center border border-neutral/80 p-8">
-						<h3 class="text-lg font-bold">{ posts[i].ID }</h3>
+					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center border border-neutral/80 p-8">
+						<h3 class="text-lg font-bold">{ posts[i].PostID }</h3>
 						<div>Posted by { posts[i].UserID }</div>
 					</a>
 				}
