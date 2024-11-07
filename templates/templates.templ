@@ -154,9 +154,9 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 								</div>
 								<div class="py-4 text-base">{ comments[i].Content }</div>
 								if comments[i].UserID == username {
-									<div class="w-full mt-4 flex justify-end">
+									<div class="mt-4 flex w-full justify-end">
 										<div class="dropdown dropdown-end dropdown-bottom">
-											<div tabindex="0" role="button" class="flex items-center btn btn-sm bg-transparent border border-neutral/60 hover:bg-neutral text-neutral/60 hover:text-neutral-content">
+											<div tabindex="0" role="button" class="btn btn-sm flex items-center border border-neutral/60 bg-transparent text-neutral/60 hover:bg-neutral hover:text-neutral-content">
 												More Actions<svg xmlns="http://www.w3.org/2000/svg" class="" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 											</div>
 											<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
@@ -203,7 +203,7 @@ templ Post(message string, comments []posts.JoinComment, postID string, username
 						<label class="form-control">
 							<div class="label flex">
 								<div class="label-text grow">Message</div>
-								<div class="italic text-xs"><span id="form-message-chars-remaining"></span> characters left</div>
+								<div class="text-xs italic"><span id="form-message-chars-remaining"></span> characters left</div>
 							</div>
 							<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 rounded-none" minlength="10" maxlength="2000" rows="7" required></textarea>
 							<div id="form-message-error"></div>
@@ -237,7 +237,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string, logged
 		<div class="grid place-items-center content-center">
 			<p class="pb-8 text-2xl">{ message }</p>
 			<form method="post" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<input type="text" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered bg-primary/10 text-base-content input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
+				<input type="text" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
 				<button class="btn btn-accent join-item text-lg">Go</button>
 			</form>
 			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="py-4 lg:order-first"/>

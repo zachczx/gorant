@@ -50,9 +50,9 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 						</div>
 						<div class="py-4 text-base">{ comments[i].Content }</div>
 						if comments[i].UserID == username {
-							<div class="w-full mt-4 flex justify-end">
+							<div class="mt-4 flex w-full justify-end">
 								<div class="dropdown dropdown-end dropdown-bottom">
-									<div tabindex="0" role="button" class="flex items-center btn btn-sm bg-transparent border border-neutral/60 hover:bg-neutral text-neutral/60 hover:text-neutral-content">
+									<div tabindex="0" role="button" class="btn btn-sm flex items-center border border-neutral/60 bg-transparent text-neutral/60 hover:bg-neutral hover:text-neutral-content">
 										More Actions<svg xmlns="http://www.w3.org/2000/svg" class="" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 									</div>
 									<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
