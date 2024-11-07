@@ -237,7 +237,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string, logged
 		<div class="grid place-items-center content-center">
 			<p class="pb-8 text-2xl">{ message }</p>
 			<form method="post" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<input type="text" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
+				<input type="text" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered bg-primary/10 text-base-content input-accent w-full max-w-96 focus:outline-none active:border-0 active:border-2" autocomplete="off" required/>
 				<button class="btn btn-accent join-item text-lg">Go</button>
 			</form>
 			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="py-4 lg:order-first"/>
