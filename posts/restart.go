@@ -3,9 +3,12 @@ package posts
 import "fmt"
 
 func ResetDB() error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
-	_, err := db.Exec(`DROP TABLE IF EXISTS comments;`)
+	_, err = db.Exec(`DROP TABLE IF EXISTS comments;`)
 	if err != nil {
 		fmt.Println("Error dropping comments table")
 		return err

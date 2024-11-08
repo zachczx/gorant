@@ -48,7 +48,10 @@ type JoinComment struct {
 }
 
 func Insert(c Comment) error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
 	r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
 	if err != nil {
@@ -60,7 +63,10 @@ func Insert(c Comment) error {
 }
 
 func GetPostComments(postID string, currentUser string) (Post, []JoinComment, error) {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return Post{}, nil, err
+	}
 
 	var post Post
 	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=?", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
@@ -120,9 +126,12 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 }
 
 func GetComments(postID string, currentUser string) ([]JoinComment, error) {
-	db := Connect()
-
 	var comments []JoinComment
+	db, err := Connect()
+	if err != nil {
+		return comments, err
+	}
+
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
@@ -174,9 +183,12 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 }
 
 func Delete(commentID string, username string) error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
-	_, err := db.Exec(`DELETE FROM comments WHERE rowid=? AND user_id=?`, commentID, username)
+	_, err = db.Exec(`DELETE FROM comments WHERE rowid=? AND user_id=?`, commentID, username)
 	if err != nil {
 		return err
 	}
@@ -184,17 +196,17 @@ func Delete(commentID string, username string) error {
 	return nil
 }
 
-func Connect() *sqlx.DB {
+func Connect() (*sqlx.DB, error) {
 	db, err := sqlx.Open("sqlite", file)
 	if err != nil {
-		fmt.Println("Error connecting to DB: ", err)
+		return nil, err
 	}
 	if err = db.Ping(); err != nil {
-		fmt.Println("Error pinging DB: ", err)
+		return nil, err
 	}
 	fmt.Println("DB connected!")
 
-	return db
+	return db, nil
 }
 
 func Validate(c Comment) map[string](string) {
@@ -211,7 +223,10 @@ func Validate(c Comment) map[string](string) {
 }
 
 func UpVote(commentID string, username string) error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
 	res, err := db.Query("SELECT rowid FROM comments_votes WHERE comment_id=? AND user_id=?", commentID, username)
 	if err != nil {

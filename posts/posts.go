@@ -14,7 +14,10 @@ type Post struct {
 }
 
 func ListPosts() ([]Post, error) {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := db.Query(`SELECT post_id, user_id, description, protected, created_at FROM posts;`)
 	if err != nil {
@@ -42,7 +45,10 @@ func ListPosts() ([]Post, error) {
 }
 
 func NewPost(postID string, username string) error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
 	exists := VerifyPostID(postID)
 	if exists {
@@ -51,7 +57,7 @@ func NewPost(postID string, username string) error {
 
 	t := time.Now().String()
 
-	_, err := db.Exec("INSERT INTO posts (post_id, user_id, created_at) VALUES (?, ?, ?)", postID, username, t)
+	_, err = db.Exec("INSERT INTO posts (post_id, user_id, created_at) VALUES (?, ?, ?)", postID, username, t)
 	if err != nil {
 		return err
 	}
@@ -60,7 +66,10 @@ func NewPost(postID string, username string) error {
 }
 
 func VerifyPostID(postID string) bool {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return false
+	}
 
 	res, err := db.Query("SELECT rowid FROM posts WHERE post_id=?", postID)
 	if err != nil {
@@ -73,7 +82,10 @@ func VerifyPostID(postID string) bool {
 }
 
 func GetPostInfo(postID string, currentUser string) (Post, error) {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return Post{}, err
+	}
 	var post Post
 	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=? AND user_id=?", postID, currentUser).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
 		return post, err
@@ -83,9 +95,12 @@ func GetPostInfo(postID string, currentUser string) (Post, error) {
 }
 
 func EditPostDescription(postID string, description string) error {
-	db := Connect()
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
 
-	_, err := db.Exec("UPDATE posts SET description=? WHERE post_id=?", description, postID)
+	_, err = db.Exec("UPDATE posts SET description=? WHERE post_id=?", description, postID)
 	if err != nil {
 		return err
 	}
