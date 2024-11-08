@@ -71,3 +71,23 @@ func VerifyPostID(postID string) bool {
 
 	return res.Next()
 }
+
+func GetPostInfo(postID string, currentUser string) (Post, error) {
+	db := Connect()
+	var post Post
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=? AND user_id=?", postID, currentUser).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
+		return post, err
+	}
+
+	return post, nil
+}
+
+func EditPostDescription(postID string, description string) error {
+	db := Connect()
+
+	_, err := db.Exec("UPDATE posts SET description=? WHERE post_id=?", description, postID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

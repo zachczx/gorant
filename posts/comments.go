@@ -29,12 +29,13 @@ type CommentVote struct {
 }
 
 type JoinComment struct {
-	RowID     string `db:"rowid"`
-	UserID    string `db:"user_id"`
-	Content   string `db:"content"`
-	CreatedAt string `db:"created_at"`
-	PostID    string `db:"post_id"`
-	Initials  string
+	RowID           string `db:"rowid"`
+	UserID          string `db:"user_id"`
+	Content         string `db:"content"`
+	CreatedAt       string `db:"created_at"`
+	PostID          string `db:"post_id"`
+	PostDescription string `db:"description"`
+	Initials        string
 
 	// Null handling for counts from DB, since counts are calculated from the query
 	Score            sql.NullInt64 `db:"score"`
@@ -58,10 +59,17 @@ func Insert(c Comment) error {
 	return nil
 }
 
-func View(postID string, currentUser string) ([]JoinComment, error) {
+func GetPostComments(postID string, currentUser string) (Post, []JoinComment, error) {
 	db := Connect()
 
+	var post Post
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=?", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
+		return post, nil, err
+	}
+
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
+	// I considered left join for post description, but it was stupid to append description to every comment.
+	// Decided to just do a separate query for that instead.
 	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
 					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
 					FROM comments_votes 
@@ -70,8 +78,7 @@ func View(postID string, currentUser string) ([]JoinComment, error) {
 					AND comments.post_id=?
 					ORDER BY cnt DESC;`, postID)
 	if err != nil {
-		fmt.Println("Error fetching comments: ", err)
-		return nil, err
+		return post, nil, err
 	}
 	defer rows.Close()
 
@@ -82,7 +89,61 @@ func View(postID string, currentUser string) ([]JoinComment, error) {
 
 		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted); err != nil {
 			fmt.Println("Scanning error: ", err)
-			return nil, err
+			return post, nil, err
+		}
+
+		c.Initials = strings.ToUpper(c.UserID[:2])
+
+		if c.Score.Valid {
+			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
+		} else {
+			c.ScoreString = ""
+		}
+
+		if c.Count.Valid {
+			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
+		} else {
+			c.CountString = ""
+		}
+
+		if c.IDsVoted.Valid && currentUser != "" {
+			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
+		} else {
+			c.CurrentUserVoted = "false"
+		}
+
+		c.CreatedAt = c.CreatedAt[:16]
+		comments = append(comments, c)
+	}
+
+	return post, comments, nil
+}
+
+func GetComments(postID string, currentUser string) ([]JoinComment, error) {
+	db := Connect()
+
+	var comments []JoinComment
+	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
+	// I considered left join for post description, but it was stupid to append description to every comment.
+	// Decided to just do a separate query for that instead.
+	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
+					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
+					FROM comments_votes 
+					GROUP BY comments_votes.comment_id) as comments_votes 
+					ON comments.rowid = comments_votes.comment_id 
+					AND comments.post_id=?
+					ORDER BY cnt DESC;`, postID)
+	if err != nil {
+		return comments, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c JoinComment
+
+		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted); err != nil {
+			fmt.Println("Scanning error: ", err)
+			return comments, err
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])

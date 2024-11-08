@@ -114,13 +114,13 @@ func main() {
 		}
 
 		postID := r.PathValue("postID")
-		comments, err := posts.View(postID, user.Username)
+		post, comments, err := posts.GetPostComments(postID, user.Username)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.Post("Posts", comments, postID, user.Username, user.LoggedIn))
+		TemplRender(w, r, templates.Post("Posts", post, comments, postID, user.Username, user.LoggedIn))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +135,7 @@ func main() {
 		if !authCtx.IsAuthenticated() {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
-			comments, err = posts.View(postID, user.Username)
+			comments, err = posts.GetComments(postID, user.Username)
 			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID, user.Username))
 			return
 		}
@@ -155,7 +155,7 @@ func main() {
 
 		if vErr := posts.Validate(c); vErr != nil {
 			fmt.Println("Error: ", vErr)
-			comments, err := posts.View(postID, user.Username)
+			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
@@ -168,7 +168,7 @@ func main() {
 		if err := posts.Insert(c); err != nil {
 			fmt.Println("Error inserting")
 		}
-		comments, err := posts.View(postID, user.Username)
+		comments, err := posts.GetComments(postID, user.Username)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Oops, something went wrong."))
 			return
@@ -183,10 +183,9 @@ func main() {
 		commentID := r.PathValue("commentID")
 
 		authCtx := mw.Context(r.Context())
-		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
 		if !authCtx.IsAuthenticated() {
-			comments, err := posts.View(postID, user.Username)
+			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
 				fmt.Println("Error fetching posts: ", err)
 			}
@@ -195,6 +194,7 @@ func main() {
 		}
 
 		var err error
+		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
 		err = posts.UpVote(commentID, user.Username)
 		if err != nil {
@@ -202,17 +202,13 @@ func main() {
 		}
 
 		var comments []posts.JoinComment
-		comments, err = posts.View(postID, user.Username)
+		comments, err = posts.GetComments(postID, user.Username)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
 
 		TemplRender(w, r, templates.PartialPostVote(comments, postID, user.Username))
 	})))
-
-	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.About())
-	})
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
@@ -222,7 +218,7 @@ func main() {
 		authCtx := mw.Context(r.Context())
 		if !authCtx.IsAuthenticated() {
 			fmt.Println("I'm inside unauthenticated")
-			comments, err := posts.View(postID, user.Username)
+			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -235,12 +231,50 @@ func main() {
 			return
 		}
 
-		comments, err := posts.View(postID, user.Username)
+		comments, err := posts.GetComments(postID, user.Username)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
 		TemplRender(w, r, templates.PartialPostDelete(comments, postID, user.Username))
 	})))
+
+	mux.Handle("GET /posts/{postID}/description/edit", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		authCtx := mw.Context(r.Context())
+		if !authCtx.IsAuthenticated() {
+			fmt.Println("Not authenticated, not allowed to edit description")
+			return
+		}
+
+		user.Username = authCtx.UserInfo.PreferredUsername
+
+		post, err := posts.GetPostInfo(postID, user.Username)
+		if err != nil {
+			fmt.Println("Error fetching post info", err)
+		}
+		TemplRender(w, r, templates.PartialEditDescriptionInput(postID, post))
+	})))
+
+	mux.HandleFunc("POST /posts/{postID}/description/edit", func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		description := r.FormValue("post-description-input")
+
+		err := posts.EditPostDescription(postID, description)
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error("Something went wrong while editing the post!"))
+		}
+
+		post, err := posts.GetPostInfo(postID, user.Username)
+		if err != nil {
+			fmt.Println("Error fetching post info", err)
+		}
+		TemplRender(w, r, templates.PartialEditDescriptionResponse(postID, post))
+	})
+
+	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.About())
+	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
