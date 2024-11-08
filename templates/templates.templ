@@ -272,9 +272,9 @@ templ StarterWelcome(message string, posts []posts.Post, username string, logged
 			<img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="py-4 lg:order-first"/>
 			<div class="grid grid-cols-4 gap-4 pt-8 lg:pt-16">
 				for i := 0; i < len(posts); i++ {
-					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center border border-neutral/80 p-8">
+					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center bg-primary/10 border border-neutral/80 hover:bg-primary/50 hover:border-primary p-8">
 						<h3 class="text-lg font-bold">{ posts[i].PostID }</h3>
-						<div>Posted by { posts[i].UserID }</div>
+						<div>by { posts[i].UserID }</div>
 					</a>
 				}
 			</div>
