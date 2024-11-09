@@ -2,7 +2,7 @@ package templates
 
 import (
 	"fmt"
-	"gostart/posts"
+	"gorant/posts"
 )
 
 templ Base(title string, username string, loggedIn string) {
@@ -11,7 +11,7 @@ templ Base(title string, username string, loggedIn string) {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta description="Gostart: Go starter kit"/>
+			<meta description="GoRant: Go starter kit"/>
 			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
 			<title>{ title }</title>
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
@@ -371,42 +371,42 @@ templ MoodMapper(postID string, mood string) {
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/elated", postID))) }
-				><span class="inline text-xl me-2">😄</span> Elated</button>
+				><span class="me-2 inline text-xl">😄</span> Elated</button>
 			</li>
 			<li class="text-base font-normal">
 				<button
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/happy", postID))) }
-				><span class="inline text-xl me-2">🙂</span> Happy</button>
+				><span class="me-2 inline text-xl">🙂</span> Happy</button>
 			</li>
 			<li class="text-base font-normal">
 				<button
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/neutral", postID))) }
-				><span class="inline text-xl me-2">😐</span> Neutral</button>
+				><span class="me-2 inline text-xl">😐</span> Neutral</button>
 			</li>
 			<li class="text-base font-normal">
 				<button
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/sad", postID))) }
-				><span class="inline text-xl me-2">☹️</span> Sad</button>
+				><span class="me-2 inline text-xl">☹️</span> Sad</button>
 			</li>
 			<li class="text-base font-normal">
 				<button
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/upset", postID))) }
-				><span class="inline text-xl me-2">😫</span> Upset</button>
+				><span class="me-2 inline text-xl">😫</span> Upset</button>
 			</li>
 			<li class="text-base font-normal">
 				<button
 					hx-target="#mood"
 					hx-swap="outerHTML"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/angry", postID))) }
-				><span class="inline text-xl me-2">😡</span> Angry</button>
+				><span class="me-2 inline text-xl">😡</span> Angry</button>
 			</li>
 		</ul>
 	</div>

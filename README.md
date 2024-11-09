@@ -1,4 +1,4 @@
-# GoStart: Go Webapp Starter Kit
+# GoRant: Go Webapp Starter Kit
 
 My personal Go webapp starter kit.
 

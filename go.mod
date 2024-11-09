@@ -1,4 +1,4 @@
-module gostart
+module gorant
 
 go 1.23.0
 

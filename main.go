@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"gostart/posts"
-	"gostart/templates"
+	"gorant/posts"
+	"gorant/templates"
 
 	"github.com/a-h/templ"
 
@@ -182,7 +182,6 @@ func main() {
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
-		fmt.Print(newMood)
 
 		if err := posts.EditMood(postID, newMood); err != nil {
 			fmt.Println(err)

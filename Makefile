@@ -1,6 +1,6 @@
 # Makefile
 
-BINARY_NAME=gostart
+BINARY_NAME=gorant
 
 # Default url: http://localhost:7331
 
