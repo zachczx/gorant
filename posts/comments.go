@@ -69,7 +69,8 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	}
 
 	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=?", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=?", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
+		fmt.Println("Queryrow issue")
 		return post, nil, err
 	}
 

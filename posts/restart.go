@@ -24,7 +24,7 @@ func ResetDB() error {
 		return err
 	}
 
-	_, err = db.Exec(`CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, user_id VARCHAR(255), description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TEXT);`)
+	_, err = db.Exec(`CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, user_id VARCHAR(255), description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TEXT, mood VARCHAR(15) DEFAULT 'Neutral');`)
 	if err != nil {
 		fmt.Println("Error creating posts table")
 		return err

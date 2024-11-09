@@ -1,7 +1,9 @@
 package posts
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -11,6 +13,7 @@ type Post struct {
 	Description string `db:"description"`
 	Protected   int    `db:"protected"`
 	CreatedAt   string `db:"created_at"`
+	Mood        string `db:"mood"`
 }
 
 func ListPosts() ([]Post, error) {
@@ -19,7 +22,7 @@ func ListPosts() ([]Post, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query(`SELECT post_id, user_id, description, protected, created_at FROM posts;`)
+	rows, err := db.Query(`SELECT post_id, user_id, description, protected, created_at, mood FROM posts;`)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
@@ -32,7 +35,7 @@ func ListPosts() ([]Post, error) {
 	for rows.Next() {
 		var p Post
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -87,7 +90,7 @@ func GetPostInfo(postID string, currentUser string) (Post, error) {
 		return Post{}, err
 	}
 	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=? AND user_id=?", postID, currentUser).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt); err != nil {
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=? AND user_id=?", postID, currentUser).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
 		return post, err
 	}
 
@@ -104,5 +107,36 @@ func EditPostDescription(postID string, description string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func EditMood(postID string, mood string) error {
+	db, err := Connect()
+	if err != nil {
+		return err
+	}
+
+	allowedMoods := [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angry"}
+
+	res := false
+	for _, v := range allowedMoods {
+		v = strings.ToUpper(v)
+
+		if strings.Contains(v, strings.ToUpper(mood)) {
+			res = true
+			break
+		}
+	}
+	if !res {
+		err = errors.New("new mood is not in allowed list")
+		return err
+	}
+
+	_, err = db.Exec("UPDATE posts SET mood=? WHERE post_id=?", mood, postID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	return nil
 }

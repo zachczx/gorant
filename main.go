@@ -116,6 +116,7 @@ func main() {
 		postID := r.PathValue("postID")
 		post, comments, err := posts.GetPostComments(postID, user.Username)
 		if err != nil {
+			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
@@ -176,6 +177,24 @@ func main() {
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
 			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID, user.Username))
 		}
+	})))
+
+	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		newMood := r.PathValue("newMood")
+		fmt.Print(newMood)
+
+		if err := posts.EditMood(postID, newMood); err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		post, err := posts.GetPostInfo(postID, user.Username)
+		if err != nil {
+			fmt.Println("Issue with getting post info: ", err)
+		}
+
+		TemplRender(w, r, templates.MoodMapper(postID, post.Mood))
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
