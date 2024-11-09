@@ -155,12 +155,12 @@ templ PartialPostErrorMessage(message string) {
 }
 
 templ PartialEditDescriptionInput(postID string, post posts.Post) {
-	<div class="flex group items-center" id="post-description">
+	<div class="group flex items-center" id="post-description">
 		<form class="join w-full" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
 			if post.Description == "" {
-				<input type="text" name="post-description-input" class="input input-bordered w-full max-w-xl join-item" value={ post.Description }/>
+				<input type="text" name="post-description-input" class="input join-item input-bordered w-full max-w-xl" value={ post.Description }/>
 			} else {
-				<input type="text" name="post-description-input" class="input input-bordered w-full max-w-xl join-item" value={ post.Description }/>
+				<input type="text" name="post-description-input" class="input join-item input-bordered w-full max-w-xl" value={ post.Description }/>
 			}
 			<button class="btn btn-accent join-item">Save</button>
 		</form>
@@ -168,7 +168,7 @@ templ PartialEditDescriptionInput(postID string, post posts.Post) {
 }
 
 templ PartialEditDescriptionResponse(postID string, post posts.Post) {
-	<div class="flex group items-center" id="post-description">
+	<div class="group flex items-center" id="post-description">
 		<button class="" hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
 			if post.Description == "" {
 				Add a description here
