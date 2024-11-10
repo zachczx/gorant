@@ -183,6 +183,18 @@ func main() {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
 
+		authCtx := mw.Context(r.Context())
+
+		if !authCtx.IsAuthenticated() {
+			post, err := posts.GetPostInfo(postID, user.Username)
+			if err != nil {
+				fmt.Println(err)
+			}
+			TemplRender(w, r, templates.PartialEditMoodError(postID, post.Mood))
+			return
+		}
+		user.Username = authCtx.UserInfo.PreferredUsername
+
 		if err := posts.EditMood(postID, newMood); err != nil {
 			fmt.Println(err)
 			return
@@ -193,7 +205,7 @@ func main() {
 			fmt.Println("Issue with getting post info: ", err)
 		}
 
-		TemplRender(w, r, templates.MoodMapper(postID, post.Mood))
+		TemplRender(w, r, templates.MoodMapper(postID, post.UserID, user.Username, post.Mood))
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

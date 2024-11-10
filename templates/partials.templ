@@ -179,3 +179,69 @@ templ PartialEditDescriptionResponse(postID string, post posts.Post) {
 		<svg xmlns="http://www.w3.org/2000/svg" class="ms-4 hidden group-hover:flex" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
 	</div>
 }
+
+templ PartialEditMoodError(postID string, mood string) {
+	<div id="mood" class="dropdown dropdown-end dropdown-bottom">
+		<div tabindex="0" role="button" class="flex items-center text-5xl">
+			if mood == "elated" {
+				😄
+			} else if mood == "happy" {
+				🙂
+			} else if mood == "sad" {
+				☹️
+			} else if mood == "upset" {
+				😫
+			} else if mood == "angry" {
+				😡
+			} else {
+				😐
+			}
+			<svg xmlns="http://www.w3.org/2000/svg" width="0.5em" height="0.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+		</div>
+		<ul tabindex="0" class="menu dropdown-content z-[1] w-auto bg-base-100 p-2 shadow">
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/elated", postID))) }
+				><span class="me-2 inline text-xl">😄</span> Elated</button>
+			</li>
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/happy", postID))) }
+				><span class="me-2 inline text-xl">🙂</span> Happy</button>
+			</li>
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/neutral", postID))) }
+				><span class="me-2 inline text-xl">😐</span> Neutral</button>
+			</li>
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/sad", postID))) }
+				><span class="me-2 inline text-xl">☹️</span> Sad</button>
+			</li>
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/upset", postID))) }
+				><span class="me-2 inline text-xl">😫</span> Upset</button>
+			</li>
+			<li class="text-base font-normal">
+				<button
+					hx-target="#mood"
+					hx-swap="outerHTML"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/angry", postID))) }
+				><span class="me-2 inline text-xl">😡</span> Angry</button>
+			</li>
+		</ul>
+		@Toast("error", "You need to be logged in!")
+	</div>
+}

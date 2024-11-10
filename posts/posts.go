@@ -41,7 +41,6 @@ func ListPosts() ([]Post, error) {
 		}
 
 		posts = append(posts, p)
-		fmt.Println(p)
 	}
 
 	return posts, nil

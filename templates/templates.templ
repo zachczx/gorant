@@ -121,11 +121,11 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 	@Base("GoRant - Post", username, loggedIn) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8 lg:grid-cols-3">
 			<div class="w-full space-y-4 justify-self-start lg:col-span-3">
-				<h1 class="text-5xl font-extrabold uppercase">
-					{ postID }
-					<span class="ms-16">
-						@MoodMapper(post.PostID, post.Mood)
-					</span>
+				<h1>
+					<span class="text-5xl font-extrabold uppercase">{ postID }</span>
+					<div class="ms-16 inline-block">
+						@MoodMapper(post.PostID, post.UserID, username, post.Mood)
+					</div>
 				</h1>
 				<div class="group flex items-center" id="post-description">
 					if post.UserID == username {
@@ -318,7 +318,7 @@ templ Error(message string) {
 
 templ Toast(status string, message string) {
 	if status == "error" {
-		<div id="toast" class="toast toast-end animate-slide-up-down">
+		<div id="toast" class="text-base font-normal toast toast-end animate-slide-up-down">
 			<div class="alert alert-info bg-error">
 				<span class="flex items-center text-error-content">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
@@ -327,7 +327,7 @@ templ Toast(status string, message string) {
 			</div>
 		</div>
 	} else if status == "success" {
-		<div id="toast" class="toast toast-end animate-slide-up-down">
+		<div id="toast" class="text-base font-normal toast toast-end animate-slide-up-down">
 			<div class="alert alert-info bg-success">
 				<div class="flex items-center text-success-content">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
@@ -347,9 +347,72 @@ templ Toast(status string, message string) {
 	</script>
 }
 
-templ MoodMapper(postID string, mood string) {
-	<div id="mood" class="dropdown dropdown-end dropdown-bottom">
-		<div tabindex="0" role="button" class="flex items-center text-5xl">
+templ MoodMapper(postID string, postUserID string, currentUser, mood string) {
+	if postUserID == currentUser {
+		<div id="mood" class="dropdown dropdown-end dropdown-bottom">
+			<div tabindex="0" role="button" class="flex items-center text-5xl">
+				if mood == "elated" {
+					😄
+				} else if mood == "happy" {
+					🙂
+				} else if mood == "sad" {
+					☹️
+				} else if mood == "upset" {
+					😫
+				} else if mood == "angry" {
+					😡
+				} else {
+					😐
+				}
+				<svg xmlns="http://www.w3.org/2000/svg" width="0.5em" height="0.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+			</div>
+			<ul tabindex="0" class="menu dropdown-content z-[1] w-auto bg-base-100 p-2 shadow">
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/elated", postID))) }
+					><span class="me-2 inline text-xl">😄</span> Elated</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/happy", postID))) }
+					><span class="me-2 inline text-xl">🙂</span> Happy</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/neutral", postID))) }
+					><span class="me-2 inline text-xl">😐</span> Neutral</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/sad", postID))) }
+					><span class="me-2 inline text-xl">☹️</span> Sad</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/upset", postID))) }
+					><span class="me-2 inline text-xl">😫</span> Upset</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/angry", postID))) }
+					><span class="me-2 inline text-xl">😡</span> Angry</button>
+				</li>
+			</ul>
+		</div>
+	} else {
+		<div id="mood" class="flex items-center text-5xl">
 			if mood == "elated" {
 				😄
 			} else if mood == "happy" {
@@ -363,51 +426,6 @@ templ MoodMapper(postID string, mood string) {
 			} else {
 				😐
 			}
-			<svg xmlns="http://www.w3.org/2000/svg" width="0.5em" height="0.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 		</div>
-		<ul tabindex="0" class="menu dropdown-content z-[1] w-auto bg-base-100 p-2 shadow">
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/elated", postID))) }
-				><span class="me-2 inline text-xl">😄</span> Elated</button>
-			</li>
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/happy", postID))) }
-				><span class="me-2 inline text-xl">🙂</span> Happy</button>
-			</li>
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/neutral", postID))) }
-				><span class="me-2 inline text-xl">😐</span> Neutral</button>
-			</li>
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/sad", postID))) }
-				><span class="me-2 inline text-xl">☹️</span> Sad</button>
-			</li>
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/upset", postID))) }
-				><span class="me-2 inline text-xl">😫</span> Upset</button>
-			</li>
-			<li class="text-base font-normal">
-				<button
-					hx-target="#mood"
-					hx-swap="outerHTML"
-					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/angry", postID))) }
-				><span class="me-2 inline text-xl">😡</span> Angry</button>
-			</li>
-		</ul>
-	</div>
+	}
 }
