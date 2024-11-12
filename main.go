@@ -23,7 +23,6 @@ type User struct {
 var ctx context.Context = context.Background()
 
 func main() {
-	// Instantiate a new API service.
 	user := &User{Username: "", LoggedIn: "false"}
 
 	service := NewAuthService(
@@ -31,9 +30,8 @@ func main() {
 		os.Getenv("STYTCH_SECRET"),
 	)
 
-	// Register HTTP handlers.
 	mux := http.NewServeMux()
-	mux.Handle("/", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts")
@@ -45,10 +43,6 @@ func main() {
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})
-
-	//--------------------------------------
-	// Posts
-	//--------------------------------------
 
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.FormValue("post-id")
