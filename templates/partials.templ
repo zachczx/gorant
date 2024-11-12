@@ -11,7 +11,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 			for i := 0; i < len(comments); i++ {
 				if comments[i].RowID == highlight {
 					<!-- animate-revertBorder is defined in tailwind config, adds orange border then removes it -->
-					<div id={ comments[i].RowID } class="flex h-auto border-2 animate-revertBorder">
+					<div id={ comments[i].RowID } class="flex h-auto border border-neutral/30 animate-revertBorder">
 						<div class="grid w-20 content-center bg-primary/30 p-2 text-center text-xl font-bold">
 							if comments[i].CurrentUserVoted == "true" {
 								<button

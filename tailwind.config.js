@@ -32,7 +32,7 @@ module.exports = {
 				},
 				revertBorder: {
 					'10%, 80%': {
-						border: '2px solid #ea580c',
+						border: '1px solid #ea580c',
 					},
 					'0, 100%': {
 						border: '1px solid rgba(38, 41, 49, 0.3)',
