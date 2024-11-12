@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -15,10 +13,6 @@ import (
 	"github.com/a-h/templ"
 
 	_ "modernc.org/sqlite"
-
-	"github.com/zitadel/zitadel-go/v3/pkg/authentication"
-	openid "github.com/zitadel/zitadel-go/v3/pkg/authentication/oidc"
-	"github.com/zitadel/zitadel-go/v3/pkg/zitadel"
 )
 
 type User struct {
@@ -26,93 +20,46 @@ type User struct {
 	LoggedIn string
 }
 
-type ZitadelConfig struct {
-	Domain      string
-	Key         string
-	ClientID    string
-	RedirectURI string
-}
+var ctx context.Context = context.Background()
 
 func main() {
+	// Instantiate a new API service.
 	user := &User{Username: "", LoggedIn: "false"}
-	////////////////////////////////////////////////
-	// Zitadel
-	///////////////////////////////////////////////
-	z := &ZitadelConfig{os.Getenv("DOMAIN"), os.Getenv("KEY"), os.Getenv("CLIENT_ID"), os.Getenv("REDIRECT_URI")}
 
-	flag.Parse()
-
-	ctx := context.Background()
-
-	// Initiate the authentication by providing a zitadel configuration and handler.
-	// This example will use OIDC/OAuth2 PKCE Flow, therefore you will also need to initialize that with the generated client_id:
-	authN, err := authentication.New(ctx, zitadel.New(z.Domain), z.Key,
-		openid.DefaultAuthentication(z.ClientID, z.RedirectURI, z.Key),
+	service := NewAuthService(
+		os.Getenv("STYTCH_PROJECT_ID"),
+		os.Getenv("STYTCH_SECRET"),
 	)
-	if err != nil {
-		slog.Error("zitadel sdk could not initialize", "error", err)
-		os.Exit(1)
-	}
-	// Initialize the middleware by providing the sdk
-	mw := authentication.Middleware(authN)
 
+	// Register HTTP handlers.
 	mux := http.NewServeMux()
-	mux.Handle("/auth/", authN)
-	// Register the authentication handler on your desired path.
-	// It will register the following handlers on it:
-	// - /login (starts the authentication process to the Login UI)
-	// - /callback (handles the redirect back from the Login UI)
-	// - /logout (handles the logout process)
-
-	///////////////////////////////////////////////////
-	mux.Handle("/", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if authentication.IsAuthenticated(r.Context()) {
-			fmt.Println("Logged in!")
-			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
-			user.LoggedIn = "true"
-		}
+	mux.Handle("/", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts")
 		}
 
-		TemplRender(w, r, templates.StarterWelcome("", p, user.Username, user.LoggedIn))
+		TemplRender(w, r, templates.StarterWelcome("Welcome", p, user.Username, ""))
 	})))
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})
 
-	mux.Handle("POST /posts", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	//--------------------------------------
+	// Posts
+	//--------------------------------------
+
+	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.FormValue("post-id")
-		fmt.Println("Form value received: ", postID)
-
-		if !authentication.IsAuthenticated(r.Context()) {
-			exists := posts.VerifyPostID(postID)
-
-			if !exists {
-				http.Redirect(w, r, "/error", http.StatusSeeOther)
-			}
-			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
-			return
-		}
-		username := mw.Context(r.Context()).UserInfo.PreferredUsername
-
-		err := posts.NewPost(postID, username)
-		if err != nil {
-			fmt.Println(err)
+		exists := posts.VerifyPostID(postID)
+		if !exists {
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
-	})))
+	})
 
-	mux.Handle("/posts/{postID}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if authentication.IsAuthenticated(r.Context()) {
-			fmt.Println("Logged in!")
-			user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
-			user.LoggedIn = "true"
-		}
-
+	mux.Handle("/posts/{postID}", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		post, comments, err := posts.GetPostComments(postID, user.Username)
 		if err != nil {
@@ -128,15 +75,18 @@ func main() {
 		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{postID}/new", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/new", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-		authCtx := mw.Context(r.Context())
-		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
-		if !authCtx.IsAuthenticated() {
+		if user.Username == "" {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
-			comments, err = posts.GetComments(postID, user.Username)
+			comments, err := posts.GetComments(postID, user.Username)
+			if err != nil {
+				fmt.Println(err)
+				TemplRender(w, r, templates.Error("Error!"))
+				return
+			}
 			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID, user.Username))
 			return
 		}
@@ -154,15 +104,15 @@ func main() {
 			PostID:    postID,
 		}
 
-		if vErr := posts.Validate(c); vErr != nil {
-			fmt.Println("Error: ", vErr)
+		if v := posts.Validate(c); v != nil {
+			fmt.Println("Error: ", v)
 			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewError(comments, postID, user.Username, vErr))
+			TemplRender(w, r, templates.PartialPostNewError(comments, postID, user.Username, v))
 			return
 		}
 
@@ -179,13 +129,11 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
 
-		authCtx := mw.Context(r.Context())
-
-		if !authCtx.IsAuthenticated() {
+		if user.Username == "" {
 			post, err := posts.GetPostInfo(postID, user.Username)
 			if err != nil {
 				fmt.Println(err)
@@ -193,7 +141,6 @@ func main() {
 			TemplRender(w, r, templates.PartialEditMoodError(postID, post.Mood))
 			return
 		}
-		user.Username = authCtx.UserInfo.PreferredUsername
 
 		if err := posts.EditMood(postID, newMood); err != nil {
 			fmt.Println(err)
@@ -208,13 +155,11 @@ func main() {
 		TemplRender(w, r, templates.MoodMapper(postID, post.UserID, user.Username, post.Mood))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
-		authCtx := mw.Context(r.Context())
-
-		if !authCtx.IsAuthenticated() {
+		if user.Username == "" {
 			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
 				fmt.Println("Error fetching posts: ", err)
@@ -224,8 +169,6 @@ func main() {
 		}
 
 		var err error
-		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
-
 		err = posts.UpVote(commentID, user.Username)
 		if err != nil {
 			fmt.Println("Error executing upvote", err)
@@ -240,13 +183,11 @@ func main() {
 		TemplRender(w, r, templates.PartialPostVote(comments, postID, user.Username))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
-		user.Username = mw.Context(r.Context()).UserInfo.PreferredUsername
 
-		authCtx := mw.Context(r.Context())
-		if !authCtx.IsAuthenticated() {
+		if user.Username == "" {
 			fmt.Println("I'm inside unauthenticated")
 			comments, err := posts.GetComments(postID, user.Username)
 			if err != nil {
@@ -268,15 +209,12 @@ func main() {
 		TemplRender(w, r, templates.PartialPostDelete(comments, postID, user.Username))
 	})))
 
-	mux.Handle("GET /posts/{postID}/description/edit", mw.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}/description/edit", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-		authCtx := mw.Context(r.Context())
-		if !authCtx.IsAuthenticated() {
+		if user.Username == "" {
 			fmt.Println("Not authenticated, not allowed to edit description")
 			return
 		}
-
-		user.Username = authCtx.UserInfo.PreferredUsername
 
 		post, err := posts.GetPostInfo(postID, user.Username)
 		if err != nil {
@@ -285,7 +223,7 @@ func main() {
 		TemplRender(w, r, templates.PartialEditDescriptionInput(postID, post))
 	})))
 
-	mux.HandleFunc("POST /posts/{postID}/description/edit", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		description := r.FormValue("post-description-input")
 
@@ -300,13 +238,11 @@ func main() {
 			fmt.Println("Error fetching post info", err)
 		}
 		TemplRender(w, r, templates.PartialEditDescriptionResponse(postID, post))
-	})
+	})))
 
 	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.About())
 	})
-
-	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
 	mux.HandleFunc("/admin/reset", func(w http.ResponseWriter, r *http.Request) {
 		if os.Getenv("DEV_ENV") == "TRUE" {
@@ -322,8 +258,19 @@ func main() {
 		}
 	})
 
-	wrappedMux := StatusLogger(ExcludeCompression(mux))
+	//--------------------------------------
+	// Auth handles
+	//--------------------------------------
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.Login())
+	})
+	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
+	mux.HandleFunc("/authenticate", service.authenticateHandler)
+
+	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
+
 	var p string = os.Getenv("LISTEN_ADDR")
+	wrappedMux := StatusLogger(ExcludeCompression(mux))
 	http.ListenAndServe(p, wrappedMux)
 }
 

@@ -9,20 +9,6 @@ import (
 	"github.com/go-swiss/compress"
 )
 
-// type Log struct {
-// 	handler http.Handler
-// }
-
-// func (l *Log) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	l.handler.ServeHTTP(w, r)
-// }
-
-// func TimerLogger(handler http.Handler) *Log {
-// 	return &Log{handler}
-// }
-
-// Logger
-
 type StatusRecorder struct {
 	http.ResponseWriter
 	status int
