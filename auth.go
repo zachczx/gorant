@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"gorant/templates"
+
 	gorillaSessions "github.com/gorilla/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks"
 	emailML "github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks/email"
@@ -61,7 +63,6 @@ func (s *AuthService) CheckAuthentication(u *User, h http.Handler) http.Handler 
 		user := s.getAuthenticatedUser(w, r)
 		if user != nil {
 			u.Username = user.Emails[0].Email
-			u.LoggedIn = "true"
 		}
 		h.ServeHTTP(w, r)
 	})
@@ -118,8 +119,8 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Successfully sent magic link email!")
+	TemplRender(w, r, templates.LoginSuccess())
+	return
 }
 
 func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +135,7 @@ func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request
 
 	resp, err := s.client.MagicLinks.Authenticate(ctx, &magiclinks.AuthenticateParams{
 		Token:                  token,
-		SessionDurationMinutes: 60,
+		SessionDurationMinutes: 43800,
 	})
 	if err != nil {
 		log.Printf("Error authenticating: %v\n", err)
@@ -151,6 +152,22 @@ func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request
 	session.Values["token"] = resp.SessionToken
 	session.Save(r, w)
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Welcome %s!", resp.User.Emails[0].Email)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (s *AuthService) logout(u *User, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, err := s.store.Get(r, "stytch_session")
+		if err != nil {
+			log.Printf("error getting gorilla session: %s\n", err)
+		}
+
+		sess.Options.MaxAge = -1
+		delete(sess.Values, "token")
+		sess.Save(r, w)
+
+		u.Username = ""
+
+		h.ServeHTTP(w, r)
+	})
 }

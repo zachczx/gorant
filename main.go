@@ -17,13 +17,12 @@ import (
 
 type User struct {
 	Username string
-	LoggedIn string
 }
 
 var ctx context.Context = context.Background()
 
 func main() {
-	user := &User{Username: "", LoggedIn: "false"}
+	user := &User{Username: ""}
 
 	service := NewAuthService(
 		os.Getenv("STYTCH_PROJECT_ID"),
@@ -37,8 +36,12 @@ func main() {
 			fmt.Println("Error fetching posts")
 		}
 
-		TemplRender(w, r, templates.StarterWelcome("Welcome", p, user.Username, ""))
+		TemplRender(w, r, templates.StarterWelcome("Welcome", p, user.Username))
 	})))
+
+	mux.HandleFunc("/testing", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.LoginSuccess())
+	})
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
@@ -62,7 +65,7 @@ func main() {
 			return
 		}
 
-		TemplRender(w, r, templates.Post("Posts", post, comments, postID, user.Username, user.LoggedIn))
+		TemplRender(w, r, templates.Post("Posts", post, comments, postID, user.Username))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +113,9 @@ func main() {
 			return
 		}
 
-		if err := posts.Insert(c); err != nil {
+		var insertedID string
+		insertedID, err := posts.Insert(c)
+		if err != nil {
 			fmt.Println("Error inserting")
 		}
 		comments, err := posts.GetComments(postID, user.Username)
@@ -119,7 +124,7 @@ func main() {
 			return
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID, user.Username))
+			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID, user.Username, insertedID))
 		}
 	})))
 
@@ -174,7 +179,7 @@ func main() {
 			fmt.Println("Error fetching posts", err)
 		}
 
-		TemplRender(w, r, templates.PartialPostVote(comments, postID, user.Username))
+		TemplRender(w, r, templates.PartialPostVote(comments, postID, user.Username, commentID))
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -258,8 +263,14 @@ func main() {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Login())
 	})
+
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
+
 	mux.HandleFunc("/authenticate", service.authenticateHandler)
+
+	mux.Handle("/logout", service.logout(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.LoggedOut())
+	})))
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 

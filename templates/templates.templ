@@ -5,7 +5,7 @@ import (
 	"gorant/posts"
 )
 
-templ Base(title string, username string, loggedIn string) {
+templ Base(title string, username string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -18,7 +18,7 @@ templ Base(title string, username string, loggedIn string) {
 			<script src="/static/js/ext/htmx.min.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans">
-			<header id="navbar" class="navbar mb-20 bg-primary/50 p-0">
+			<header id="navbar" class="navbar mb-20 p-0">
 				<div class="navbar-start">
 					<div class="dropdown">
 						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -70,13 +70,13 @@ templ Base(title string, username string, loggedIn string) {
 					</ul>
 				</div>
 				<div class="navbar-end pe-6">
-					if loggedIn == "false" {
+					if username == "" {
 						<div>
-							<a href="/auth/login" class="btn btn-accent btn-sm me-2">Register</a>
-							<a href="/auth/login" class="btn btn-outline btn-accent btn-sm me-2">Login</a>
+							<a href="/login" class="btn btn-accent btn-sm me-2">Register</a>
+							<a href="/login" class="btn btn-outline btn-accent btn-sm me-2">Login</a>
 						</div>
 					}
-					if loggedIn == "true" {
+					if username != "" {
 						<div class="flex items-center">
 							<div class="btn btn-outline btn-xs me-4 text-sm">{ username }</div>
 							<div class="dropdown dropdown-end dropdown-bottom">
@@ -85,7 +85,7 @@ templ Base(title string, username string, loggedIn string) {
 								</div>
 								<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
 									<li><a href="/settings">Settings</a></li>
-									<li><a href="/auth/logout">Logout</a></li>
+									<li><a href="/logout">Logout</a></li>
 								</ul>
 							</div>
 						</div>
@@ -116,8 +116,8 @@ templ Base(title string, username string, loggedIn string) {
 	</html>
 }
 
-templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, username string, loggedIn string) {
-	@Base("GoRant - Post", username, loggedIn) {
+templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, username string) {
+	@Base("GoRant - Post", username) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8 lg:grid-cols-3">
 			<div class="w-full space-y-4 justify-self-start lg:col-span-3">
 				<h1>
@@ -230,7 +230,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 			<div class="w-full">
 				<div class="grid justify-items-center">
 					<div class="w-full" id="form-message">
-						if loggedIn == "false" {
+						if username == "" {
 							<div class="w-full pb-4" id="">
 								<div class="flex items-center border border-neutral/20 p-4 text-neutral/80">
 									<a href="/auth/login" class="flex items-center">
@@ -251,7 +251,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 rounded-none" minlength="10" maxlength="2000" rows="7" required></textarea>
 							<div id="form-message-error"></div>
 						</label>
-						if loggedIn == "true" {
+						if username != "" {
 							<div>
 								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;">Add Comment</button>
 							</div>
@@ -269,13 +269,13 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 }
 
 templ About() {
-	@Base("About", "", "") {
+	@Base("About", "") {
 		<h1>About</h1>
 	}
 }
 
-templ StarterWelcome(message string, posts []posts.Post, username string, loggedIn string) {
-	@Base("GoRant", username, loggedIn) {
+templ StarterWelcome(message string, posts []posts.Post, username string) {
+	@Base("GoRant", username) {
 		<div class="grid place-items-center content-center">
 			// <p class="pb-8 text-2xl">{ message }</p>
 			// <img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="m-0 scale-75 py-4 lg:order-first" fetchpriority="high"/>
@@ -306,7 +306,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string, logged
 }
 
 templ Error(message string) {
-	@Base("GoRant", "", "") {
+	@Base("GoRant", "") {
 		<main class="grid place-items-center content-center">
 			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
 			<img src="/static/images/reshot-illustration-404-page-HASGL2MQBU.svg" alt="Error" class="py-10"/>

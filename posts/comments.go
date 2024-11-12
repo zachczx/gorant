@@ -47,19 +47,25 @@ type JoinComment struct {
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
 }
 
-func Insert(c Comment) error {
+func Insert(c Comment) (string, error) {
+	var insertedID string
 	db, err := Connect()
 	if err != nil {
-		return err
+		return insertedID, err
 	}
 
 	r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
 	if err != nil {
 		fmt.Println("Error inserting values: ", err)
-		return err
+		return insertedID, err
 	}
+	ID, err := r.LastInsertId()
+	if err != nil {
+		return insertedID, err
+	}
+	insertedID = strconv.Itoa(int(ID))
 	fmt.Println("Successfully inserted: ", r)
-	return nil
+	return insertedID, nil
 }
 
 func GetPostComments(postID string, currentUser string) (Post, []JoinComment, error) {
