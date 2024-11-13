@@ -208,20 +208,6 @@ func main() {
 		TemplRender(w, r, templates.PartialPostDelete(comments, postID, user.Username))
 	})))
 
-	mux.Handle("GET /posts/{postID}/description/edit", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		if user.Username == "" {
-			fmt.Println("Not authenticated, not allowed to edit description")
-			return
-		}
-
-		post, err := posts.GetPostInfo(postID, user.Username)
-		if err != nil {
-			fmt.Println("Error fetching post info", err)
-		}
-		TemplRender(w, r, templates.PartialEditDescriptionInput(postID, post))
-	})))
-
 	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		description := r.FormValue("post-description-input")
@@ -236,7 +222,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching post info", err)
 		}
-		TemplRender(w, r, templates.PartialEditDescriptionResponse(postID, post))
+		TemplRender(w, r, templates.PartialEditDescriptionResponse(postID, post, user.Username))
 	})))
 
 	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {

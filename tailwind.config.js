@@ -9,7 +9,7 @@ module.exports = {
 		extend: {
 			animation: {
 				'slide-up-down': 'slide-up-down 4.8s ease-out 0s 1 forwards',
-				revertBorder: 'revertBorder 4s ease-out 0s 1 forwards',
+				'highlight-border': 'highlight-border 4s linear 0s 1 forwards',
 			},
 			keyframes: {
 				'slide-up-down': {
@@ -30,9 +30,9 @@ module.exports = {
 						opacity: '5%',
 					},
 				},
-				revertBorder: {
-					'10%, 80%': {
-						border: '1px solid #ea580c',
+				'highlight-border': {
+					'5%, 95%': {
+						border: '3px solid #ea580c',
 					},
 					'0, 100%': {
 						border: '1px solid rgba(38, 41, 49, 0.3)',

@@ -128,21 +128,53 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 				</h1>
 				<div class="group flex items-center" id="post-description">
 					if post.UserID == username {
-						<button hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
+						<button id="post-description-static" class="flex flex-wrap items-center">
 							if post.Description == "" {
 								Add a description here
 							} else {
 								{ post.Description }
 							}
+							<svg id="" xmlns="http://www.w3.org/2000/svg" class="ms-4 hidden group-hover:flex" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
 						</button>
-						<svg xmlns="http://www.w3.org/2000/svg" hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML" class="ms-4 hidden cursor-pointer group-hover:flex" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
+						<form id="post-description-form" class="join hidden w-full" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
+							<input
+								type="text"
+								id="post-description-input"
+								name="post-description-input"
+								class="input join-item input-bordered w-full max-w-xl"
+								if post.Description == "" {
+									placeholder="Add a description here"
+								}
+								value={ post.Description }
+							/>
+							<button id="post-description-button" class="btn btn-accent join-item">Save</button>
+							<button id="post-description-cancel" class="btn border-0 bg-transparent text-accent underline hover:bg-transparent">Cancel</button>
+						</form>
 					} else {
 						if post.Description == "" {
-							Add a description here
+							No description added
 						} else {
 							{ post.Description }
 						}
 					}
+					<script>
+						(function activateDescriptionForm() {
+							document.getElementById("post-description-static").addEventListener("click", () => {
+								const postDescriptionForm = document.getElementById("post-description-form")
+								postDescriptionForm.classList.remove("hidden")
+								const postDescriptionStatic = document.getElementById("post-description-static")
+								postDescriptionStatic.classList.add("hidden")
+							})
+
+							document.getElementById("post-description-cancel").addEventListener("click", () => {
+								const postDescriptionForm = document.getElementById("post-description-form")
+								postDescriptionForm.classList.add("hidden")
+								const postDescriptionStatic = document.getElementById("post-description-static")
+								postDescriptionStatic.classList.remove("hidden")
+							})
+							
+						})()
+					</script>
 				</div>
 			</div>
 			<article id="posts" class="w-full space-y-4 lg:col-span-2">
@@ -287,7 +319,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string) {
 			</form>
 			<div id="content" class="pt-8 lg:pt-16">
 				<h2 class="-mb-4 text-2xl font-bold"><span class="ms-2 bg-base-100 px-2">Posts</span></h2>
-				<div class="grid grid-cols-4 gap-4 border border-neutral/60 px-4 pb-4 pt-6">
+				<div class="grid lg:grid-cols-3 xl:grid-cols-4 grid-cols-2 gap-4 border border-neutral/60 px-4 pb-4 pt-6">
 					<div id="add-new" class="grid cursor-pointer content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 						<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
 						<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
