@@ -4,6 +4,8 @@ WORKDIR /app
 COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./starter.db ./
 COPY ./posts ./posts
 COPY ./templates ./templates
+COPY ./database ./database
+COPY ./users ./users
 COPY ./static ./static
 RUN go mod download
 
@@ -34,7 +36,8 @@ COPY --from=first /app/static /app/static
 # COPY package*.json ./
 RUN npm install
 RUN npx esbuild ./static/js/comment-form.js ./static/js/index.js --bundle --outdir=./static/js/output --minify &&\
-    npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify
+    npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify &&\
+    npx brotli-cli compress --glob /app/static/css/output/styles.css /app/static/js/ext/htmx.min.js /app/static/js/output/comment-form.js /app/static/js/output/index.js
 
 ####################################################################################
 
