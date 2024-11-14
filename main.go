@@ -9,6 +9,7 @@ import (
 
 	"gorant/posts"
 	"gorant/templates"
+	"gorant/users"
 
 	"github.com/a-h/templ"
 
@@ -242,6 +243,47 @@ func main() {
 			TemplRender(w, r, templates.Reset("", t))
 		}
 	})
+
+	mux.Handle("/settings", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s, err := users.GetSettings(user.Username)
+		if err != nil {
+			fmt.Println("Error fetching settings: ", err)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		}
+		fmt.Println(s)
+		TemplRender(w, r, templates.Settings(s, user.Username))
+	})))
+
+	mux.Handle("POST /settings/edit", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f := users.Settings{
+			PreferredName: r.FormValue("preferred-name"),
+			ContactMe:     r.FormValue("contact-me"),
+		}
+
+		if err := users.Validate(f); err != nil {
+			fmt.Println("Error: ", err)
+			s, err := users.GetSettings(user.Username)
+			if err != nil {
+				fmt.Println("Error fetching settings: ", err)
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+			}
+			TemplRender(w, r, templates.PartialSettingsEditError(s, user.Username))
+			return
+		}
+
+		if err := users.SaveSettings(user.Username, f); err != nil {
+			fmt.Println("Error saving: ", err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+
+		s, err := users.GetSettings(user.Username)
+		if err != nil {
+			fmt.Println("Error fetching settings: ", err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+		fmt.Println(s)
+		TemplRender(w, r, templates.PartialSettingsEditSuccess(s, user.Username))
+	})))
 
 	//--------------------------------------
 	// Auth handles

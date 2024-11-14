@@ -10,6 +10,8 @@ module.exports = {
 			animation: {
 				'slide-up-down': 'slide-up-down 4.8s ease-out 0s 1 forwards',
 				'highlight-border': 'highlight-border 4s linear 0s 1 forwards',
+				'highlight-comment-main': 'highlight-comment-main 4s linear 0s 1 forwards',
+				'highlight-comment-side': 'highlight-comment-side 4s linear 0s 1 forwards',
 			},
 			keyframes: {
 				'slide-up-down': {
@@ -38,6 +40,18 @@ module.exports = {
 						border: '1px solid rgba(38, 41, 49, 0.3)',
 					},
 				},
+				'highlight-comment-main': {
+					'5%, 95%': {
+						backgroundColor: '#feede4',
+					},
+					'0, 100%': { backgroundColor: 'rgba(190, 242, 100, 0.1)' },
+				},
+				'highlight-comment-side': {
+					'5%, 95%': {
+						backgroundColor: '#f9ae86',
+					},
+					'0, 100%': { backgroundColor: 'rgba(151, 220, 66, 0.3)' },
+				},
 			},
 		},
 	},
@@ -65,7 +79,7 @@ module.exports = {
 					warning: '#D97706',
 					'warning-content': '#110500',
 					error: '#DC2626',
-					'error-content': '#ffd9d4',
+					'error-content': '#fdfdfd', //'#ffd9d4',
 				},
 				// cyberpunk: {
 				// 	...require('daisyui/src/theming/themes')['cyberpunk'],

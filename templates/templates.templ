@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"gorant/posts"
+	"gorant/users"
 )
 
 templ Base(title string, username string) {
@@ -213,7 +214,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 									<div class="flex grow items-center font-bold">
 										// <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="me-2 inline text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.85 17.1q1.275-.975 2.85-1.537T12 15t3.3.563t2.85 1.537q.875-1.025 1.363-2.325T20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.475.488 2.775T5.85 17.1M12 13q-1.475 0-2.488-1.012T8.5 9.5t1.013-2.488T12 6t2.488 1.013T15.5 9.5t-1.012 2.488T12 13m0 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 										<div class="me-2 w-10 rounded-full bg-neutral/70 text-center text-neutral-content">{ comments[i].Initials }</div>
-										{ comments[i].UserID }
+										{ comments[i].PreferredName }
 									</div>
 									<div class="flex items-center text-base">
 										(#{ comments[i].RowID }) { comments[i].CreatedAt }
@@ -319,7 +320,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string) {
 			</form>
 			<div id="content" class="pt-8 lg:pt-16">
 				<h2 class="-mb-4 text-2xl font-bold"><span class="ms-2 bg-base-100 px-2">Posts</span></h2>
-				<div class="grid lg:grid-cols-3 xl:grid-cols-4 grid-cols-2 gap-4 border border-neutral/60 px-4 pb-4 pt-6">
+				<div class="grid grid-cols-2 gap-4 border border-neutral/60 px-4 pb-4 pt-6 lg:grid-cols-3 xl:grid-cols-4">
 					<div id="add-new" class="grid cursor-pointer content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 						<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
 						<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
@@ -458,5 +459,48 @@ templ MoodMapper(postID string, postUserID string, currentUser, mood string) {
 				😐
 			}
 		</div>
+	}
+}
+
+templ Settings(s users.User, username string) {
+	@Base("User Settings", username) {
+		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8">
+			<div class="space-y-4">
+				<div id="settings-message" class="hidden"></div>
+				<div class="space-y-8 border border-neutral/30 p-8 shadow-lg">
+					<h1 class="min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
+					<form method="post" class="grid gap-4" hx-post="/settings/edit" hx-target="#settings-message" hx-swap="outerHTML" id="settings-form">
+						// action="/settings/edit" 
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text">Email</span>
+							</div>
+							<input type="text" name="username" value={ username } class="input input-bordered w-full" disabled/>
+						</label>
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text">Display Name</span>
+							</div>
+							<input type="text" name="preferred-name" value={ s.PreferredName } class="input input-bordered w-full"/>
+						</label>
+						<div class="form-control">
+							<label class="label cursor-pointer">
+								<span class="label-text me-4">Only send me essential emails.</span>
+								<input
+									name="contact-me"
+									type="checkbox"
+									if s.ContactMeString == "0" {
+										checked="checked"
+									}
+									class="checkbox-accent checkbox"
+								/>
+							</label>
+						</div>
+						<button class="btn btn-accent mt-4 w-full">Save</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+					</form>
+				</div>
+			</div>
+		</main>
 	}
 }

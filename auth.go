@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 
+	"gorant/database"
 	"gorant/templates"
 
 	gorillaSessions "github.com/gorilla/sessions"
@@ -33,28 +35,14 @@ func NewAuthService(projectId, secret string) *AuthService {
 	}
 }
 
-// func (s *AuthService) indexHandler(w http.ResponseWriter, r *http.Request) {
-// 	user := s.getAuthenticatedUser(w, r)
-// 	if user == nil {
-// 		w.WriteHeader(http.StatusOK)
-// 		fmt.Fprintln(w, "Please log in to see this page")
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusOK)
-// 	fmt.Fprintf(w, "Welcome %s!", user.Emails[0].Email)
-// }
-
 func (s *AuthService) RequireAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
 		if user == nil {
-			// w.WriteHeader(http.StatusOK)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
-		h.ServeHTTP(w, r) //
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -120,7 +108,6 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	TemplRender(w, r, templates.LoginSuccess())
-	return
 }
 
 func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request) {
@@ -151,6 +138,24 @@ func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request
 
 	session.Values["token"] = resp.SessionToken
 	session.Save(r, w)
+
+	var exists bool
+	db, err := database.Connect()
+	if err != nil {
+		log.Printf("Error connecting to DB")
+	}
+	if err := db.QueryRow("SELECT * FROM users WHERE user_id=?;", resp.User.Emails[0].Email).Scan(&exists); err != nil {
+		if err == sql.ErrNoRows {
+			_, err := db.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES (?, ?, ?);", resp.User.Emails[0].Email, resp.User.Emails[0].Email, resp.User.Emails[0].Email)
+			if err != nil {
+				log.Printf("Error inserting new user into DB")
+			}
+			fmt.Println("Successfully created new user in DB")
+		} else {
+			fmt.Println("User already exists")
+		}
+	}
+	db.Close()
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

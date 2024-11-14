@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gorant/database"
 )
 
 type Post struct {
@@ -17,7 +19,7 @@ type Post struct {
 }
 
 func ListPosts() ([]Post, error) {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +49,7 @@ func ListPosts() ([]Post, error) {
 }
 
 func NewPost(postID string, username string) error {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return err
 	}
@@ -68,7 +70,7 @@ func NewPost(postID string, username string) error {
 }
 
 func VerifyPostID(postID string) bool {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return false
 	}
@@ -84,7 +86,7 @@ func VerifyPostID(postID string) bool {
 }
 
 func GetPostInfo(postID string, currentUser string) (Post, error) {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return Post{}, err
 	}
@@ -97,7 +99,7 @@ func GetPostInfo(postID string, currentUser string) (Post, error) {
 }
 
 func EditPostDescription(postID string, description string) error {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return err
 	}
@@ -110,7 +112,7 @@ func EditPostDescription(postID string, description string) error {
 }
 
 func EditMood(postID string, mood string) error {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return err
 	}

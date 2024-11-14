@@ -6,12 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/rezakhademix/govalidator/v2"
-)
+	"gorant/database"
 
-const (
-	file string = "./starter.db"
+	"github.com/rezakhademix/govalidator/v2"
 )
 
 type Comment struct {
@@ -36,6 +33,7 @@ type JoinComment struct {
 	PostID          string `db:"post_id"`
 	PostDescription string `db:"description"`
 	Initials        string
+	PreferredName   string `db:"preferred_name"`
 
 	// Null handling for counts from DB, since counts are calculated from the query
 	Score            sql.NullInt64 `db:"score"`
@@ -49,7 +47,7 @@ type JoinComment struct {
 
 func Insert(c Comment) (string, error) {
 	var insertedID string
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return insertedID, err
 	}
@@ -69,7 +67,7 @@ func Insert(c Comment) (string, error) {
 }
 
 func GetPostComments(postID string, currentUser string) (Post, []JoinComment, error) {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return Post{}, nil, err
 	}
@@ -83,12 +81,19 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
+	rows, err := db.Query(`
+					SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted, users.preferred_name
+					FROM comments 
+					
 					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
 					FROM comments_votes 
 					GROUP BY comments_votes.comment_id) as comments_votes 
 					ON comments.rowid = comments_votes.comment_id 
-					AND comments.post_id=?
+					AND comments.post_id='testing'
+          
+    				LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
+					ON comments.user_id = users.user_id
+                     
 					ORDER BY cnt DESC;`, postID)
 	if err != nil {
 		return post, nil, err
@@ -100,7 +105,7 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted); err != nil {
+		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return post, nil, err
 		}
@@ -134,7 +139,7 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 
 func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	var comments []JoinComment
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return comments, err
 	}
@@ -142,12 +147,19 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted FROM comments 
+	rows, err := db.Query(`
+					SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted, users.preferred_name
+					FROM comments 
+					
 					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
 					FROM comments_votes 
 					GROUP BY comments_votes.comment_id) as comments_votes 
 					ON comments.rowid = comments_votes.comment_id 
-					AND comments.post_id=?
+					AND comments.post_id='testing'
+          
+    				LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
+					ON comments.user_id = users.user_id
+                     
 					ORDER BY cnt DESC;`, postID)
 	if err != nil {
 		return comments, err
@@ -157,7 +169,7 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted); err != nil {
+		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -190,7 +202,7 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 }
 
 func Delete(commentID string, username string) error {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return err
 	}
@@ -201,19 +213,6 @@ func Delete(commentID string, username string) error {
 	}
 
 	return nil
-}
-
-func Connect() (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlite", file)
-	if err != nil {
-		return nil, err
-	}
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-	fmt.Println("DB connected!")
-
-	return db, nil
 }
 
 func Validate(c Comment) map[string](string) {
@@ -230,7 +229,7 @@ func Validate(c Comment) map[string](string) {
 }
 
 func UpVote(commentID string, username string) error {
-	db, err := Connect()
+	db, err := database.Connect()
 	if err != nil {
 		return err
 	}
