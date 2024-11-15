@@ -12,7 +12,7 @@ import (
 )
 
 type Comment struct {
-	RowID     string `db:"rowid"`
+	CommentID string `db:"comment_id"`
 	UserID    string `db:"user_id"`
 	Content   string `db:"content"`
 	CreatedAt string `db:"created_at"`
@@ -26,7 +26,7 @@ type CommentVote struct {
 }
 
 type JoinComment struct {
-	RowID           string `db:"rowid"`
+	CommentID       string `db:"comment_id"`
 	UserID          string `db:"user_id"`
 	Content         string `db:"content"`
 	CreatedAt       string `db:"created_at"`
@@ -52,17 +52,23 @@ func Insert(c Comment) (string, error) {
 		return insertedID, err
 	}
 
-	r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
-	if err != nil {
-		fmt.Println("Error inserting values: ", err)
-		return insertedID, err
-	}
-	ID, err := r.LastInsertId()
+	var lastInsertID int
+	err = db.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.CreatedAt, c.PostID).Scan(&lastInsertID)
 	if err != nil {
 		return insertedID, err
 	}
-	insertedID = strconv.Itoa(int(ID))
-	fmt.Println("Successfully inserted: ", r)
+
+	// r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
+	// if err != nil {
+	// 	fmt.Println("Error inserting values: ", err)
+	// 	return insertedID, err
+	// }
+	// ID, err := r.LastInsertId()
+	// if err != nil {
+	// 	return insertedID, err
+	// }
+	insertedID = strconv.Itoa(lastInsertID)
+	fmt.Println("Successfully inserted!")
 	return insertedID, nil
 }
 
@@ -73,7 +79,7 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	}
 
 	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=?", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
 		fmt.Println("Queryrow issue")
 		return post, nil, err
 	}
@@ -81,20 +87,17 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`
-					SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted, users.preferred_name
-					FROM comments 
-					
-					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
-					FROM comments_votes 
-					GROUP BY comments_votes.comment_id) as comments_votes 
-					ON comments.rowid = comments_votes.comment_id 
-					AND comments.post_id='testing'
-          
-    				LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
-					ON comments.user_id = users.user_id
-                     
-					ORDER BY cnt DESC;`, postID)
+	rows, err := db.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name FROM comments 
+
+							LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
+							FROM comments_votes 
+							GROUP BY comments_votes.comment_id) AS comments_votes 
+							ON comments.comment_id = comments_votes.comment_id 
+							
+							LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
+							ON comments.user_id = users.user_id
+							WHERE comments.post_id=$1
+							ORDER BY cnt DESC NULLS LAST;`, postID)
 	if err != nil {
 		return post, nil, err
 	}
@@ -105,7 +108,7 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
+		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return post, nil, err
 		}
@@ -147,20 +150,17 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`
-					SELECT comments.rowid, comments.user_id, comments.content, comments.created_at, comments.post_id, comments_votes.score, cnt, ids_voted, users.preferred_name
-					FROM comments 
-					
-					LEFT JOIN (SELECT comments_votes.user_id, comments_votes.comment_id, comments_votes.score, COUNT(1) cnt, GROUP_CONCAT(comments_votes.user_id) ids_voted 
-					FROM comments_votes 
-					GROUP BY comments_votes.comment_id) as comments_votes 
-					ON comments.rowid = comments_votes.comment_id 
-					AND comments.post_id='testing'
-          
-    				LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
-					ON comments.user_id = users.user_id
-                     
-					ORDER BY cnt DESC;`, postID)
+	rows, err := db.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name FROM comments 
+
+							LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
+							FROM comments_votes 
+							GROUP BY comments_votes.comment_id) AS comments_votes 
+							ON comments.comment_id = comments_votes.comment_id 
+							
+							LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
+							ON comments.user_id = users.user_id
+							WHERE comments.post_id=$1
+							ORDER BY cnt DESC NULLS LAST;`, postID)
 	if err != nil {
 		return comments, err
 	}
@@ -169,7 +169,7 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.RowID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Score, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
+		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -207,7 +207,7 @@ func Delete(commentID string, username string) error {
 		return err
 	}
 
-	_, err = db.Exec(`DELETE FROM comments WHERE rowid=? AND user_id=?`, commentID, username)
+	_, err = db.Exec(`DELETE FROM comments WHERE comment_id=$1 AND user_id=$2`, commentID, username)
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func UpVote(commentID string, username string) error {
 		return err
 	}
 
-	res, err := db.Query("SELECT rowid FROM comments_votes WHERE comment_id=? AND user_id=?", commentID, username)
+	res, err := db.Query("SELECT comment_id FROM comments_votes WHERE comment_id=$1 AND user_id=$2", commentID, username)
 	if err != nil {
 		fmt.Println("Error querying db", err)
 	}
@@ -242,9 +242,9 @@ func UpVote(commentID string, username string) error {
 
 	var q string
 	if res.Next() {
-		q = "DELETE FROM comments_votes WHERE comment_id=? AND user_id=?"
+		q = "DELETE FROM comments_votes WHERE comment_id=$1 AND user_id=$2"
 	} else {
-		q = "INSERT INTO comments_votes (comment_id, user_id, score) VALUES (?, ?, 1)"
+		q = "INSERT INTO comments_votes (comment_id, user_id, score) VALUES ($1, $2, 1)"
 	}
 	res.Close()
 

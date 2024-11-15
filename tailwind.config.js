@@ -10,10 +10,21 @@ module.exports = {
 			animation: {
 				'slide-up-down': 'slide-up-down 4.8s ease-out 0s 1 forwards',
 				'highlight-border': 'highlight-border 4s linear 0s 1 forwards',
-				'highlight-comment-main': 'highlight-comment-main 4s linear 0s 1 forwards',
-				'highlight-comment-side': 'highlight-comment-side 4s linear 0s 1 forwards',
+				'highlight-comment-main': 'highlight-comment-main 4s steps(1) 0s 1 forwards',
+				'highlight-comment-side': 'highlight-comment-side 4s steps(1) 0s 1 forwards',
+				'slide-down': 'slide-down 0.4s ease-out 0s 1 forwards',
 			},
 			keyframes: {
+				'slide-down': {
+					'0%': {
+						transform: 'translateY(-0.2rem)',
+						opacity: '0%',
+					},
+					'100%': {
+						transform: 'translateY(0rem)',
+						opacity: '100%',
+					},
+				},
 				'slide-up-down': {
 					'0%': {
 						transform: 'translateY(0.7rem)',
@@ -41,16 +52,16 @@ module.exports = {
 					},
 				},
 				'highlight-comment-main': {
-					'5%, 95%': {
+					'0%': {
 						backgroundColor: '#feede4',
 					},
-					'0, 100%': { backgroundColor: 'rgba(190, 242, 100, 0.1)' },
+					'100%': { backgroundColor: 'rgba(190, 242, 100, 0.1)' },
 				},
 				'highlight-comment-side': {
-					'5%, 95%': {
+					'0%': {
 						backgroundColor: '#f9ae86',
 					},
-					'0, 100%': { backgroundColor: 'rgba(151, 220, 66, 0.3)' },
+					'100%': { backgroundColor: 'rgba(151, 220, 66, 0.3)' },
 				},
 			},
 		},

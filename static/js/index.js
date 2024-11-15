@@ -28,7 +28,12 @@
 	});
 
 	document.addEventListener('click', (e) => {
-		if (e.target.id !== 'post-form' && e.target.id !== 'post-button' && !e.target.id.includes('add-new')) {
+		if (
+			e.target.id !== 'post-form' &&
+			e.target.id !== 'post-id' &&
+			e.target.id !== 'post-button' &&
+			!e.target.id.includes('add-new')
+		) {
 			document.getElementById('post-button').innerText = 'Go';
 			for (let i = 0; i < elementIds.length; i++) {
 				document.getElementById(elementIds[i]).classList.remove(...classList);

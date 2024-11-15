@@ -67,6 +67,11 @@
 	.view-input {
 		view-transition-name: view-input;
 	}
+
+	/* Catch the element once added, make it opacity-0, then use animate-* to animate its opacity */
+	#form-message.htmx-added {
+		opacity: 0;
+	}
 }
 
 @layer utilities {

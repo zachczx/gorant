@@ -186,7 +186,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 								if comments[i].CurrentUserVoted == "true" {
 									<button
 										hx-target="#posts"
-										hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
+										hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].CommentID))) }
 										class="inline-block h-auto text-4xl text-orange-600"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
@@ -195,7 +195,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 									<button
 										hx-target="#posts"
 										hx-trigger="click"
-										hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].RowID))) }
+										hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].CommentID))) }
 										class="inline-block h-auto text-4xl hover:text-orange-600 active:-translate-y-1"
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
@@ -217,7 +217,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 										{ comments[i].PreferredName }
 									</div>
 									<div class="flex items-center text-base">
-										(#{ comments[i].RowID }) { comments[i].CreatedAt }
+										(#{ comments[i].CommentID }) { comments[i].CreatedAt }
 									</div>
 								</div>
 								<div class="py-4 text-base">{ comments[i].Content }</div>
@@ -226,7 +226,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 										<button
 											hx-target="#posts"
 											hx-swap="outerHTML"
-											hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
+											hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].CommentID))) }
 											class="-me-[1px] flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-accent hover:text-error-content"
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>Edit
@@ -240,7 +240,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 										<button
 											hx-target="#posts"
 											hx-swap="outerHTML"
-											hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].RowID))) }
+											hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].CommentID))) }
 											class="flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-error hover:text-error-content"
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
@@ -274,31 +274,45 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							</div>
 						}
 					</div>
-					<form method="post" id="comment-form" hx-post={ "/posts/" + postID + "/new" } hx-swap="outerHTML" hx-target="#posts" class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg">
-						<h2 class="text-xl font-bold">Add Comment</h2>
-						<label class="form-control">
-							<div class="label flex">
-								<div class="label-text grow">Message</div>
-								<div class="text-xs italic"><span id="form-message-chars-remaining"></span> characters left</div>
-							</div>
-							<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 rounded-none" minlength="10" maxlength="2000" rows="7" required></textarea>
-							<div id="form-message-error"></div>
-						</label>
-						if username != "" {
-							<div>
-								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;">Add Comment</button>
-							</div>
-						} else {
-							<div>
-								<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;" disabled>Add Comment</button>
-							</div>
-						}
-						<script src="/static/js/output/comment-form.js"></script>
-					</form>
+					@PostForm(postID, username, "false")
 				</div>
 			</div>
 		</main>
 	}
+}
+
+templ PostForm(postID string, username string, oobSwap string) {
+	<form
+		method="post"
+		id="comment-form"
+		hx-post={ "/posts/" + postID + "/new" }
+		if oobSwap == "true" {
+			hx-swap-oob="true"
+		}
+		hx-swap="outerHTML"
+		hx-target="#posts"
+		class="w-full max-w-2xl space-y-4 border border-neutral/20 p-4 shadow-lg"
+	>
+		<h2 class="text-xl font-bold">Add Comment</h2>
+		<label class="form-control">
+			<div class="label flex">
+				<div class="label-text grow">Message</div>
+				<div class="text-xs italic"><span id="form-message-chars-remaining"></span> characters left</div>
+			</div>
+			<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 rounded-none" minlength="10" maxlength="2000" rows="7" required></textarea>
+			<div id="form-message-error"></div>
+		</label>
+		if username != "" {
+			<div>
+				<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;">Add Comment</button>
+			</div>
+		} else {
+			<div>
+				<button id="comment-submit-button" class="btn btn-accent w-full rounded-none text-lg" style="view-transition-name: add-post-button;" disabled>Add Comment</button>
+			</div>
+		}
+		<script src="/static/js/output/comment-form.js"></script>
+	</form>
 }
 
 templ About() {
@@ -307,12 +321,12 @@ templ About() {
 	}
 }
 
-templ StarterWelcome(message string, posts []posts.Post, username string) {
+templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
 	@Base("GoRant", username) {
 		<div class="grid place-items-center content-center">
 			// <p class="pb-8 text-2xl">{ message }</p>
 			// <img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="m-0 scale-75 py-4 lg:order-first" fetchpriority="high"/>
-			<img src="/static/images/noun-happy-sad-3977490.svg" alt="Logo" id="logo" width="300" height="300"/>
+			@HappySadSvg()
 			<h1 class="mb-4 mt-8 text-5xl font-extrabold">GO. RANT.</h1>
 			<form method="post" id="post-form" action="/posts" class="join flex w-full justify-center lg:pt-0">
 				<input type="text" id="post-id" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content focus:outline-none active:border-2" autocomplete="off" required/>
@@ -328,7 +342,7 @@ templ StarterWelcome(message string, posts []posts.Post, username string) {
 					for i := 0; i < len(posts); i++ {
 						<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 							<h3 class="text-lg font-bold">{ posts[i].PostID }</h3>
-							<div>by { posts[i].UserID }</div>
+							<div>by { posts[i].PreferredName }</div>
 						</a>
 					}
 				</div>

@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"gorant/database"
 	"gorant/posts"
 	"gorant/templates"
 	"gorant/users"
@@ -40,10 +41,6 @@ func main() {
 		TemplRender(w, r, templates.StarterWelcome("Welcome", p, user.Username))
 	})))
 
-	mux.HandleFunc("/testing", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.LoginSuccess())
-	})
-
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})
@@ -51,9 +48,15 @@ func main() {
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		postID := r.FormValue("post-id")
 		exists := posts.VerifyPostID(postID)
-		if !exists {
+		if exists {
+			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+		}
+
+		if err := posts.NewPost(postID, user.Username); err != nil {
+			fmt.Println(err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
+
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 	})
 
@@ -117,7 +120,7 @@ func main() {
 		var insertedID string
 		insertedID, err := posts.Insert(c)
 		if err != nil {
-			fmt.Println("Error inserting")
+			fmt.Println("Error inserting: ", err)
 		}
 		comments, err := posts.GetComments(postID, user.Username)
 		if err != nil {
@@ -230,10 +233,11 @@ func main() {
 		TemplRender(w, r, templates.About())
 	})
 
-	mux.HandleFunc("/admin/reset", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /admin/reset", func(w http.ResponseWriter, r *http.Request) {
 		if os.Getenv("DEV_ENV") == "TRUE" {
-			err := posts.ResetDB()
+			err := database.Reset()
 			if err != nil {
+				fmt.Println(err)
 				w.Write([]byte("Reset failed, errored out"))
 				return
 			}
@@ -241,6 +245,8 @@ func main() {
 			t := time.Now().String()
 
 			TemplRender(w, r, templates.Reset("", t))
+		} else {
+			w.Write([]byte("Not allowed!"))
 		}
 	})
 

@@ -30,7 +30,7 @@ func GetSettings(username string) (User, error) {
 	}
 
 	var s User
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=?", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe); err != nil {
+	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe); err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Weird, no rows found!")
 			return s, err
@@ -69,7 +69,7 @@ func SaveSettings(username string, s Settings) error {
 		s.ContactMe = "1"
 	}
 
-	_, err = db.Exec("UPDATE users SET preferred_name=?, contact_me=? WHERE user_id=?;", s.PreferredName, s.ContactMe, username)
+	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2 WHERE user_id=$3;", s.PreferredName, s.ContactMe, username)
 	if err != nil {
 		fmt.Println(err)
 	}
