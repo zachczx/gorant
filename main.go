@@ -54,7 +54,7 @@ func main() {
 
 		if err := posts.NewPost(postID, user.Username); err != nil {
 			fmt.Println(err)
-			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			http.Redirect(w, r, "/login?r=new", http.StatusSeeOther)
 		}
 
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
@@ -295,7 +295,13 @@ func main() {
 	// Auth handles
 	//--------------------------------------
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.Login())
+		ref := r.URL.Query().Get("r")
+
+		if ref == "new" {
+			TemplRender(w, r, templates.Login("error", "You need to login before you can create a new post"))
+			return
+		}
+		TemplRender(w, r, templates.Login("", ""))
 	})
 
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)

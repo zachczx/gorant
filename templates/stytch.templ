@@ -1,9 +1,19 @@
 package templates
 
-templ Login() {
+templ Login(status string, message string) {
 	@Base("GoRant - Login", "") {
-		<div class="w-full max-w-xl content-center">
-			<div class="space-y-12 p-12 shadow-md">
+		<div class="w-full max-w-xl space-y-8 content-center">
+			if status == "error" {
+				<div class="w-full max-w-xl content-center">
+					<div class="flex w-full items-center border border-error bg-error p-2 text-error-content shadow-lg">
+						<h2 class="flex items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+							{ message }
+						</h2>
+					</div>
+				</div>
+			}
+			<div class="space-y-12 p-12 border border-neutral/30 shadow-md">
 				<h1 class="text-4xl font-bold">Register or Login</h1>
 				<div class="space-y-4">
 					<p>No passwords. Receive a magic link to login via email.</p>
@@ -29,6 +39,9 @@ templ Login() {
 				</div>
 			</div>
 		</div>
+		// if status != "" && message != "" {
+		// 	@Toast(status, message)
+		// }
 	}
 }
 

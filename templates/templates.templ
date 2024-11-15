@@ -329,16 +329,23 @@ templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
 			@HappySadSvg()
 			<h1 class="mb-4 mt-8 text-5xl font-extrabold">GO. RANT.</h1>
 			<form method="post" id="post-form" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<input type="text" id="post-id" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content focus:outline-none active:border-2" autocomplete="off" required/>
-				<button id="post-button" class="btn btn-accent join-item min-w-24 text-lg">Go</button>
+				<input type="text" id="post-id" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input shadow-lg join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content focus:outline-none active:border-2" autocomplete="off" required/>
+				<button id="post-button" class="btn btn-accent join-item min-w-24 text-lg shadow-lg">Go</button>
 			</form>
 			<div id="content" class="pt-8 lg:pt-16">
 				<h2 class="-mb-4 text-2xl font-bold"><span class="ms-2 bg-base-100 px-2">Posts</span></h2>
 				<div class="grid grid-cols-2 gap-4 border border-neutral/60 px-4 pb-4 pt-6 lg:grid-cols-3 xl:grid-cols-4">
-					<div id="add-new" class="grid cursor-pointer content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
-						<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
-						<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
-					</div>
+					if username == "" {
+						<a href="/login?r=new" id="add-new-login-first" class="grid cursor-pointer content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
+							<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
+							<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
+						</a>
+					} else {
+						<div id="add-new" class="grid cursor-pointer content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
+							<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
+							<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
+						</div>
+					}
 					for i := 0; i < len(posts); i++ {
 						<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 							<h3 class="text-lg font-bold">{ posts[i].PostID }</h3>
