@@ -23,13 +23,13 @@ const (
 )
 
 func Connect() (*sqlx.DB, error) {
-	postgres := Config{
-		HostURL:  os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Name:     os.Getenv("DB_NAME"),
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-	}
+	// postgres := Config{
+	// 	HostURL:  os.Getenv("DB_HOST"),
+	// 	Port:     os.Getenv("DB_PORT"),
+	// 	Name:     os.Getenv("DB_NAME"),
+	// 	User:     os.Getenv("DB_USER"),
+	// 	Password: os.Getenv("DB_PASSWORD"),
+	// }
 
 	var db *sqlx.DB
 	var err error
