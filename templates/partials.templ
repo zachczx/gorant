@@ -20,7 +20,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 				>
 					<div
 						if comments[i].CommentID == highlight {
-							class="grid w-20 content-center bg-primary/30 p-2 text-center text-xl font-bold animate-highlight-comment-side"
+							class="grid w-20 animate-highlight-comment-side content-center bg-primary/30 p-2 text-center text-xl font-bold"
 						} else {
 							class="grid w-20 content-center bg-primary/30 p-2 text-center text-xl font-bold"
 						}
@@ -53,7 +53,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 					</div>
 					<div
 						if comments[i].CommentID == highlight {
-							class="w-full grow bg-lime-300/10 p-4 animate-highlight-comment-main"
+							class="w-full grow animate-highlight-comment-main bg-lime-300/10 p-4"
 						} else {
 							class="w-full grow bg-lime-300/10 p-4"
 						}
@@ -131,7 +131,7 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, username 
 
 templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, username string, highlight string) {
 	@PartialPostNew(comments, postID, username, highlight)
-	<div class="w-full pb-4 animate-slide-down" id="form-message" hx-swap-oob="true">
+	<div class="w-full animate-slide-down pb-4" id="form-message" hx-swap-oob="true">
 		<div class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg">
 			<h2 class="flex items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>

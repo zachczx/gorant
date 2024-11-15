@@ -34,7 +34,7 @@ func Connect() (*sqlx.DB, error) {
 	var db *sqlx.DB
 	var err error
 
-	pg := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", postgres.User, postgres.Password, postgres.Name, postgres.HostURL)
+	pg := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgres.User, postgres.Password, postgres.HostURL, postgres.Port, postgres.Name)
 	db, err = sqlx.Open("pgx", pg)
 	if err != nil {
 		fmt.Println("Error connecting to db")
