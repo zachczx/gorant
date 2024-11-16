@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ PartialPostNew(comments []posts.JoinComment, postID string, username string, highlight string) {
+templ PartialPostNew(comments []posts.JoinComment, postID string, highlight string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
@@ -20,9 +20,9 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 				>
 					<div
 						if comments[i].CommentID == highlight {
-							class="grid w-20 animate-highlight-comment-side content-center bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid w-20 animate-highlight-comment-side content-center bg-primary/30 rounded-l-lg p-2 text-center text-xl font-bold"
 						} else {
-							class="grid w-20 content-center bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid w-20 content-center bg-primary/30 rounded-l-lg p-2 text-center text-xl font-bold"
 						}
 					>
 						if comments[i].CurrentUserVoted == "true" {
@@ -53,9 +53,9 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 					</div>
 					<div
 						if comments[i].CommentID == highlight {
-							class="w-full grow animate-highlight-comment-main bg-lime-300/10 p-4"
+							class="w-full grow animate-highlight-comment-main rounded-r-lg bg-lime-300/10 p-4"
 						} else {
-							class="w-full grow bg-lime-300/10 p-4"
+							class="w-full grow rounded-r-lg bg-lime-300/10 p-4"
 						}
 					>
 						<div class="flex border-b border-accent/20 pb-2 text-xl text-base-content/60">
@@ -69,7 +69,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 							</div>
 						</div>
 						<div class="py-4 text-base">{ comments[i].Content }</div>
-						if comments[i].UserID == username {
+						if comments[i].UserID == GetCurrentUser(ctx) {
 							<div class="flex justify-end pt-4 join">
 								<button
 									hx-target="#posts"
@@ -108,8 +108,8 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 	</article>
 }
 
-templ PartialPostNewError(comments []posts.JoinComment, postID string, username string, messages map[string]string) {
-	@PartialPostNew(comments, postID, username, "")
+templ PartialPostNewError(comments []posts.JoinComment, postID string, messages map[string]string) {
+	@PartialPostNew(comments, postID, "")
 	<div class="w-full rounded-lg" id="form-message" hx-swap-oob="true">
 		<div class="grid w-full content-center space-y-2 border border-error p-2 pb-4 text-error">
 			<h2 class="flex items-center text-xl font-bold">
@@ -129,8 +129,8 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, username 
 	<div id="form-message-error" class="text-error rounded-lg" hx-swap-oob="true">{ messages["content"] }</div>
 }
 
-templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, username string, highlight string) {
-	@PartialPostNew(comments, postID, username, highlight)
+templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, highlight string) {
+	@PartialPostNew(comments, postID, highlight)
 	<div class="w-full animate-slide-down pb-4" id="form-message" hx-swap-oob="true">
 		<div class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg rounded-lg">
 			<h2 class="flex items-center">
@@ -139,31 +139,31 @@ templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, usernam
 			</h2>
 		</div>
 	</div>
-	@PostForm(postID, username, "true")
+	@PostForm(postID, "true")
 }
 
-templ PartialPostVote(comments []posts.JoinComment, postID string, username string, highlight string) {
-	@PartialPostNew(comments, postID, username, highlight)
+templ PartialPostVote(comments []posts.JoinComment, postID string, highlight string) {
+	@PartialPostNew(comments, postID, highlight)
 }
 
-templ PartialPostVoteError(comments []posts.JoinComment, postID string, username string) {
-	@PartialPostNew(comments, postID, username, "") {
+templ PartialPostVoteError(comments []posts.JoinComment, postID string) {
+	@PartialPostNew(comments, postID, "") {
 		@Toast("error", "You need to be logged in to upvote!")
 	}
 }
 
-templ PartialPostNewErrorLogin(comments []posts.JoinComment, postID string, username string) {
-	@PartialPostNew(comments, postID, username, "") {
+templ PartialPostNewErrorLogin(comments []posts.JoinComment, postID string) {
+	@PartialPostNew(comments, postID, "") {
 		@Toast("error", "You need to be logged in to add a new comment!")
 	}
 }
 
-templ PartialPostDelete(comments []posts.JoinComment, postID string, username string) {
-	@PartialPostNew(comments, postID, username, "")
+templ PartialPostDelete(comments []posts.JoinComment, postID string) {
+	@PartialPostNew(comments, postID, "")
 }
 
-templ PartialPostDeleteError(comments []posts.JoinComment, postID string, username string) {
-	@PartialPostNew(comments, postID, username, "") {
+templ PartialPostDeleteError(comments []posts.JoinComment, postID string) {
+	@PartialPostNew(comments, postID, "") {
 		@Toast("error", "You can only delete comments you posted!")
 	}
 }
@@ -175,9 +175,9 @@ templ PartialPostErrorMessage(message string) {
 	</div>
 }
 
-templ PartialEditDescriptionResponse(postID string, post posts.Post, username string) {
+templ PartialEditDescriptionResponse(postID string, post posts.Post) {
 	<div class="group flex items-center" id="post-description">
-		if post.UserID == username {
+		if post.UserID == GetCurrentUser(ctx) {
 			<button id="post-description-static" class="flex flex-wrap items-center">
 				if post.Description == "" {
 					Add a description here
@@ -299,7 +299,7 @@ templ PartialEditMoodError(postID string, mood string) {
 	</div>
 }
 
-templ PartialSettingsEditSuccess(s users.User, username string) {
+templ PartialSettingsEditSuccess(s users.User) {
 	<div id="settings-message" class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg rounded-lg">
 		<h2 class="flex items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
@@ -308,7 +308,7 @@ templ PartialSettingsEditSuccess(s users.User, username string) {
 	</div>
 }
 
-templ PartialSettingsEditError(s users.User, username string) {
+templ PartialSettingsEditError(s users.User) {
 	<div id="settings-message" class="flex w-full items-center border border-error bg-error p-2 text-error-content shadow-lg rounded-lg">
 		<h2 class="flex items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>

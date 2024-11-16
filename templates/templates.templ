@@ -1,12 +1,13 @@
 package templates
 
 import (
+	"context"
 	"fmt"
 	"gorant/posts"
 	"gorant/users"
 )
 
-templ Base(title string, username string) {
+templ Base(title string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -53,7 +54,9 @@ templ Base(title string, username string) {
 							<li><a href="/about">About</a></li>
 						</ul>
 					</div>
-					<a href="/" class="text-3xl font-bold ps-6 group"><span class="inline-block px-4 py-2 bg-accent rounded text-accent-content group-hover:bg-orange-700 transition-all duration-200">Go</span><span class="inline-block py-2 text-accent/70 group-hover:text-orange-500 transition-all duration-500 ease-in-out rounded ps-2 pe-4">Rant</span></a>
+					<a href="/" class="text-3xl font-bold ps-6 group">
+						<span class="inline-block px-4 py-2 bg-accent rounded text-accent-content group-hover:bg-orange-700 transition-all duration-200">Go</span><span class="inline-block py-2 text-accent/70 group-hover:text-orange-500 transition-all duration-500 ease-in-out rounded ps-2 pe-4">Rant</span>
+					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex">
 					<ul class="menu menu-horizontal px-1 opacity-0">
@@ -71,15 +74,15 @@ templ Base(title string, username string) {
 					</ul>
 				</div>
 				<div class="navbar-end pe-6">
-					if username == "" {
+					if GetCurrentUser(ctx)  == "" {
 						<div>
 							<a href="/login" class="btn btn-accent btn-sm me-2">Register</a>
 							<a href="/login" class="btn btn-outline btn-accent btn-sm me-2">Login</a>
 						</div>
 					}
-					if username != "" {
+					if GetCurrentUser(ctx)  != "" {
 						<div class="flex items-center">
-							<div class="btn btn-outline btn-xs me-4 text-sm">{ username }</div>
+							<div class="btn btn-outline btn-xs me-4 text-sm">{ GetCurrentUser(ctx) }</div>
 							<div class="dropdown dropdown-end dropdown-bottom">
 								<div tabindex="0" role="button" class="m-1">
 									<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="m9.25 22l-.4-3.2q-.325-.125-.612-.3t-.563-.375L4.7 19.375l-2.75-4.75l2.575-1.95Q4.5 12.5 4.5 12.338v-.675q0-.163.025-.338L1.95 9.375l2.75-4.75l2.975 1.25q.275-.2.575-.375t.6-.3l.4-3.2h5.5l.4 3.2q.325.125.613.3t.562.375l2.975-1.25l2.75 4.75l-2.575 1.95q.025.175.025.338v.674q0 .163-.05.338l2.575 1.95l-2.75 4.75l-2.95-1.25q-.275.2-.575.375t-.6.3l-.4 3.2zM11 20h1.975l.35-2.65q.775-.2 1.438-.587t1.212-.938l2.475 1.025l.975-1.7l-2.15-1.625q.125-.35.175-.737T17.5 12t-.05-.787t-.175-.738l2.15-1.625l-.975-1.7l-2.475 1.05q-.55-.575-1.212-.962t-1.438-.588L13 4h-1.975l-.35 2.65q-.775.2-1.437.588t-1.213.937L5.55 7.15l-.975 1.7l2.15 1.6q-.125.375-.175.75t-.05.8q0 .4.05.775t.175.75l-2.15 1.625l.975 1.7l2.475-1.05q.55.575 1.213.963t1.437.587zm1.05-4.5q1.45 0 2.475-1.025T15.55 12t-1.025-2.475T12.05 8.5q-1.475 0-2.488 1.025T8.55 12t1.013 2.475T12.05 15.5M12 12"></path></svg>
@@ -117,18 +120,18 @@ templ Base(title string, username string) {
 	</html>
 }
 
-templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, username string) {
-	@Base("GoRant - Post", username) {
+templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string) {
+	@Base("GoRant - Post") {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8 lg:grid-cols-3">
 			<div class="w-full space-y-4 justify-self-start lg:col-span-3">
 				<h1>
 					<span class="text-5xl font-extrabold uppercase">{ postID }</span>
 					<div class="ms-16 inline-block">
-						@MoodMapper(post.PostID, post.UserID, username, post.Mood)
+						@MoodMapper(post.PostID, post.UserID, post.Mood)
 					</div>
 				</h1>
 				<div class="group flex items-center" id="post-description">
-					if post.UserID == username {
+					if post.UserID == GetCurrentUser(ctx) {
 						<button id="post-description-static" class="flex flex-wrap items-center">
 							if post.Description == "" {
 								Add a description here
@@ -225,7 +228,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 									</div>
 								</div>
 								<div class="py-4 text-base">{ comments[i].Content }</div>
-								if comments[i].UserID == username {
+								if comments[i].UserID == GetCurrentUser(ctx) {
 									<div class="flex justify-end pt-4 items-center join">
 										<button
 											hx-target="#posts"
@@ -268,7 +271,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 			<div class="w-full">
 				<div class="grid justify-items-center">
 					<div class="w-full" id="form-message">
-						if username == "" {
+						if GetCurrentUser(ctx) == "" {
 							<div class="w-full pb-4" id="">
 								<div class="flex items-center border border-neutral/20 p-4 text-neutral/80 rounded-lg">
 									<a href="/auth/login" class="flex items-center">
@@ -279,14 +282,14 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							</div>
 						}
 					</div>
-					@PostForm(postID, username, "false")
+					@PostForm(postID, "false")
 				</div>
 			</div>
 		</main>
 	}
 }
 
-templ PostForm(postID string, username string, oobSwap string) {
+templ PostForm(postID string, oobSwap string) {
 	<form
 		method="post"
 		id="comment-form"
@@ -308,7 +311,7 @@ templ PostForm(postID string, username string, oobSwap string) {
 			<div id="form-message-error"></div>
 		</label>
 		<div>
-			if username != "" {
+			if GetCurrentUser(ctx) != "" {
 				<button id="comment-submit-button" class="btn btn-accent w-full text-lg rounded-3xl" style="view-transition-name: add-post-button;">Add Comment</button>
 			} else {
 				<button id="comment-submit-button" class="btn btn-accent w-full text-lg rounded-3xl" style="view-transition-name: add-post-button;" disabled>Add Comment</button>
@@ -319,16 +322,14 @@ templ PostForm(postID string, username string, oobSwap string) {
 }
 
 templ About() {
-	@Base("About", "") {
+	@Base("About") {
 		<h1>About</h1>
 	}
 }
 
-templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
-	@Base("GoRant", username) {
+templ StarterWelcome(message string, posts []posts.JoinPost) {
+	@Base("GoRant") {
 		<div class="grid place-items-center content-center">
-			// <p class="pb-8 text-2xl">{ message }</p>
-			// <img src="/static/images/swole-doge.webp" alt="Swole Doge" width="350px" height="459.2px" class="m-0 scale-75 py-4 lg:order-first" fetchpriority="high"/>
 			@HappySadSvg()
 			<h1 class="mb-4 mt-8 text-5xl font-extrabold">GO. RANT.</h1>
 			<form method="post" id="post-form" action="/posts" class="join flex w-full justify-center lg:pt-0">
@@ -338,14 +339,14 @@ templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
 			<div id="content" class="pt-8 lg:pt-16">
 				<h2 class="-mb-4 text-2xl font-bold"><span class="ms-2 bg-base-100 px-2">Posts</span></h2>
 				<div class="grid grid-cols-2 gap-4 border border-neutral/60 rounded-lg px-4 pb-4 pt-6 lg:grid-cols-3 xl:grid-cols-4">
-					if username == "" {
+					if GetCurrentUser(ctx) == "" {
 						<a href="/login?r=new" id="add-new-login-first" class="grid cursor-pointer rounded-lg content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 							<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
 							<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
 						</a>
 					} else {
 						<div id="add-new" class="grid cursor-pointer rounded-lg content-center justify-items-center gap-4 border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
-							<div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
+							<div class="text-center" style="pointer-events: none;"><svg xmlns="http://www.w3.org/2000/svg" id="add-new-svg" width="3em" height="3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm-8 4V3h18v18z"></path></svg></div>
 							<h3 id="add-new-header" class="text-lg font-bold">Create New</h3>
 						</div>
 					}
@@ -363,7 +364,7 @@ templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
 }
 
 templ Error(message string) {
-	@Base("GoRant", "") {
+	@Base("GoRant") {
 		<main class="grid place-items-center content-center">
 			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
 			<img src="/static/images/reshot-illustration-404-page-HASGL2MQBU.svg" alt="Error" class="py-10"/>
@@ -403,8 +404,8 @@ templ Toast(status string, message string) {
 	</script>
 }
 
-templ MoodMapper(postID string, postUserID string, currentUser, mood string) {
-	if postUserID == currentUser {
+templ MoodMapper(postID string, postUserID string, mood string) {
+	if postUserID == GetCurrentUser(ctx) {
 		<div id="mood" class="dropdown dropdown-end dropdown-bottom">
 			<div tabindex="0" role="button" class="flex items-center text-5xl">
 				if mood == "elated" {
@@ -486,8 +487,8 @@ templ MoodMapper(postID string, postUserID string, currentUser, mood string) {
 	}
 }
 
-templ Settings(s users.User, username string) {
-	@Base("User Settings", username) {
+templ Settings(s users.User) {
+	@Base("User Settings") {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8">
 			<div class="space-y-4">
 				<div id="settings-message" class="hidden"></div>
@@ -499,7 +500,7 @@ templ Settings(s users.User, username string) {
 							<div class="label">
 								<span class="label-text">Email</span>
 							</div>
-							<input type="text" name="username" value={ username } class="input input-bordered w-full" disabled/>
+							<input type="text" name="username" value={ GetCurrentUser(ctx) } class="input input-bordered w-full" disabled/>
 						</label>
 						<label class="form-control w-full">
 							<div class="label">
@@ -527,4 +528,12 @@ templ Settings(s users.User, username string) {
 			</div>
 		</main>
 	}
+}
+
+// For type safety
+func GetCurrentUser(ctx context.Context) string {
+	if currentUser, ok := ctx.Value("currentUser").(string); ok {
+		return currentUser
+	}
+	return ""
 }

@@ -1,10 +1,11 @@
 // import { gsap } from 'gsap/dist/gsap';
 
 (function createnewFocus() {
-	const elementIds = ['navbar', 'logo', 'content', 'footer'];
-	const classList = ['blur-md', 'brightness-75'];
+	const elementIds = ['navbar', 'happy-sad-svg', 'content', 'footer'];
+	const classList = ['blur-sm', 'brightness-75'];
 	const addNewDiv = document.getElementById('add-new');
-	addNewDiv.addEventListener('click', () => {
+	addNewDiv.addEventListener('click', (evt) => {
+		console.log('triggered by', evt.target);
 		document.getElementById('post-button').innerText = 'Create';
 		const postIdInputEl = document.getElementById('post-id');
 		const classes = [

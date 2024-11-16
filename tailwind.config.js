@@ -45,7 +45,7 @@ module.exports = {
 				},
 				'highlight-border': {
 					'5%, 95%': {
-						border: '3px solid #ea580c',
+						border: '1px solid #ea580c',
 					},
 					'0, 100%': {
 						border: '1px solid rgba(38, 41, 49, 0.3)',
