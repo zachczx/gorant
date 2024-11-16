@@ -16,7 +16,7 @@ templ Login(status string, message string) {
 			<div class="space-y-12 border border-neutral/30 p-12 shadow-md rounded-lg">
 				<h1 class="text-4xl font-bold">Register or Login</h1>
 				<div class="space-y-4">
-					<p>Receive a magic link to login via email. No password needed.</p>
+					<p>Receive a magic link to login via email, no password needed.</p>
 					<form method="POST" action="/login/sendlink" class="w-full space-y-4">
 						<label class="input input-bordered flex w-full items-center gap-4">
 							<svg
@@ -34,7 +34,7 @@ templ Login(status string, message string) {
 							</svg>
 							<input type="email" name="email" class="grow" placeholder="example@email.com" required/>
 						</label>
-						<button class="btn btn-accent w-full">Submit</button>
+						<button class="btn btn-accent rounded-3xl text-lg w-full">Get Magic Link</button>
 					</form>
 				</div>
 			</div>
