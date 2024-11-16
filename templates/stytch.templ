@@ -2,7 +2,7 @@ package templates
 
 templ Login(status string, message string) {
 	@Base("GoRant - Login", "") {
-		<div class="w-full max-w-xl space-y-8 content-center">
+		<div class="w-full max-w-xl content-center space-y-8">
 			if status == "error" {
 				<div class="w-full max-w-xl content-center">
 					<div class="flex w-full items-center border border-error bg-error p-2 text-error-content shadow-lg">
@@ -13,7 +13,7 @@ templ Login(status string, message string) {
 					</div>
 				</div>
 			}
-			<div class="space-y-12 p-12 border border-neutral/30 shadow-md">
+			<div class="space-y-12 border border-neutral/30 p-12 shadow-md">
 				<h1 class="text-4xl font-bold">Register or Login</h1>
 				<div class="space-y-4">
 					<p>Receive a magic link to login via email. No password needed.</p>

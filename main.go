@@ -35,7 +35,7 @@ func main() {
 	mux.Handle("/", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, err := posts.ListPosts()
 		if err != nil {
-			fmt.Println("Error fetching posts")
+			fmt.Println("Error fetching posts", err)
 		}
 
 		TemplRender(w, r, templates.StarterWelcome("Welcome", p, user.Username))

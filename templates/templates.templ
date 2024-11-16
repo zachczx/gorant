@@ -329,7 +329,7 @@ templ StarterWelcome(message string, posts []posts.JoinPost, username string) {
 			@HappySadSvg()
 			<h1 class="mb-4 mt-8 text-5xl font-extrabold">GO. RANT.</h1>
 			<form method="post" id="post-form" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<input type="text" id="post-id" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input shadow-lg join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content focus:outline-none active:border-2" autocomplete="off" required/>
+				<input type="text" id="post-id" name="post-id" hx-post="/create" placeholder="Enter a post ID to continue" class="input join-item input-bordered input-accent w-full max-w-96 bg-primary/10 text-base-content shadow-lg focus:outline-none active:border-2" autocomplete="off" required/>
 				<button id="post-button" class="btn btn-accent join-item min-w-24 text-lg shadow-lg">Go</button>
 			</form>
 			<div id="content" class="pt-8 lg:pt-16">

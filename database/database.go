@@ -23,19 +23,19 @@ const (
 )
 
 func Connect() (*sqlx.DB, error) {
-	// postgres := Config{
-	// 	HostURL:  os.Getenv("DB_HOST"),
-	// 	Port:     os.Getenv("DB_PORT"),
-	// 	Name:     os.Getenv("DB_NAME"),
-	// 	User:     os.Getenv("DB_USER"),
-	// 	Password: os.Getenv("DB_PASSWORD"),
-	// }
+	postgres := Config{
+		HostURL:  os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Name:     os.Getenv("DB_NAME"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+	}
 
 	var db *sqlx.DB
 	var err error
 
-	// pg := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgres.User, postgres.Password, postgres.HostURL, postgres.Port, postgres.Name)
-	db, err = sqlx.Open("pgx", os.Getenv("CONNECTION_STRING"))
+	pg := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgres.User, postgres.Password, postgres.HostURL, postgres.Port, postgres.Name)
+	db, err = sqlx.Open("pgx", pg)
 	if err != nil {
 		fmt.Println("Error connecting to db")
 		return nil, err
