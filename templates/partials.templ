@@ -13,9 +13,9 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 				<div
 					id={ comments[i].CommentID }
 					if comments[i].CommentID == highlight {
-						class="flex h-auto animate-highlight-border border border-neutral/30"
+						class="flex h-auto animate-highlight-border border border-neutral/30 rounded-lg"
 					} else {
-						class="flex h-auto border border-neutral/30"
+						class="flex h-auto border border-neutral/30 rounded-lg"
 					}
 				>
 					<div
@@ -70,12 +70,12 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 						</div>
 						<div class="py-4 text-base">{ comments[i].Content }</div>
 						if comments[i].UserID == username {
-							<div class="flex justify-end pt-4">
+							<div class="flex justify-end pt-4 join">
 								<button
 									hx-target="#posts"
 									hx-swap="outerHTML"
 									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].CommentID))) }
-									class="-me-[1px] flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-accent hover:text-error-content"
+									class="-me-[1px] flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-accent join-item rounded-lg hover:text-error-content"
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>Edit
 								</button>
@@ -89,7 +89,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 									hx-target="#posts"
 									hx-swap="outerHTML"
 									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", postID, comments[i].CommentID))) }
-									class="flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-error hover:text-error-content"
+									class="flex min-w-24 items-center justify-center border border-neutral/60 px-2 py-1 text-xs text-base-content/70 hover:bg-error join-item rounded-lg  hover:text-error-content"
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 										<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
@@ -110,7 +110,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, username strin
 
 templ PartialPostNewError(comments []posts.JoinComment, postID string, username string, messages map[string]string) {
 	@PartialPostNew(comments, postID, username, "")
-	<div class="w-full" id="form-message" hx-swap-oob="true">
+	<div class="w-full rounded-lg" id="form-message" hx-swap-oob="true">
 		<div class="grid w-full content-center space-y-2 border border-error p-2 pb-4 text-error">
 			<h2 class="flex items-center text-xl font-bold">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
@@ -126,13 +126,13 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, username 
 			</ul>
 		</div>
 	</div>
-	<div id="form-message-error" class="text-error" hx-swap-oob="true">{ messages["content"] }</div>
+	<div id="form-message-error" class="text-error rounded-lg" hx-swap-oob="true">{ messages["content"] }</div>
 }
 
 templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, username string, highlight string) {
 	@PartialPostNew(comments, postID, username, highlight)
 	<div class="w-full animate-slide-down pb-4" id="form-message" hx-swap-oob="true">
-		<div class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg">
+		<div class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg rounded-lg">
 			<h2 class="flex items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 				Successfully added!
@@ -187,18 +187,23 @@ templ PartialEditDescriptionResponse(postID string, post posts.Post, username st
 				<svg id="" xmlns="http://www.w3.org/2000/svg" class="ms-4 hidden group-hover:flex" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
 			</button>
 			<form id="post-description-form" class="join hidden w-full" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
-				<input
-					type="text"
-					id="post-description-input"
-					name="post-description-input"
-					class="input join-item input-bordered w-full max-w-xl"
-					if post.Description == "" {
-						placeholder="Add a description here"
-					}
-					value={ post.Description }
-				/>
-				<button id="post-description-button" class="btn btn-accent join-item">Save</button>
-				<button id="post-description-cancel" class="btn border-0 bg-transparent text-accent underline hover:bg-transparent">Cancel</button>
+				<label class="input join-item input-bordered w-full flex max-w-xl rounded-3xl items-center">
+					<svg xmlns="http://www.w3.org/2000/svg" class="me-4 inline text-neutral/30" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
+					<input
+						type="text"
+						id="post-description-input"
+						name="post-description-input"
+						class="grow"
+						if post.Description == "" {
+							placeholder="Add a description here"
+						}
+						value={ post.Description }
+					/>
+					<button type="button" id="post-description-cancel" class="text-accent">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+					</button>
+				</label>
+				<button id="post-description-button" class="btn btn-accent join-item rounded-3xl px-6">Save</button>
 			</form>
 		} else {
 			if post.Description == "" {
@@ -295,7 +300,7 @@ templ PartialEditMoodError(postID string, mood string) {
 }
 
 templ PartialSettingsEditSuccess(s users.User, username string) {
-	<div id="settings-message" class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg">
+	<div id="settings-message" class="flex w-full items-center border border-success bg-success p-2 text-success-content shadow-lg rounded-lg">
 		<h2 class="flex items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 			Successfully added!
@@ -304,7 +309,7 @@ templ PartialSettingsEditSuccess(s users.User, username string) {
 }
 
 templ PartialSettingsEditError(s users.User, username string) {
-	<div id="settings-message" class="flex w-full items-center border border-error bg-error p-2 text-error-content shadow-lg">
+	<div id="settings-message" class="flex w-full items-center border border-error bg-error p-2 text-error-content shadow-lg rounded-lg">
 		<h2 class="flex items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 			Error!

@@ -110,54 +110,60 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 	TemplRender(w, r, templates.LoginSuccess())
 }
 
-func (s *AuthService) authenticateHandler(w http.ResponseWriter, r *http.Request) {
-	tokenType := r.URL.Query().Get("stytch_token_type")
-	token := r.URL.Query().Get("token")
+func (s *AuthService) authenticateHandler(user *User) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenType := r.URL.Query().Get("stytch_token_type")
+		token := r.URL.Query().Get("token")
 
-	if tokenType != "magic_links" {
-		log.Printf("Error: unrecognized token type %s\n", tokenType)
-		http.Error(w, fmt.Sprintf("Unrecognized token type %s", tokenType), http.StatusBadRequest)
-		return
-	}
-
-	resp, err := s.client.MagicLinks.Authenticate(ctx, &magiclinks.AuthenticateParams{
-		Token:                  token,
-		SessionDurationMinutes: 43800,
-	})
-	if err != nil {
-		log.Printf("Error authenticating: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	session, err := s.store.Get(r, "stytch_session")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	session.Values["token"] = resp.SessionToken
-	session.Save(r, w)
-
-	var exists bool
-	db, err := database.Connect()
-	if err != nil {
-		log.Printf("Error connecting to DB")
-	}
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1;", resp.User.Emails[0].Email).Scan(&exists); err != nil {
-		if err == sql.ErrNoRows {
-			_, err := db.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES ($1, $2, $3);", resp.User.Emails[0].Email, resp.User.Emails[0].Email, resp.User.Emails[0].Email)
-			if err != nil {
-				log.Printf("Error inserting new user into DB")
-			}
-			fmt.Println("Successfully created new user in DB")
-		} else {
-			fmt.Println("User already exists")
+		if tokenType != "magic_links" {
+			log.Printf("Error: unrecognized token type %s\n", tokenType)
+			// http.Error(w, fmt.Sprintf("Unrecognized token type %s", tokenType), http.StatusBadRequest)
+			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			return
 		}
-	}
-	db.Close()
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+		resp, err := s.client.MagicLinks.Authenticate(ctx, &magiclinks.AuthenticateParams{
+			Token:                  token,
+			SessionDurationMinutes: 43800,
+		})
+		if err != nil {
+			log.Printf("Error authenticating: %v\n", err)
+			// http.Error(w, err.Error(), http.StatusInternalServerError)
+			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			return
+		}
+
+		session, err := s.store.Get(r, "stytch_session")
+		if err != nil {
+			// http.Error(w, err.Error(), http.StatusInternalServerError)
+			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			return
+		}
+
+		session.Values["token"] = resp.SessionToken
+		session.Save(r, w)
+		user.Username = resp.User.Emails[0].Email
+
+		var exists bool
+		db, err := database.Connect()
+		if err != nil {
+			log.Printf("Error connecting to DB")
+		}
+		if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1;", resp.User.Emails[0].Email).Scan(&exists); err != nil {
+			if err == sql.ErrNoRows {
+				_, err := db.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES ($1, $2, $3);", resp.User.Emails[0].Email, resp.User.Emails[0].Email, resp.User.Emails[0].Email)
+				if err != nil {
+					log.Printf("Error inserting new user into DB")
+				}
+				fmt.Println("Successfully created new user in DB")
+			} else {
+				fmt.Println("User already exists, no DB action needed")
+			}
+		}
+		db.Close()
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})
 }
 
 func (s *AuthService) logout(u *User, h http.Handler) http.Handler {

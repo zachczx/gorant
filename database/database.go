@@ -18,10 +18,6 @@ type Config struct {
 	FilePath string
 }
 
-const (
-	mode string = "postgres"
-)
-
 func Connect() (*sqlx.DB, error) {
 	postgres := Config{
 		HostURL:  os.Getenv("DB_HOST"),

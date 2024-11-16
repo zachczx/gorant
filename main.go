@@ -306,7 +306,7 @@ func main() {
 
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
 
-	mux.HandleFunc("/authenticate", service.authenticateHandler)
+	mux.Handle("/authenticate", service.authenticateHandler(user))
 
 	mux.Handle("/logout", service.logout(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.LoggedOut())

@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-	* {
+	/* * {
 		border-radius: 0px !important;
-	}
+	} */
 
 	/* inter-latin-wght-normal */
 	@font-face {
