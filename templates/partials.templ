@@ -95,6 +95,12 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 					</div>
 				</div>
 			}
+		} else {
+			<div class="grid place-items-center gap-4 rounded-lg p-8">
+				<img src="/static/images/noun-empty-wallet-6118188.svg" width="234px" height="275px" class="" alt="Nothing!"/>
+				<h2 class="text-center text-2xl font-extrabold">No comments</h2>
+				<h2 class="text-center">Start by posting a comment!</h2>
+			</div>
 		}
 		<script>
 			(function() {
