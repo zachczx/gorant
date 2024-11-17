@@ -158,6 +158,8 @@ func (s *AuthService) authenticateHandler(user *User) http.Handler {
 					log.Printf("Error inserting new user into DB")
 				}
 				fmt.Println("Successfully created new user in DB")
+
+				http.Redirect(w, r, "/settings?r=firstlogin", http.StatusSeeOther)
 			} else {
 				fmt.Println("User already exists, no DB action needed")
 			}

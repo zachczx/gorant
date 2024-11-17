@@ -224,7 +224,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 										(#{ comments[i].CommentID }) { comments[i].CreatedAt }
 									</div>
 								</div>
-								<div class="py-4 text-base whitespace-pre-line">{ comments[i].Content }</div>
+								<div class="whitespace-pre-line py-4 text-base">{ comments[i].Content }</div>
 								if comments[i].UserID == GetCurrentUser(ctx) {
 									<div class="join flex items-center justify-end pt-4">
 										<button
@@ -356,7 +356,7 @@ templ StarterWelcome(message string, posts []posts.JoinPost) {
 					for i := 0; i < len(posts); i++ {
 						<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="grid content-center space-y-4 rounded-lg border border-neutral/60 bg-primary/10 p-8 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 							<div class="group mb-4 overflow-hidden rounded-lg border border-neutral/20 bg-base-200/20 p-2 text-center text-5xl">
-								<span class="inline-block group-hover:animate-bounce transition-all delay-500">
+								<span class="inline-block transition-all delay-500 group-hover:animate-bounce">
 									if posts[i].Mood  == "elated" {
 										😄
 									} else if posts[i].Mood  == "happy" {
@@ -377,7 +377,7 @@ templ StarterWelcome(message string, posts []posts.JoinPost) {
 									{ posts[i].PostID }
 								</h3>
 								<div class="flex items-center">
-									<div class="grow">by { posts[i].PreferredName }</div><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-neutral/60 me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ posts[i].CommentsCountString }
+									<div class="grow">by { posts[i].PreferredName }</div><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2 text-neutral/60" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ posts[i].CommentsCountString }
 								</div>
 							</div>
 						</a>
@@ -547,11 +547,64 @@ templ Settings(s users.User) {
 								/>
 							</label>
 						</div>
-						<button class="btn btn-accent mt-4 w-full">Save</button>
+						<button class="btn btn-accent mt-4 w-full text-lg rounded-3xl">Save</button>
 						<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
 					</form>
 				</div>
 			</div>
+		</main>
+	}
+}
+
+templ SettingsFirstLogin(s users.User) {
+	@Base("User Settings") {
+		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8">
+			<div class="space-y-4">
+				<div id="settings-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
+					<h2 class="flex items-center flex-wrap px-2">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
+						Welcome! How about setting a display name below?
+					</h2>
+				</div>
+				<div class="space-y-8 rounded-lg border border-neutral/30 p-8 shadow-lg">
+					<h1 class="min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
+					<form method="post" class="grid gap-4" hx-post="/settings/edit" hx-target="#settings-message" hx-swap="outerHTML" id="settings-form">
+						// action="/settings/edit" 
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text">Email</span>
+							</div>
+							<input type="text" name="username" value={ GetCurrentUser(ctx) } class="input input-bordered w-full" disabled/>
+						</label>
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text text-info font-bold">Display Name</span>
+							</div>
+							<input id="preferred-name-input" type="text" name="preferred-name" value={ s.PreferredName } class="input input-bordered input-info w-full"/>
+						</label>
+						<div class="form-control">
+							<label class="label cursor-pointer">
+								<span class="label-text me-4">Only send me essential emails.</span>
+								<input
+									name="contact-me"
+									type="checkbox"
+									if s.ContactMeString == "0" {
+										checked="checked"
+									}
+									class="checkbox-accent checkbox"
+								/>
+							</label>
+						</div>
+						<button class="btn btn-accent mt-4 w-full text-lg rounded-3xl">Save</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+					</form>
+				</div>
+			</div>
+			<script>
+				(function(){
+					document.getElementById("preferred-name-input").focus()
+				}())
+			</script>
 		</main>
 	}
 }

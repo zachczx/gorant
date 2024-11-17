@@ -252,12 +252,18 @@ func main() {
 	})
 
 	mux.Handle("/settings", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ref := r.URL.Query().Get("r")
 		s, err := users.GetSettings(user.Username)
 		if err != nil {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
-		fmt.Println(s)
+
+		switch ref {
+		case "firstlogin":
+			TemplRender(w, r, templates.SettingsFirstLogin(s))
+			return
+		}
 		TemplRender(w, r, templates.Settings(s))
 	})))
 
@@ -298,7 +304,8 @@ func main() {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
 
-		if ref == "new" {
+		switch ref {
+		case "new":
 			TemplRender(w, r, templates.Login("error", "You need to login before you can create a new post"))
 			return
 		}
