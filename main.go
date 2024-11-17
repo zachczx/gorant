@@ -24,15 +24,13 @@ type User struct {
 var ctx context.Context = context.Background()
 
 func main() {
-	user := &User{Username: ""}
-
 	service := NewAuthService(
 		os.Getenv("STYTCH_PROJECT_ID"),
 		os.Getenv("STYTCH_SECRET"),
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Context().Value("currentUser"))
 		p, err := posts.ListPosts()
 		if err != nil {
@@ -53,7 +51,7 @@ func main() {
 			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 		}
 
-		if err := posts.NewPost(postID, user.Username); err != nil {
+		if err := posts.NewPost(postID, r.Context().Value("currentUser").(string)); err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/login?r=new", http.StatusSeeOther)
 		}
@@ -61,9 +59,9 @@ func main() {
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 	})
 
-	mux.Handle("/posts/{postID}", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-		post, comments, err := posts.GetPostComments(postID, user.Username)
+		post, comments, err := posts.GetPostComments(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
@@ -77,13 +75,13 @@ func main() {
 		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{postID}/new", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/new", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 
-		if user.Username == "" {
+		if r.Context().Value("currentUser").(string) == "" {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
-			comments, err := posts.GetComments(postID, user.Username)
+			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println(err)
 				TemplRender(w, r, templates.Error("Error!"))
@@ -100,7 +98,7 @@ func main() {
 		}
 
 		c := posts.Comment{
-			UserID:    user.Username,
+			UserID:    r.Context().Value("currentUser").(string),
 			Content:   r.FormValue("message"),
 			CreatedAt: time.Now().String(),
 			PostID:    postID,
@@ -108,7 +106,7 @@ func main() {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.GetComments(postID, user.Username)
+			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
@@ -123,7 +121,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error inserting: ", err)
 		}
-		comments, err := posts.GetComments(postID, user.Username)
+		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			TemplRender(w, r, templates.Error("Oops, something went wrong."))
 			return
@@ -133,12 +131,12 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
 
-		if user.Username == "" {
-			post, err := posts.GetPostInfo(postID, user.Username)
+		if r.Context().Value("currentUser").(string) == "" {
+			post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -151,7 +149,7 @@ func main() {
 			return
 		}
 
-		post, err := posts.GetPostInfo(postID, user.Username)
+		post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Issue with getting post info: ", err)
 		}
@@ -159,12 +157,12 @@ func main() {
 		TemplRender(w, r, templates.MoodMapper(postID, post.UserID, post.Mood))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
-		if user.Username == "" {
-			comments, err := posts.GetComments(postID, user.Username)
+		if r.Context().Value("currentUser").(string) == "" {
+			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts: ", err)
 			}
@@ -173,13 +171,13 @@ func main() {
 		}
 
 		var err error
-		err = posts.UpVote(commentID, user.Username)
+		err = posts.UpVote(commentID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error executing upvote", err)
 		}
 
 		var comments []posts.JoinComment
-		comments, err = posts.GetComments(postID, user.Username)
+		comments, err = posts.GetComments(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -187,13 +185,13 @@ func main() {
 		TemplRender(w, r, templates.PartialPostVote(comments, postID, commentID))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
-		if user.Username == "" {
+		if r.Context().Value("currentUser").(string) == "" {
 			fmt.Println("I'm inside unauthenticated")
-			comments, err := posts.GetComments(postID, user.Username)
+			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -201,19 +199,19 @@ func main() {
 			return
 		}
 
-		if err := posts.Delete(commentID, user.Username); err != nil {
+		if err := posts.Delete(commentID, r.Context().Value("currentUser").(string)); err != nil {
 			fmt.Println("Error deleting comment: ", err)
 			return
 		}
 
-		comments, err := posts.GetComments(postID, user.Username)
+		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
 		TemplRender(w, r, templates.PartialPostDelete(comments, postID))
 	})))
 
-	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		description := r.FormValue("post-description-input")
 
@@ -223,7 +221,7 @@ func main() {
 			TemplRender(w, r, templates.Error("Something went wrong while editing the post!"))
 		}
 
-		post, err := posts.GetPostInfo(postID, user.Username)
+		post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching post info", err)
 		}
@@ -251,9 +249,9 @@ func main() {
 		}
 	})
 
-	mux.Handle("/settings", service.CheckAuthentication(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/settings", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
-		s, err := users.GetSettings(user.Username)
+		s, err := users.GetSettings(r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -267,7 +265,7 @@ func main() {
 		TemplRender(w, r, templates.Settings(s))
 	})))
 
-	mux.Handle("POST /settings/edit", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /settings/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f := users.Settings{
 			PreferredName: r.FormValue("preferred-name"),
 			ContactMe:     r.FormValue("contact-me"),
@@ -275,7 +273,7 @@ func main() {
 
 		if err := users.Validate(f); err != nil {
 			fmt.Println("Error: ", err)
-			s, err := users.GetSettings(user.Username)
+			s, err := users.GetSettings(r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println("Error fetching settings: ", err)
 				http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -284,12 +282,12 @@ func main() {
 			return
 		}
 
-		if err := users.SaveSettings(user.Username, f); err != nil {
+		if err := users.SaveSettings(r.Context().Value("currentUser").(string), f); err != nil {
 			fmt.Println("Error saving: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
 
-		s, err := users.GetSettings(user.Username)
+		s, err := users.GetSettings(r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -314,9 +312,9 @@ func main() {
 
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
 
-	mux.Handle("/authenticate", service.authenticateHandler(user))
+	mux.Handle("/authenticate", service.authenticateHandler(ctx))
 
-	mux.Handle("/logout", service.logout(user, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/logout", service.logout(ctx, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.LoggedOut())
 	})))
 

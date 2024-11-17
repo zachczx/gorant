@@ -46,12 +46,11 @@ func (s *AuthService) RequireAuthentication(h http.Handler) http.Handler {
 	})
 }
 
-func (s *AuthService) CheckAuthentication(u *User, h http.Handler) http.Handler {
+func (s *AuthService) CheckAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
 		ctx := context.WithValue(r.Context(), "currentUser", "")
 		if user != nil {
-			u.Username = user.Emails[0].Email
 			ctx = context.WithValue(r.Context(), "currentUser", user.Emails[0].Email)
 		}
 		h.ServeHTTP(w, r.WithContext(ctx))
@@ -112,7 +111,7 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 	TemplRender(w, r, templates.LoginSuccess())
 }
 
-func (s *AuthService) authenticateHandler(user *User) http.Handler {
+func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenType := r.URL.Query().Get("stytch_token_type")
 		token := r.URL.Query().Get("token")
@@ -144,7 +143,7 @@ func (s *AuthService) authenticateHandler(user *User) http.Handler {
 
 		session.Values["token"] = resp.SessionToken
 		session.Save(r, w)
-		user.Username = resp.User.Emails[0].Email
+		ctx = context.WithValue(r.Context(), "currentUser", resp.User.Emails[0].Email)
 
 		var exists bool
 		db, err := database.Connect()
@@ -170,7 +169,7 @@ func (s *AuthService) authenticateHandler(user *User) http.Handler {
 	})
 }
 
-func (s *AuthService) logout(u *User, h http.Handler) http.Handler {
+func (s *AuthService) logout(ctx context.Context, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sess, err := s.store.Get(r, "stytch_session")
 		if err != nil {
@@ -181,7 +180,7 @@ func (s *AuthService) logout(u *User, h http.Handler) http.Handler {
 		delete(sess.Values, "token")
 		sess.Save(r, w)
 
-		u.Username = ""
+		ctx = context.WithValue(r.Context(), "currentUser", "")
 
 		h.ServeHTTP(w, r)
 	})
