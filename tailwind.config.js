@@ -13,8 +13,15 @@ module.exports = {
 				'highlight-comment-main': 'highlight-comment-main 4s steps(1) 0s 1 forwards',
 				'highlight-comment-side': 'highlight-comment-side 4s steps(1) 0s 1 forwards',
 				'slide-down': 'slide-down 0.4s ease-out 0s 1 forwards',
+				'delete-slide-right': 'delete-slide-right 1s ease-out 0s 1 forwards',
 			},
 			keyframes: {
+				'delete-slide-right': {
+					'100%': {
+						transform: 'translateX(1rem) translate3d(0, 0, 0)',
+						opacity: '5%',
+					},
+				},
 				'slide-down': {
 					'0%': {
 						transform: 'translateY(-0.2rem)',

@@ -1,8 +1,10 @@
 package posts
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,13 +21,15 @@ type Post struct {
 }
 
 type JoinPost struct {
-	PostID        string `db:"post_id"`
-	UserID        string `db:"user_id"`
-	Description   string `db:"description"`
-	Protected     int    `db:"protected"`
-	CreatedAt     string `db:"created_at"`
-	Mood          string `db:"mood"`
-	PreferredName string
+	PostID              string `db:"post_id"`
+	UserID              string `db:"user_id"`
+	Description         string `db:"description"`
+	Protected           int    `db:"protected"`
+	CreatedAt           string `db:"created_at"`
+	Mood                string `db:"mood"`
+	PreferredName       string
+	CommentsCount       sql.NullInt64 `db:"comments_cnt"`
+	CommentsCountString string
 }
 
 func ListPosts() ([]JoinPost, error) {
@@ -34,9 +38,13 @@ func ListPosts() ([]JoinPost, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name FROM posts
+	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt FROM posts
 							LEFT JOIN users
-							ON users.user_id = posts.user_id;`)
+							ON users.user_id = posts.user_id
+              
+							LEFT JOIN (SELECT comments.post_id, COUNT(1) AS comments_cnt FROM comments GROUP BY comments.post_id) AS comments
+							ON comments.post_id = posts.post_id
+							;`)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
@@ -49,9 +57,15 @@ func ListPosts() ([]JoinPost, error) {
 	for rows.Next() {
 		var p JoinPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
+		}
+
+		if p.CommentsCount.Valid {
+			p.CommentsCountString = strconv.FormatInt(p.CommentsCount.Int64, 10)
+		} else {
+			p.CommentsCountString = "0"
 		}
 
 		posts = append(posts, p)
