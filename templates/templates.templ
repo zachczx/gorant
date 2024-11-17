@@ -224,7 +224,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 										(#{ comments[i].CommentID }) { comments[i].CreatedAt }
 									</div>
 								</div>
-								<div class="py-4 text-base">{ comments[i].Content }</div>
+								<div class="py-4 text-base whitespace-pre-line">{ comments[i].Content }</div>
 								if comments[i].UserID == GetCurrentUser(ctx) {
 									<div class="join flex items-center justify-end pt-4">
 										<button
