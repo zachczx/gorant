@@ -39,10 +39,12 @@ func (s *AuthService) RequireAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
 		if user == nil {
+			ctx = context.WithValue(r.Context(), "currentUser", "")
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		h.ServeHTTP(w, r)
+		ctx = context.WithValue(r.Context(), "currentUser", user.Emails[0].Email)
+		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

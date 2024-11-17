@@ -265,7 +265,7 @@ func main() {
 		TemplRender(w, r, templates.Settings(s))
 	})))
 
-	mux.Handle("POST /settings/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /settings/edit", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f := users.Settings{
 			PreferredName: r.FormValue("preferred-name"),
 			ContactMe:     r.FormValue("contact-me"),
