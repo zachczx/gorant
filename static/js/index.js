@@ -43,7 +43,7 @@
 	});
 })();
 
-(function () {
+(function BlockSpecialChars() {
 	const pattern = /^[A-Za-z0-9_-]+$/;
 	const inputEl = document.getElementById('post-id');
 	const postButton = document.getElementById('post-button');
@@ -55,14 +55,15 @@
 		console.log(inputEl.value);
 		if (!pattern.test(inputEl.value)) {
 			console.log('Fail!');
-			postButton.disabled = 'true';
+			// postButton.disabled = 'true';
 			postFormMessage.classList.remove('hidden');
 			inputEl.classList.remove('input-accent');
 			inputEl.classList.add('input-error');
 			postFormMessage.innerText = 'No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.';
 		} else {
 			postFormMessage.classList.add('hidden');
-			inputEl.classList.remove('border-error');
+			inputEl.classList.remove('input-error');
+			inputEl.classList.add('input-accent');
 			postButton.removeAttribute('disabled');
 		}
 	});
