@@ -6,6 +6,10 @@ import (
 	"gorant/users"
 )
 
+templ PartialStarterWelcomeError() {
+	<div id="post-form-message" class="mt-2 text-sm text-error">No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.</div>
+}
+
 templ PartialPostNew(comments []posts.JoinComment, postID string, highlight string) {
 	<article id="posts" class="w-full space-y-4 lg:col-span-2">
 		if len(comments) > 0 {
@@ -245,7 +249,7 @@ templ PartialEditDescriptionResponse(postID string, post posts.Post) {
 }
 
 templ PartialEditMoodError(postID string, mood string) {
-	<div id="mood" class="dropdown dropdown-end dropdown-bottom">
+	<div id="mood" class="dropdown dropdown-start dropdown-bottom">
 		<div tabindex="0" role="button" class="flex items-center text-5xl">
 			if mood == "elated" {
 				😄

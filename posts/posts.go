@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"gorant/database"
+
+	"github.com/rezakhademix/govalidator/v2"
 )
 
 type Post struct {
@@ -90,6 +92,18 @@ func NewPost(postID string, username string) error {
 	_, err = db.Exec("INSERT INTO posts (post_id, user_id, created_at) VALUES ($1, $2, $3)", postID, username, t)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ValidatePost(postID string) map[string](string) {
+	v := govalidator.New()
+
+	v.RequiredString(postID, "postID", "Please enter an ID").RegexMatches(postID, "^[A-Za-z0-9_-]+$", "postID", "No special characters allowed").MaxString(postID, 255, "postID", "Max length of ID is 255 characters.")
+
+	if v.IsFailed() {
+		return v.Errors()
 	}
 
 	return nil

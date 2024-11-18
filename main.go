@@ -44,8 +44,20 @@ func main() {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})
 
-	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.FormValue("post-id")
+
+		if v := posts.ValidatePost(postID); v != nil {
+			fmt.Println(v)
+
+			if r.Header.Get("Hx-request") != "" {
+				TemplRender(w, r, templates.PartialStarterWelcomeError())
+				return
+			}
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
+		}
+
 		exists := posts.VerifyPostID(postID)
 		if exists {
 			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
@@ -57,7 +69,7 @@ func main() {
 		}
 
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
-	})
+	})))
 
 	mux.Handle("/posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
