@@ -31,13 +31,12 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Context().Value("currentUser"))
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
 
-		TemplRender(w, r, templates.StarterWelcome("Welcome", p))
+		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
@@ -45,16 +44,20 @@ func main() {
 	})
 
 	mux.Handle("/posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("validation") == "error" {
+			p, err := posts.ListPosts()
+			if err != nil {
+				fmt.Println("Error fetching posts", err)
+			}
+			TemplRender(w, r, templates.StarterWelcomeError(p))
+			return
+		}
+
 		postID := r.FormValue("post-id")
 
 		if v := posts.ValidatePost(postID); v != nil {
 			fmt.Println(v)
-
-			if r.Header.Get("Hx-request") != "" {
-				TemplRender(w, r, templates.PartialStarterWelcomeError())
-				return
-			}
-			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			http.Redirect(w, r, "/posts?validation=error", http.StatusSeeOther)
 			return
 		}
 
@@ -143,6 +146,16 @@ func main() {
 		}
 	})))
 
+	mux.Handle("POST /posts/{postID}/delete", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		if err := posts.DeletePost(postID, r.Context().Value("currentUser").(string)); err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})))
+
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
@@ -196,6 +209,71 @@ func main() {
 
 		TemplRender(w, r, templates.PartialPostVote(comments, postID, commentID))
 	})))
+
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Context().Value("currentUser").(string) == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// postID := r.PathValue("postID")
+		commentID := r.PathValue("commentID")
+
+		c, err := posts.GetComment(commentID, r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		TemplRender(w, r, templates.PartialCommentEdit(c))
+	})))
+
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Context().Value("currentUser").(string) == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// postID := r.PathValue("postID")
+		commentID := r.PathValue("commentID")
+		e := r.FormValue("edit-content")
+
+		if err := posts.EditComment(commentID, e, r.Context().Value("currentUser").(string)); err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		c, err := posts.GetComment(commentID, r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
+	})))
+
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit/cancel", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Context().Value("currentUser").(string) == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		commentID := r.PathValue("commentID")
+
+		c, err := posts.GetComment(commentID, r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
+	})))
+
+	// comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+	// 	if err != nil {
+	// 		fmt.Println("Error fetching posts", err)
+	// 	}
+	// 	TemplRender(w, r, templates.PartialPostDelete(comments, postID))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")

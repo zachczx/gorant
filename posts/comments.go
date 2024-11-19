@@ -201,6 +201,39 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	return comments, nil
 }
 
+func GetComment(commentID string, currentUser string) (Comment, error) {
+	var c Comment
+
+	db, err := database.Connect()
+	if err != nil {
+		return c, err
+	}
+
+	err = db.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID)
+	if err != nil {
+		return c, err
+	}
+
+	return c, nil
+}
+
+func EditComment(commentID string, editedContent string, currentUser string) error {
+	db, err := database.Connect()
+	if err != nil {
+		return err
+	}
+
+	/////////////////////
+	// TODO Need to add validation before saving into DB
+	/////////////////////
+	_, err = db.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", editedContent, commentID, currentUser)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Delete(commentID string, username string) error {
 	db, err := database.Connect()
 	if err != nil {

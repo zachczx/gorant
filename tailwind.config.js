@@ -14,6 +14,7 @@ module.exports = {
 				'highlight-comment-side': 'highlight-comment-side 4s steps(1) 0s 1 forwards',
 				'slide-down': 'slide-down 0.4s ease-out 0s 1 forwards',
 				'delete-slide-right': 'delete-slide-right 1s ease-out 0s 1 forwards',
+				wiggle: 'wiggle 1.2s linear 0s infinite forwards',
 			},
 			keyframes: {
 				'delete-slide-right': {
@@ -69,6 +70,70 @@ module.exports = {
 						backgroundColor: '#f9ae86',
 					},
 					'100%': { backgroundColor: 'rgba(151, 220, 66, 0.3)' },
+				},
+				wiggle: {
+					'0%, 100%': {
+						transform: 'rotate(0deg)',
+					},
+					'25%': {
+						transform: 'rotate(20deg)',
+					},
+					'75%': {
+						transform: 'rotate(-20deg)',
+					},
+					// '30%': {
+					// 	transform: 'rotate(20deg)',
+					// },
+					// '35%': {
+					// 	transform: 'rotate(-20deg)',
+					// },
+					// '60%': {
+					// 	transform: 'rotate(20deg)',
+					// },
+					// '65%': {
+					// 	transform: 'rotate(-20deg)',
+					// },
+					// '90%': {
+					// 	transform: 'rotate(10deg)',
+					// },
+					// '95%': {
+					// 	transform: 'rotate(-10deg)',
+					// },
+				},
+				'wiggle-alt': {
+					'0%': {
+						transform: 'skewX(12deg)',
+					},
+					'10%': {
+						transform: 'skewX(-11deg)',
+					},
+					'20%': {
+						transform: 'skewX(10deg)',
+					},
+					'30%': {
+						transform: 'skewX(-9deg)',
+					},
+					'40%': {
+						transform: 'skewX(8deg)',
+					},
+					'50%': {
+						transform: 'skewX(-7deg)',
+					},
+					'60%': {
+						transform: 'skewX(6deg)',
+					},
+					'70%': {
+						transform: 'skewX(-5deg)',
+					},
+					'80%': {
+						transform: 'skewX(4deg)',
+					},
+					'90%': {
+						transform: 'skewX(3deg)',
+					},
+					'100%': {
+						transform: 'skewX(3deg)',
+					},
 				},
 			},
 		},

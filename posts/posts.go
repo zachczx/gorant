@@ -152,6 +152,33 @@ func EditPostDescription(postID string, description string) error {
 	return nil
 }
 
+func DeletePost(postID string, username string) error {
+	db, err := database.Connect()
+	if err != nil {
+		return err
+	}
+
+	var u string
+	if err := db.QueryRow("SELECT user_id FROM posts WHERE post_id=$1", postID).Scan(&u); err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("error: cannot find user_id with given postID")
+		}
+		return err
+	}
+
+	fmt.Println("Owner of post: ", u)
+
+	if u != username {
+		return errors.New("error: logged in user is not owner of post")
+	}
+
+	if _, err := db.Exec("DELETE FROM posts WHERE post_id=$1", postID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func EditMood(postID string, mood string) error {
 	db, err := database.Connect()
 	if err != nil {
