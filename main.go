@@ -39,6 +39,30 @@ func main() {
 		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
 
+	//------------------------------------------------------------
+	// Tried out lazy loading, but quite jarring with the loaders
+	//------------------------------------------------------------
+
+	/* 	mux.HandleFunc("GET /landing", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	   		TemplRender(w, r, templates.Landing())
+	   	}))
+
+	   	mux.Handle("POST /posts/list", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	   		// time.Sleep(10 * time.Second)
+	   		p, err := posts.ListPosts()
+	   		if err != nil {
+	   			fmt.Println("Error fetching posts", err)
+	   		}
+
+	   		TemplRender(w, r, templates.PartialLandingListPost(p))
+	   	})))
+
+	   	mux.Handle("POST /user/list", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	   		// time.Sleep(5 * time.Second)
+
+	   		TemplRender(w, r, templates.PartialNavUser())
+	   	}))) */
+
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})

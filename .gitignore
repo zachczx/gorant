@@ -10,3 +10,4 @@ tmp/
 handlers/
 *.old
 *.code-workspace
+templates/landing.templ
