@@ -1,7 +1,7 @@
 FROM golang:1.23.3 AS first
 ENV GO111MODULE=on
 WORKDIR /app
-COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./starter.db ./
+COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
 COPY ./posts ./posts
 COPY ./templates ./templates
 COPY ./database ./database
@@ -30,7 +30,7 @@ RUN templ generate && \
 
 FROM node:22 AS second
 WORKDIR /app
-COPY --from=first /app/tailwind.config.js /app/starter.db /app/package.json /app/gorant /app/package-lock.json /app/
+COPY --from=first /app/tailwind.config.js /app/package.json /app/gorant /app/package-lock.json /app/
 COPY --from=first /app/templates /app/templates
 COPY --from=first /app/static /app/static
 # COPY package*.json ./
@@ -45,7 +45,6 @@ FROM alpine:3.20.3
 WORKDIR /app
 COPY --from=second /app/gorant ./gorant
 COPY --from=second /app/static ./static
-COPY --from=second /app/starter.db ./starter.db
 ENV LISTEN_ADDR=${LISTEN_ADDR}
 EXPOSE ${LISTEN_ADDR}
 
