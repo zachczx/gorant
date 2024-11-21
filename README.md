@@ -5,9 +5,10 @@ My personal Go webapp starter kit.
 ## Go tools
 
 1. Templating - Templ
-2. SQL - SQLx
+2. SQL - SQLx, pgx
 3. HMR - Air
-4. Makefile
+4. Auth/auth - Stytch Go SDK
+5. Sessions - Gorilla Sessions
 
 ## JS tools
 
@@ -20,8 +21,8 @@ My personal Go webapp starter kit.
 
 1. Framework - Tailwind
 2. Components - DaisyUI
-3. Fonts - Fontsource
 
-## Todo
+## Other tools
 
 1. Docker
+2. Makefile

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorant/database"
 
@@ -34,6 +35,9 @@ type JoinComment struct {
 	PostDescription string `db:"description"`
 	Initials        string
 	PreferredName   string `db:"preferred_name"`
+
+	// Processed
+	CreatedAtProcessed string
 
 	// Null handling for counts from DB, since counts are calculated from the query
 	Score            sql.NullInt64 `db:"score"`
@@ -133,8 +137,10 @@ func GetPostComments(postID string, currentUser string) (Post, []JoinComment, er
 			c.CurrentUserVoted = "false"
 		}
 
-		c.CreatedAt = c.CreatedAt[:16]
+		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
+
 		comments = append(comments, c)
+
 	}
 
 	return post, comments, nil
@@ -194,7 +200,8 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 			c.CurrentUserVoted = "false"
 		}
 
-		c.CreatedAt = c.CreatedAt[:16]
+		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
+
 		comments = append(comments, c)
 	}
 
@@ -288,4 +295,46 @@ func UpVote(commentID string, username string) error {
 	}
 
 	return nil
+}
+
+func ConvertDate(date string) string {
+	var s string
+	var suffix string
+	t, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return s
+	}
+
+	n := time.Now()
+	diff := n.Sub(t).Hours()
+	switch {
+	case diff < 1:
+		if n.Sub(t).Minutes() < 2 {
+			suffix = " minute ago"
+		} else {
+			suffix = " minutes ago"
+		}
+		// Mins
+		s = strconv.Itoa(int(n.Sub(t).Minutes())) + suffix
+	case diff >= 1 && diff <= 23.99:
+		if diff < 2 {
+			suffix = " hour ago"
+		} else {
+			suffix = " hours ago"
+		}
+		// Hours
+		s = strconv.Itoa(int(diff)) + suffix
+	case diff > 23.99:
+		if diff < 48 {
+			suffix = " day ago"
+		} else {
+			suffix = " days ago"
+		}
+		// Days
+		s = strconv.Itoa(int(n.Sub(t).Hours()/24)) + suffix
+	default:
+		fmt.Println("Something went wrong")
+	}
+
+	return s
 }

@@ -6,9 +6,9 @@ require (
 	github.com/a-h/templ v0.2.793
 	github.com/go-swiss/compress v0.0.0-20231015173048-c7b565746931
 	github.com/gorilla/sessions v1.4.0
+	github.com/jackc/pgx/v5 v5.7.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lib/pq v1.10.9
 	github.com/rezakhademix/govalidator/v2 v2.0.9
 	github.com/stytchauth/stytch-go/v15 v15.9.0
 	modernc.org/sqlite v1.33.1
@@ -24,7 +24,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

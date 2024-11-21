@@ -107,7 +107,7 @@ func main() {
 			return
 		}
 
-		TemplRender(w, r, templates.Post("Posts", post, comments, postID))
+		TemplRender(w, r, templates.Post("Posts", post, comments, postID, ""))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +139,7 @@ func main() {
 		c := posts.Comment{
 			UserID:    r.Context().Value("currentUser").(string),
 			Content:   r.FormValue("message"),
-			CreatedAt: time.Now().String(),
+			CreatedAt: time.Now().Format(time.RFC3339),
 			PostID:    postID,
 		}
 
