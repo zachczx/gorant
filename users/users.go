@@ -76,3 +76,5 @@ func SaveSettings(username string, s Settings) error {
 
 	return nil
 }
+
+// TODO avatar choice

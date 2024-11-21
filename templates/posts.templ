@@ -98,8 +98,10 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/filter", postID))) }
 							hx-target="#posts"
 							hx-swap="outerHTML"
-							hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s"
+							hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.7s"
+							hx-indicator="#filter-loading"
 						/>
+						<span id="filter-loading" class="htmx-indicator loading-accent loading loading-spinner loading-sm"></span>
 						<button
 							id="filter-cancel-button"
 							type="button"

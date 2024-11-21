@@ -72,6 +72,17 @@
 	#form-message.htmx-added {
 		opacity: 0;
 	}
+
+	/* Loading indicator css */
+	.htmx-indicator {
+		opacity: 0;
+	}
+	.htmx-request .htmx-indicator {
+		opacity: 1;
+	}
+	.htmx-request.htmx-indicator {
+		opacity: 1;
+	}
 }
 
 @layer utilities {
