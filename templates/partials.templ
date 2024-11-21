@@ -13,12 +13,12 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 				<div
 					id={ "post-" + comments[i].CommentID }
 					if comments[i].CommentID == highlight {
-						class="flex h-auto relative animate-highlight-border rounded-lg border border-neutral/30 transition-all duration-[2000]"
+						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/30 transition-all duration-[2000]"
 					} else {
-						class="flex h-auto relative rounded-lg border border-neutral/30 transition-all duration-[2000]"
+						class="relative flex h-auto rounded-lg border border-neutral/30 transition-all duration-[2000]"
 					}
 				>
-					<div id={ "post-delete-loader-" + comments[i].CommentID } class="opacity-100 hidden w-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 justify-center"><span class="loading loading-spinner loading-md text-error"></span></div>
+					<div id={ "post-delete-loader-" + comments[i].CommentID } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
 					<div
 						id={ "post-upvote-" + comments[i].CommentID }
 						if comments[i].CommentID == highlight {
