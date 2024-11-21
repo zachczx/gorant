@@ -170,6 +170,34 @@ func main() {
 		}
 	})))
 
+	mux.Handle("POST /posts/{postID}/filter", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		q := r.FormValue("query")
+
+		if r.Context().Value("currentUser").(string) == "" {
+			fmt.Println("Not authenticated")
+			var comments []posts.JoinComment
+			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+			if err != nil {
+				fmt.Println(err)
+				TemplRender(w, r, templates.Error("Error!"))
+				return
+			}
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID))
+			return
+		}
+
+		comments, err := posts.FilterComments(q, postID, r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error("Oops, something went wrong."))
+			return
+		}
+		if hd := r.Header.Get("Hx-Request"); hd != "" {
+			TemplRender(w, r, templates.PartialPostNew(comments, postID, ""))
+		}
+	})))
+
 	mux.Handle("POST /posts/{postID}/delete", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		if err := posts.DeletePost(postID, r.Context().Value("currentUser").(string)); err != nil {

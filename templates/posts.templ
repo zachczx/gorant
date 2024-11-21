@@ -86,50 +86,88 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 								</form>
 							</ul>
 						</details>
-						<script>
-							(function activateDescriptionForm() {
-								document.getElementById("post-description-static").addEventListener("click", () => {
-									const postDescriptionForm = document.getElementById("post-description-form")
-									postDescriptionForm.classList.remove("hidden")
-									const postDescriptionStatic = document.getElementById("post-description-static")
-									postDescriptionStatic.classList.add("hidden")
-								})
-								document.getElementById("post-description-cancel").addEventListener("click", () => {
-									const postDescriptionForm = document.getElementById("post-description-form")
-									postDescriptionForm.classList.add("hidden")
-									const postDescriptionStatic = document.getElementById("post-description-static")
-									postDescriptionStatic.classList.remove("hidden")
-								})
-								document.getElementById("more-actions-edit-button").addEventListener("click", () => {
-									const postDescriptionForm = document.getElementById("post-description-form")
-									postDescriptionForm.classList.remove("hidden")
-									const postDescriptionStatic = document.getElementById("post-description-static")
-									postDescriptionStatic.classList.add("hidden")
-								})
-							})();
-							(function() {
-								document.addEventListener("click", (evt) => {
-									if (evt.target.id !== "more-actions-dropdown" && document.getElementById("more-actions-dropdown").open) {
-										document.getElementById("more-actions-dropdown").open = false
-									}
-								})
-							})();
-							(function copyPostLink(){
-								const moreActionsCopyButton = document.getElementById("more-actions-copy-button")
-								const postId = moreActionsCopyButton.dataset.postId.slice(5)
-								moreActionsCopyButton.addEventListener("click", (evt) => {
-									navigator.clipboard.writeText(window.location.href)	
-								})
-							})();
-						</script>
 					}
-					<label class="input input-sm input-bordered input-accent flex items-center gap-2">
+					<label class="input input-sm input-bordered input-accent w-96 max-w-full flex items-center gap-2">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18q-.425 0-.712-.288T10 17t.288-.712T11 16h2q.425 0 .713.288T14 17t-.288.713T13 18zm-4-5q-.425 0-.712-.288T6 12t.288-.712T7 11h10q.425 0 .713.288T18 12t-.288.713T17 13zM4 8q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
-						<input type="text" name="filter" class="grow text-accent" placeholder="Type something to filter"/>
+						<input
+							id="filter-input"
+							type="text"
+							name="query"
+							class="grow text-accent"
+							placeholder="Type something to filter"
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/filter", postID))) }
+							hx-target="#posts"
+							hx-swap="outerHTML"
+							hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s"
+						/>
+						<button
+							id="filter-cancel-button"
+							type="button"
+							class="hidden text-accent"
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/filter", postID))) }
+							hx-target="#posts"
+							hx-swap="outerHTML"
+							onclick="clearFilterInput()"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+						</button>
 					</label>
 					<button type="button" class="btn btn-outline btn-accent btn-sm flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path></svg>Sort</button>
 				</div>
 			</div>
+			<script>
+				(function activateDescriptionForm() {
+					document.getElementById("post-description-static").addEventListener("click", () => {
+						const postDescriptionForm = document.getElementById("post-description-form")
+						postDescriptionForm.classList.remove("hidden")
+						const postDescriptionStatic = document.getElementById("post-description-static")
+						postDescriptionStatic.classList.add("hidden")
+					})
+					document.getElementById("post-description-cancel").addEventListener("click", () => {
+						const postDescriptionForm = document.getElementById("post-description-form")
+						postDescriptionForm.classList.add("hidden")
+						const postDescriptionStatic = document.getElementById("post-description-static")
+						postDescriptionStatic.classList.remove("hidden")
+					})
+					document.getElementById("more-actions-edit-button").addEventListener("click", () => {
+						const postDescriptionForm = document.getElementById("post-description-form")
+						postDescriptionForm.classList.remove("hidden")
+						const postDescriptionStatic = document.getElementById("post-description-static")
+						postDescriptionStatic.classList.add("hidden")
+					})
+				})();
+
+				(function() {
+					document.addEventListener("click", (evt) => {
+						if (evt.target.id !== "more-actions-dropdown" && document.getElementById("more-actions-dropdown").open) {
+							document.getElementById("more-actions-dropdown").open = false
+						}
+					})
+				})();
+
+				(function copyPostLink(){
+					const moreActionsCopyButton = document.getElementById("more-actions-copy-button")
+					const postId = moreActionsCopyButton.dataset.postId.slice(5)
+					moreActionsCopyButton.addEventListener("click", (evt) => {
+						navigator.clipboard.writeText(window.location.href)	
+					})
+				})();
+
+				(function() {
+					//showFilterCancelButton
+					document.getElementById("filter-input").addEventListener("keyup", (evt) => {
+						if (evt.target.value.length > 0) {
+							document.getElementById("filter-cancel-button").classList.remove("hidden")
+						} else if (evt.target.value.length === 0) {
+							document.getElementById("filter-cancel-button").classList.add("hidden")
+						} 
+					})
+				})()
+
+				function clearFilterInput() {
+					document.getElementById("filter-input").value = ""
+				}
+			</script>
 			@PartialPostNew(comments, postID, highlight)
 			<div class="relative w-full">
 				<div class="sticky top-2 grid justify-items-center">
