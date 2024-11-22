@@ -369,7 +369,6 @@ func NewGetComments(postID string, currentUser string, sort Sort) ([]JoinComment
 		q += `ORDER BY cnt DESC NULLS LAST;`
 	}
 
-	fmt.Println(q)
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
