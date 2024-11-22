@@ -108,7 +108,7 @@ func main() {
 			return
 		}
 
-		sort := posts.Sort{Type: r.URL.Query().Get("sort"), Direction: r.URL.Query().Get("d")}
+		sort := posts.Sort{Type: r.URL.Query().Get("sort"), Direction: r.URL.Query().Get("order")}
 
 		comments, err := posts.NewGetComments(postID, r.Context().Value("currentUser").(string), sort)
 		if err != nil {

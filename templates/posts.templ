@@ -120,7 +120,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 						<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
 							<li
 								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=upvote&d=desc", postID))) }
+								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=upvote&order=desc", postID))) }
 								hx-target="#posts"
 								hx-swap="outerHTML"
 							>
@@ -132,7 +132,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							</li>
 							<li
 								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=upvote&d=asc", postID))) }
+								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=upvote&order=asc", postID))) }
 								hx-target="#posts"
 								hx-swap="outerHTML"
 							>
@@ -144,7 +144,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							</li>
 							<li
 								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=date&d=desc", postID))) }
+								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=date&order=desc", postID))) }
 								hx-target="#posts"
 								hx-swap="outerHTML"
 							>
@@ -156,7 +156,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							</li>
 							<li
 								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=date&d=asc", postID))) }
+								hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s?sort=date&order=asc", postID))) }
 								hx-target="#posts"
 								hx-swap="outerHTML"
 							>
