@@ -49,6 +49,11 @@ type JoinComment struct {
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
 }
 
+type Sort struct {
+	Type      string
+	Direction string
+}
+
 func Insert(c Comment) (string, error) {
 	var insertedID string
 	db, err := database.Connect()
@@ -74,76 +79,6 @@ func Insert(c Comment) (string, error) {
 	insertedID = strconv.Itoa(lastInsertID)
 	fmt.Println("Successfully inserted!")
 	return insertedID, nil
-}
-
-func GetPostComments(postID string, currentUser string) (Post, []JoinComment, error) {
-	db, err := database.Connect()
-	if err != nil {
-		return Post{}, nil, err
-	}
-
-	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
-		fmt.Println("Queryrow issue")
-		return post, nil, err
-	}
-
-	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
-	// I considered left join for post description, but it was stupid to append description to every comment.
-	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name FROM comments 
-
-							LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
-							FROM comments_votes 
-							GROUP BY comments_votes.comment_id) AS comments_votes 
-							ON comments.comment_id = comments_votes.comment_id 
-							
-							LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
-							ON comments.user_id = users.user_id
-							WHERE comments.post_id=$1
-							ORDER BY cnt DESC NULLS LAST;`, postID)
-	if err != nil {
-		return post, nil, err
-	}
-	defer rows.Close()
-
-	var comments []JoinComment
-
-	for rows.Next() {
-		var c JoinComment
-
-		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
-			fmt.Println("Scanning error: ", err)
-			return post, nil, err
-		}
-
-		c.Initials = strings.ToUpper(c.UserID[:2])
-
-		if c.Score.Valid {
-			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
-		} else {
-			c.ScoreString = ""
-		}
-
-		if c.Count.Valid {
-			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
-		} else {
-			c.CountString = ""
-		}
-
-		if c.IDsVoted.Valid && currentUser != "" {
-			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
-		} else {
-			c.CurrentUserVoted = "false"
-		}
-
-		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
-
-		comments = append(comments, c)
-
-	}
-
-	return post, comments, nil
 }
 
 func GetComments(postID string, currentUser string) ([]JoinComment, error) {
@@ -401,4 +336,81 @@ func ConvertDate(date string) string {
 	}
 
 	return s
+}
+
+func NewGetComments(postID string, currentUser string, sort Sort) ([]JoinComment, error) {
+	var comments []JoinComment
+	db, err := database.Connect()
+	if err != nil {
+		return comments, err
+	}
+
+	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name FROM comments 
+
+					LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
+					FROM comments_votes 
+					GROUP BY comments_votes.comment_id) AS comments_votes 
+					ON comments.comment_id = comments_votes.comment_id 
+					
+					LEFT JOIN (SELECT users.user_id, users.preferred_name FROM users) as users
+					ON comments.user_id = users.user_id
+					
+					WHERE comments.post_id=$1 ` // Still short of ORDER BY clause, deliberate space here
+
+	if sort.Type == "upvote" && sort.Direction == "asc" {
+		q += `ORDER BY cnt ASC NULLS FIRST;`
+	} else if sort.Type == "upvote" && sort.Direction == "desc" {
+		q += `ORDER BY cnt DESC NULLS LAST;`
+	} else if sort.Type == "date" && sort.Direction == "asc" {
+		q += `ORDER BY comments.created_at ASC NULLS LAST;`
+	} else if sort.Type == "date" && sort.Direction == "desc" {
+		q += `ORDER BY comments.created_at DESC NULLS LAST;`
+	} else {
+		q += `ORDER BY cnt DESC NULLS LAST;`
+	}
+
+	fmt.Println(q)
+	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
+	// I considered left join for post description, but it was stupid to append description to every comment.
+	// Decided to just do a separate query for that instead.
+	rows, err := db.Query(q, postID)
+	if err != nil {
+		return comments, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c JoinComment
+
+		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName); err != nil {
+			fmt.Println("Scanning error: ", err)
+			return comments, err
+		}
+
+		c.Initials = strings.ToUpper(c.UserID[:2])
+
+		if c.Score.Valid {
+			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
+		} else {
+			c.ScoreString = ""
+		}
+
+		if c.Count.Valid {
+			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
+		} else {
+			c.CountString = ""
+		}
+
+		if c.IDsVoted.Valid && currentUser != "" {
+			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
+		} else {
+			c.CurrentUserVoted = "false"
+		}
+
+		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
+
+		comments = append(comments, c)
+	}
+
+	return comments, nil
 }

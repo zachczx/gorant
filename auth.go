@@ -9,6 +9,7 @@ import (
 
 	"gorant/database"
 	"gorant/templates"
+	usersZ "gorant/users"
 
 	gorillaSessions "github.com/gorilla/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks"
@@ -35,26 +36,20 @@ func NewAuthService(projectId, secret string) *AuthService {
 	}
 }
 
-func (s *AuthService) RequireAuthentication(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := s.getAuthenticatedUser(w, r)
-		if user == nil {
-			ctx = context.WithValue(r.Context(), "currentUser", "")
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		ctx = context.WithValue(r.Context(), "currentUser", user.Emails[0].Email)
-		h.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func (s *AuthService) CheckAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
-		ctx := context.WithValue(r.Context(), "currentUser", "")
+		ctx := context.WithValue(ctx, "currentUser", "")
 		if user != nil {
-			ctx = context.WithValue(r.Context(), "currentUser", user.Emails[0].Email)
+			ctx = context.WithValue(ctx, "currentUser", user.Emails[0].Email)
+			u, err := usersZ.GetSettings(user.Emails[0].Email)
+			if err != nil {
+				fmt.Println(err)
+			}
+			ctx = context.WithValue(ctx, "avatarPath", u.AvatarPath)
+
 		}
+
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -165,6 +160,7 @@ func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
 				fmt.Println("User already exists, no DB action needed")
 			}
 		}
+
 		db.Close()
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)

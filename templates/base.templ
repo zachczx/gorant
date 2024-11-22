@@ -19,7 +19,7 @@ templ Base(title string) {
 			<script src="/static/js/ext/htmx.min.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans">
-			<header id="navbar" class="navbar mb-10 border-b border-b-neutral/20 bg-primary/30 p-0">
+			<header id="navbar" class="navbar border-b border-b-neutral/20 bg-primary/30 p-0">
 				<div class="navbar-start">
 					<div class="dropdown">
 						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -80,8 +80,8 @@ templ Base(title string) {
 									<button class="flex items-center rounded text-xs font-medium">
 										<span class="btn btn-outline btn-xs me-2">{ GetCurrentUser(ctx) }</span>
 										<div class="avatar">
-											<div class="w-10 rounded-full">
-												<img src="/static/images/avatar-shiba.webp" alt="" height="378px" width="504px"/>
+											<div class="w-10 rounded-full border border-neutral/20 bg-base-100">
+												<img src={ string(templ.URL(GetAvatarPath(ctx))) } alt=""/>
 											</div>
 										</div>
 									</button>
@@ -95,7 +95,7 @@ templ Base(title string) {
 					}
 				</div>
 			</header>
-			<div id="container" class="grid justify-items-center px-4">
+			<div id="container" class="grid justify-items-center pt-10 px-4">
 				{ children... }
 			</div>
 			<footer id="footer" class="mt-16 text-center text-sm">
@@ -131,6 +131,13 @@ func GetCurrentUser(ctx context.Context) string {
 	return ""
 }
 
+func GetAvatarPath(ctx context.Context) string {
+	if avatarPath, ok := ctx.Value("avatarPath").(string); ok {
+		return avatarPath
+	}
+	return ""
+}
+
 templ About() {
 	@Base("About") {
 		<h1>About</h1>
@@ -145,11 +152,11 @@ templ StarterWelcome(posts []posts.JoinPost) {
 				@Watermelon()
 			</h1>
 			<form method="post" id="post-form" action="/posts" class="join flex w-full justify-center lg:pt-0">
-				<label class="max-w-11/12 input join-item input-bordered input-lg input-accent flex w-[40rem] items-center rounded-3xl bg-primary/10 text-base-content shadow-lg focus:shadow-lg focus:outline-none active:border-2 active:shadow-lg">
+				<label class="max-w-11/12 input input-lg join-item input-bordered input-accent flex w-[40rem] items-center rounded-3xl bg-primary/10 text-base-content shadow-lg focus:shadow-lg focus:outline-none active:border-2 active:shadow-lg">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-accent" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path></svg>
 					<input type="text" id="post-id" name="post-id" placeholder="Enter a post ID to continue" class="grow" autocomplete="off" required/>
 				</label>
-				<button id="post-button" class="btn btn-accent btn-lg join-item min-w-20 rounded-3xl text-xl shadow-lg">Go</button>
+				<button id="post-button" class="btn btn-accent join-item btn-lg min-w-20 rounded-3xl text-xl shadow-lg">Go</button>
 			</form>
 			<div id="post-form-message" class="mt-2 text-sm text-error">
 				{ children... }

@@ -63,7 +63,12 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 					>
 						<div class="flex border-b border-accent/20 pb-2">
 							<div class="flex grow items-center">
-								<div class="me-4 grid h-12 w-12 place-items-center rounded-full bg-neutral/70 text-center text-2xl font-bold text-neutral-content">{ comments[i].Initials }</div>
+								// <div class="me-4 grid h-12 w-12 place-items-center rounded-full bg-neutral/70 text-center text-2xl font-bold text-neutral-content">{ comments[i].Initials }</div>
+								<div class="avatar me-4">
+									<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
+										<img src={ string(templ.URL(GetAvatarPath(ctx))) } alt="Avatar"/>
+									</div>
+								</div>
 								<div>
 									<div class="text-xl font-bold">{ comments[i].PreferredName }</div>
 									<div class="text-xs text-base-content/60">{ comments[i].CreatedAtProcessed }</div>
@@ -355,6 +360,7 @@ templ PartialSettingsEditSuccess(s users.User) {
 			Saved!
 		</h2>
 	</div>
+	<div id="first-login-message" hx-swap-oob="true" class=""></div>
 }
 
 templ PartialSettingsEditError(s users.User) {

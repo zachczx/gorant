@@ -35,7 +35,8 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-
+		fmt.Println("r.Context()........", r.Context())
+		fmt.Println("ctx........", ctx)
 		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
 
@@ -100,10 +101,24 @@ func main() {
 
 	mux.Handle("/posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-		post, comments, err := posts.GetPostComments(postID, r.Context().Value("currentUser").(string))
+		post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
+			return
+		}
+
+		sort := posts.Sort{Type: r.URL.Query().Get("sort"), Direction: r.URL.Query().Get("d")}
+
+		comments, err := posts.NewGetComments(postID, r.Context().Value("currentUser").(string), sort)
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error("Error!"))
+			return
+		}
+
+		if r.Header.Get("Hx-Request") != "" {
+			TemplRender(w, r, templates.PartialPostNew(comments, postID, ""))
 			return
 		}
 
@@ -213,7 +228,7 @@ func main() {
 		newMood := r.PathValue("newMood")
 
 		if r.Context().Value("currentUser").(string) == "" {
-			post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
+			post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -226,7 +241,7 @@ func main() {
 			return
 		}
 
-		post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
+		post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Issue with getting post info: ", err)
 		}
@@ -363,7 +378,7 @@ func main() {
 			TemplRender(w, r, templates.Error("Something went wrong while editing the post!"))
 		}
 
-		post, err := posts.GetPostInfo(postID, r.Context().Value("currentUser").(string))
+		post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println("Error fetching post info", err)
 		}
@@ -401,16 +416,18 @@ func main() {
 
 		switch ref {
 		case "firstlogin":
+			fmt.Println("in switch")
 			TemplRender(w, r, templates.SettingsFirstLogin(s))
 			return
 		}
 		TemplRender(w, r, templates.Settings(s))
 	})))
 
-	mux.Handle("POST /settings/edit", service.RequireAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /settings/edit", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f := users.Settings{
 			PreferredName: r.FormValue("preferred-name"),
 			ContactMe:     r.FormValue("contact-me"),
+			Avatar:        r.FormValue("avatar-radio"),
 		}
 
 		if err := users.Validate(f); err != nil {
@@ -434,7 +451,7 @@ func main() {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
-		fmt.Println(s)
+
 		TemplRender(w, r, templates.PartialSettingsEditSuccess(s))
 	})))
 

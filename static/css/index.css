@@ -83,6 +83,14 @@
 	.htmx-request.htmx-indicator {
 		opacity: 1;
 	}
+
+	/* Settings Form avatar selection */
+
+	.avatar > input[type='radio']:checked + div {
+		border: 4px #97dc42 solid;
+		transition-timing-function: ease-out;
+		transition-duration: 0.15s;
+	}
 }
 
 @layer utilities {

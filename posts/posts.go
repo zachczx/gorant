@@ -126,13 +126,14 @@ func VerifyPostID(postID string) bool {
 	return res.Next()
 }
 
-func GetPostInfo(postID string, currentUser string) (Post, error) {
+func GetPost(postID string, currentUser string) (Post, error) {
 	db, err := database.Connect()
 	if err != nil {
 		return Post{}, err
 	}
+
 	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1 AND user_id=$2", postID, currentUser).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
 		return post, err
 	}
 

@@ -16,11 +16,14 @@ type User struct {
 	PreferredName   string `db:"preferred_name"`
 	ContactMe       int    `db:"contact_me"`
 	ContactMeString string
+	Avatar          string `db:"avatar"`
+	AvatarPath      string
 }
 
 type Settings struct {
 	PreferredName string
 	ContactMe     string
+	Avatar        string
 }
 
 func GetSettings(username string) (User, error) {
@@ -30,13 +33,14 @@ func GetSettings(username string) (User, error) {
 	}
 
 	var s User
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe); err != nil {
+	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe, &s.Avatar); err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Weird, no rows found!")
 			return s, err
 		}
-		s.ContactMeString = strconv.Itoa(s.ContactMe)
 	}
+	s.ContactMeString = strconv.Itoa(s.ContactMe)
+	s.AvatarPath = ChooseAvatar(s.Avatar)
 
 	return s, nil
 }
@@ -44,8 +48,18 @@ func GetSettings(username string) (User, error) {
 func Validate(s Settings) map[string](string) {
 	v := govalidator.New()
 
-	// v.RequiredString(c.Name, "name", "Please enter a name")
+	var ok bool = false
+	avatarVals := []string{"default", "shiba", "cat", "parrot", "bulldog"}
+	for _, v := range avatarVals {
+		if v == s.Avatar {
+			ok = true
+			break
+		}
+	}
+	fmt.Println("Avatar check: ", ok)
+
 	v.RequiredString(s.PreferredName, "preferred_name", "Please enter a preferred name").MaxString(s.PreferredName, 255, "preferred_name", "Message is more than 255 characters.")
+	v.CustomRule(ok, "avatar", "Unrecognized avatar")
 
 	if v.IsFailed() {
 		return v.Errors()
@@ -69,7 +83,7 @@ func SaveSettings(username string, s Settings) error {
 		s.ContactMe = "1"
 	}
 
-	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2 WHERE user_id=$3;", s.PreferredName, s.ContactMe, username)
+	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3 WHERE user_id=$4;", s.PreferredName, s.ContactMe, s.Avatar, username)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -78,3 +92,20 @@ func SaveSettings(username string, s Settings) error {
 }
 
 // TODO avatar choice
+
+func ChooseAvatar(c string) string {
+	var s string
+	switch c {
+	case "shiba":
+		s = "/static/images/avatars/avatar-shiba.webp"
+	case "cat":
+		s = "/static/images/avatars/avatar-cat.webp"
+	case "parrot":
+		s = "/static/images/avatars/avatar-parrot.webp"
+	case "bulldog":
+		s = "/static/images/avatars/avatar-bulldog.webp"
+	case "default":
+		s = "/static/images/avatars/avatar-shiba.webp"
+	}
+	return s
+}

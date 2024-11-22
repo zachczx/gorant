@@ -1,0 +1,150 @@
+package templates
+
+import "gorant/users"
+
+templ Settings(s users.User) {
+	@Base("User Settings") {
+		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8">
+			<div class="space-y-4">
+				<div id="settings-message"></div>
+				{ children... }
+				<div class="space-y-8 rounded-lg border border-neutral/30 p-8 shadow-lg">
+					<h1 class="min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
+					<form method="post" class="grid gap-4" hx-post="/settings/edit" hx-target="#settings-message" hx-swap="outerHTML" id="settings-form">
+						// action="/settings/edit" 
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Email</span>
+							</div>
+							<input type="text" name="username" value={ GetCurrentUser(ctx) } class="input input-bordered w-full" disabled/>
+						</label>
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text font-medium">Display Name</span>
+							</div>
+							<input type="text" name="preferred-name" value={ s.PreferredName } class="input input-bordered w-full"/>
+						</label>
+						<div class="form-control">
+							<div class="label">
+								<div class="label-text font-medium">Choose an Avatar</div>
+							</div>
+							<div id="avatar-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+								<label id="shiba" class="avatar grid cursor-pointer justify-items-center space-y-2">
+									<input
+										type="radio"
+										name="avatar-radio"
+										value="shiba"
+										class="radio-accent radio radio-sm hidden"
+										if s.Avatar == "shiba" || s.Avatar == "default" {
+											checked="checked"
+										}
+									/>
+									<div class="w-24 rounded-full bg-primary/20">
+										<img src="/static/images/avatars/avatar-shiba.webp" alt="Shiba"/>
+									</div>
+								</label>
+								<label id="bulldog" class="avatar grid cursor-pointer justify-items-center space-y-2">
+									<input
+										type="radio"
+										name="avatar-radio"
+										value="bulldog"
+										class="radio-accent radio radio-sm hidden"
+										if s.Avatar == "bulldog" {
+											checked="checked"
+										}
+									/>
+									<div class="w-24 rounded-full bg-primary/20">
+										<img src="/static/images/avatars/avatar-bulldog.webp" alt="Bulldog"/>
+									</div>
+								</label>
+								<label id="parrot" class="avatar grid cursor-pointer justify-items-center space-y-2">
+									<input
+										type="radio"
+										name="avatar-radio"
+										value="parrot"
+										class="radio-accent radio radio-sm hidden"
+										if s.Avatar == "parrot" {
+											checked="checked"
+										}
+									/>
+									<div class="w-24 rounded-full bg-primary/20">
+										<img src="/static/images/avatars/avatar-parrot.webp" alt="Parrot"/>
+									</div>
+								</label>
+								<label id="cat" class="avatar grid cursor-pointer justify-items-center space-y-2">
+									<input
+										type="radio"
+										name="avatar-radio"
+										value="cat"
+										class="radio-accent radio radio-sm hidden"
+										if s.Avatar == "cat" {
+											checked="checked"
+										}
+									/>
+									<div class="w-24 rounded-full bg-primary/20">
+										<img src="/static/images/avatars/avatar-cat.webp" alt="Cat"/>
+									</div>
+								</label>
+							</div>
+						</div>
+						<script>
+							const choices = document.querySelectorAll("#avatar-grid > .avatar")
+							const classes = ["border-4", "border-primary"]
+
+							document.addEventListener("click", (evt) => {
+								if (evt.target.classList.contains("avatar-pic")){
+									console.log(evt.target)
+								}
+							})
+
+							// for (let i = 0; i < choices.length; i++) {
+							// 	choices[i].addEventListener("click", (evt) => {
+							// 		const avatarPic = choices[i].querySelector(".avatar-pic.rounded-full")
+							// 		if (choices[i].querySelector("input").checked = true) {
+							// 			//reset all 
+							// 			const allAvatarPic = document.querySelectorAll(".avatar-pic.rounded-full")
+							// 			for (let i = 0; i < allAvatarPic.length; i++) {
+							// 				allAvatarPic[i].classList.remove(...classes)
+							// 			}
+							// 			avatarPic.classList.add(...classes)
+							// 		} 									
+							// 	})
+							// }							
+						</script>
+						<div class="form-control mt-4">
+							<label class="label cursor-pointer">
+								<span class="label-text me-4 font-medium">Only send me essential emails.</span>
+								<input
+									name="contact-me"
+									type="checkbox"
+									if s.ContactMeString == "0" {
+										checked="checked"
+									}
+									class="checkbox-accent checkbox"
+								/>
+							</label>
+						</div>
+						<button class="btn btn-accent mt-4 w-full rounded-3xl text-lg">Save</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+					</form>
+				</div>
+			</div>
+		</main>
+	}
+}
+
+templ SettingsFirstLogin(s users.User) {
+	@Settings(s) {
+		<div id="first-login-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
+			<h2 class="flex flex-wrap items-center px-2">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
+				Welcome! How about setting a display name below?
+			</h2>
+		</div>
+		<script>
+			(function(){
+				document.getElementById("preferred-name-input").focus()
+			}())
+		</script>
+	}
+}
