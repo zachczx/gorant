@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"context"
 	"fmt"
 	"gorant/posts"
 )
@@ -95,7 +94,7 @@ templ Base(title string) {
 					}
 				</div>
 			</header>
-			<div id="container" class="grid justify-items-center pt-10 px-4">
+			<div id="container" class="grid justify-items-center px-4 pt-10">
 				{ children... }
 			</div>
 			<footer id="footer" class="mt-16 text-center text-sm">
@@ -121,21 +120,6 @@ templ Base(title string) {
 			</dialog>
 		</body>
 	</html>
-}
-
-// For type safety
-func GetCurrentUser(ctx context.Context) string {
-	if currentUser, ok := ctx.Value("currentUser").(string); ok {
-		return currentUser
-	}
-	return ""
-}
-
-func GetAvatarPath(ctx context.Context) string {
-	if avatarPath, ok := ctx.Value("avatarPath").(string); ok {
-		return avatarPath
-	}
-	return ""
 }
 
 templ About() {

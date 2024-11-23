@@ -24,6 +24,37 @@ templ Settings(s users.User) {
 							</div>
 							<input type="text" name="preferred-name" value={ s.PreferredName } class="input input-bordered w-full"/>
 						</label>
+						<label class="form-control w-full">
+							<div class="label">
+								<span class="label-text font-medium">Sort Comments</span>
+							</div>
+							<select class="select select-bordered w-full" name="sort-comments">
+								<option
+									value="date;desc"
+									if s.SortComments == "date;desc" {
+										selected
+									}
+								>Upvotes (highest first)</option>
+								<option
+									value="upvote;asc"
+									if s.SortComments == "upvote;asc" {
+										selected
+									}
+								>Upvotes (lowest first)</option>
+								<option
+									value="date;desc"
+									if s.SortComments == "date;desc" {
+										selected
+									}
+								>Date (latest first)</option>
+								<option
+									value="date;asc"
+									if s.SortComments == "date;asc" {
+										selected
+									}
+								>Date (oldest first)</option>
+							</select>
+						</label>
 						<div class="form-control">
 							<div class="label">
 								<div class="label-text font-medium">Choose an Avatar</div>

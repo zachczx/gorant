@@ -2,6 +2,7 @@ package users
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -18,12 +19,14 @@ type User struct {
 	ContactMeString string
 	Avatar          string `db:"avatar"`
 	AvatarPath      string
+	SortComments    string `db:"sort_comments"`
 }
 
 type Settings struct {
 	PreferredName string
 	ContactMe     string
 	Avatar        string
+	SortComments  string
 }
 
 func GetSettings(username string) (User, error) {
@@ -33,7 +36,7 @@ func GetSettings(username string) (User, error) {
 	}
 
 	var s User
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe, &s.Avatar); err != nil {
+	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe, &s.Avatar, &s.SortComments); err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Weird, no rows found!")
 			return s, err
@@ -71,7 +74,7 @@ func Validate(s Settings) map[string](string) {
 func SaveSettings(username string, s Settings) error {
 	db, err := database.Connect()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	// ContactMe is the opposite of the form value:
@@ -83,12 +86,34 @@ func SaveSettings(username string, s Settings) error {
 		s.ContactMe = "1"
 	}
 
-	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3 WHERE user_id=$4;", s.PreferredName, s.ContactMe, s.Avatar, username)
+	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3, sort_comments=$4 WHERE user_id=$5;", s.PreferredName, s.ContactMe, s.Avatar, s.SortComments, username)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	return nil
+}
+
+func SaveSortComments(username string, s string) (string, error) {
+	db, err := database.Connect()
+	if err != nil {
+		return s, err
+	}
+
+	switch s {
+	case "upvote;desc", "upvote;asc", "date;desc", "date;asc":
+		_, err = db.Exec("UPDATE users SET sort_comments=$1 WHERE user_id=$2;", s, username)
+		if err != nil {
+			return s, err
+		}
+
+	default:
+		err = errors.New("unknown value")
+		return s, err
+
+	}
+
+	return s, nil
 }
 
 // TODO avatar choice

@@ -30,13 +30,11 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-		fmt.Println("r.Context()........", r.Context())
-		fmt.Println("ctx........", ctx)
 		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
 
@@ -68,7 +66,7 @@ func main() {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
 	})
 
-	mux.Handle("/posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("validation") == "error" {
 			p, err := posts.ListPosts()
 			if err != nil {
@@ -77,7 +75,9 @@ func main() {
 			TemplRender(w, r, templates.StarterWelcomeError(p))
 			return
 		}
+	})))
 
+	mux.Handle("POST /posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.FormValue("post-id")
 
 		if v := posts.ValidatePost(postID); v != nil {
@@ -99,7 +99,7 @@ func main() {
 		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 	})))
 
-	mux.Handle("/posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
@@ -108,21 +108,52 @@ func main() {
 			return
 		}
 
-		sort := posts.Sort{Type: r.URL.Query().Get("sort"), Direction: r.URL.Query().Get("order")}
-
-		comments, err := posts.NewGetComments(postID, r.Context().Value("currentUser").(string), sort)
+		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		if r.Header.Get("Hx-Request") != "" {
-			TemplRender(w, r, templates.PartialPostNew(comments, postID, ""))
+		TemplRender(w, r, templates.Post("Posts", post, comments, postID, ""))
+	})))
+
+	mux.Handle("POST /posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		// post, err := posts.GetPost(postID, r.Context().Value("currentUser").(string))
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	TemplRender(w, r, templates.Error("Error!"))
+		// 	return
+		// }
+
+		filter := r.FormValue("f")
+
+		sort := r.FormValue("sort")
+		fmt.Println("Form value sort: ", r.FormValue("sort"))
+
+		_, err := users.SaveSortComments(r.Context().Value("currentUser").(string), sort)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		u, err := users.GetSettings(r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		ctx = context.WithValue(ctx, "sortComments", u.SortComments)
+		// ctx = context.WithValue(ctx, "filter", filter)
+		fmt.Println("Ctx1: ", r.Context().Value("sortComments"))
+
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sortComments").(string), filter)
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.Post("Posts", post, comments, postID, ""))
+		TemplRender(w, r, templates.PartialPostNewSorted(comments, postID, ""))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +191,7 @@ func main() {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sort").(string), r.Context().Value("filter").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
@@ -175,41 +206,13 @@ func main() {
 		if err != nil {
 			fmt.Println("Error inserting: ", err)
 		}
-		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sort").(string), r.Context().Value("filter").(string))
 		if err != nil {
 			TemplRender(w, r, templates.Error("Oops, something went wrong."))
 			return
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
 			TemplRender(w, r, templates.PartialPostNewSuccess(comments, postID, insertedID))
-		}
-	})))
-
-	mux.Handle("POST /posts/{postID}/filter", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		q := r.FormValue("query")
-
-		if r.Context().Value("currentUser").(string) == "" {
-			fmt.Println("Not authenticated")
-			var comments []posts.JoinComment
-			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
-			if err != nil {
-				fmt.Println(err)
-				TemplRender(w, r, templates.Error("Error!"))
-				return
-			}
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(comments, postID))
-			return
-		}
-
-		comments, err := posts.FilterComments(q, postID, r.Context().Value("currentUser").(string))
-		if err != nil {
-			fmt.Println(err)
-			TemplRender(w, r, templates.Error("Oops, something went wrong."))
-			return
-		}
-		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNew(comments, postID, ""))
 		}
 	})))
 
@@ -406,7 +409,7 @@ func main() {
 		}
 	})
 
-	mux.Handle("/settings", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /settings", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
 		s, err := users.GetSettings(r.Context().Value("currentUser").(string))
 		if err != nil {
@@ -428,6 +431,7 @@ func main() {
 			PreferredName: r.FormValue("preferred-name"),
 			ContactMe:     r.FormValue("contact-me"),
 			Avatar:        r.FormValue("avatar-radio"),
+			SortComments:  r.FormValue("sort-comments"),
 		}
 
 		if err := users.Validate(f); err != nil {
@@ -458,7 +462,7 @@ func main() {
 	//--------------------------------------
 	// Auth handles
 	//--------------------------------------
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
 
 		switch ref {
@@ -471,9 +475,9 @@ func main() {
 
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
 
-	mux.Handle("/authenticate", service.authenticateHandler(ctx))
+	mux.Handle("GET /authenticate", service.authenticateHandler(ctx))
 
-	mux.Handle("/logout", service.logout(ctx, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /logout", service.logout(ctx, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.LoggedOut())
 	})))
 

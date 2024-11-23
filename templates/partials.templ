@@ -61,12 +61,12 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 							class="w-full grow rounded-r-lg bg-lime-300/10 p-4"
 						}
 					>
-						<div class="flex border-b border-accent/20 pb-2">
+						<div class="flex">
 							<div class="flex grow items-center">
 								// <div class="me-4 grid h-12 w-12 place-items-center rounded-full bg-neutral/70 text-center text-2xl font-bold text-neutral-content">{ comments[i].Initials }</div>
 								<div class="avatar me-4">
 									<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
-										<img src={ string(templ.URL(GetAvatarPath(ctx))) } alt="Avatar"/>
+										<img src={ string(templ.URL(comments[i].AvatarPath)) } alt="Avatar"/>
 									</div>
 								</div>
 								<div>
@@ -181,6 +181,11 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, messages 
 		</div>
 	</div>
 	<div id="form-message-error" class="rounded-lg text-error" hx-swap-oob="true">{ messages["content"] }</div>
+}
+
+templ PartialPostNewSorted(comments []posts.JoinComment, postID string, highlight string) {
+	@PartialPostNew(comments, postID, highlight)
+	@SortButtonOOB(postID)
 }
 
 templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, highlight string) {
