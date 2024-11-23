@@ -53,9 +53,7 @@
 	commentFormCharsRemainingEl.innerHTML = total;
 	function calculate(value, total) {
 		var count = value.trim().length;
-		console.log(count);
 		remaining = total - count;
-
 		return remaining;
 	}
 

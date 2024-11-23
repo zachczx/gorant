@@ -183,9 +183,9 @@ templ PartialPostNewError(comments []posts.JoinComment, postID string, messages 
 	<div id="form-message-error" class="rounded-lg text-error" hx-swap-oob="true">{ messages["content"] }</div>
 }
 
-templ PartialPostNewSorted(comments []posts.JoinComment, postID string, highlight string) {
+templ PartialPostNewSorted(comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@PartialPostNew(comments, postID, highlight)
-	@SortButtonOOB(postID)
+	@SortButton(postID, sortComments, "true")
 }
 
 templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, highlight string) {

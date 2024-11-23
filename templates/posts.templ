@@ -5,7 +5,7 @@ import (
 	"gorant/posts"
 )
 
-templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, highlight string) {
+templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@Base("GoRant - Post") {
 		<main class="grid w-full max-w-[1600px] content-start justify-items-center gap-4 space-y-4 lg:grid-cols-3">
 			<div class="w-full space-y-8 justify-self-start lg:col-span-3">
@@ -71,7 +71,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 									<button id="more-actions-edit-button" class="flex h-full w-full">
 										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 											<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
-										</svg>Add & Edit Description
+										</svg>Edit Description
 									</button>
 								</li>
 								<li class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content">
@@ -99,7 +99,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 						hx-target="#posts"
 						hx-swap="outerHTML"
 						hx-indicator="#filter-loading"
-						hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, change"
+						hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
 					>
 						<label class="input input-sm input-bordered input-accent flex w-96 max-w-full items-center gap-2">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18q-.425 0-.712-.288T10 17t.288-.712T11 16h2q.425 0 .713.288T14 17t-.288.713T13 18zm-4-5q-.425 0-.712-.288T6 12t.288-.712T7 11h10q.425 0 .713.288T18 12t-.288.713T17 13zM4 8q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
@@ -122,90 +122,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 							</button>
 						</label>
-						<details
-							id="more-actions-dropdown"
-							class="dropdown-start dropdown"
-							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
-							hx-target="#posts"
-							hx-swap="outerHTML"
-							hx-indicator="#filter-loading"
-						>
-							<summary
-								class="btn btn-outline btn-accent btn-sm flex items-center focus:bg-accent focus:text-accent-content"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending" viewBox="0 0 24 24">
-									<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
-								</svg>
-								if GetSortComments(ctx) == "upvote;desc" {
-									Upvotes (highest first)
-								} else if GetSortComments(ctx) == "upvote;asc" {
-									Upvotes (lowest first)
-								} else if GetSortComments(ctx) == "date;desc" {
-									Date (latest first)
-								} else if GetSortComments(ctx) == "date;asc" {
-									Date (oldest first)
-								}
-								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
-							</summary>
-							<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
-								<li
-									if GetSortComments(ctx) == "upvote;desc" {
-										class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									} else {
-										class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									}
-								>
-									<label id="more-actions-edit-button" class="flex h-full w-full">
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M18 21H8V8l7-7l1.25 1.25q.175.175.288.475t.112.575v.35L15.55 8H21q.8 0 1.4.6T23 10v2q0 .175-.037.375t-.113.375l-3 7.05q-.225.5-.75.85T18 21M6 8v13H2V8z"></path>
-										</svg>Upvotes (highest first)
-										<input type="radio" name="sort" class="hidden" value="upvote;desc"/>
-									</label>
-								</li>
-								<li
-									if GetSortComments(ctx) == "upvote;asc" {
-										class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									} else {
-										class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									}
-								>
-									<label id="more-actions-copy-button" class="flex h-full w-full" data-post-id={ "post-" + postID }>
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M6 3h10v13l-7 7l-1.25-1.25q-.175-.175-.288-.475T7.35 20.7v-.35L8.45 16H3q-.8 0-1.4-.6T1 14v-2q0-.175.037-.375t.113-.375l3-7.05q.225-.5.75-.85T6 3m12 13V3h4v13z"></path>
-										</svg>Upvotes (lowest first)
-										<input type="radio" name="sort" class="hidden" value="upvote;asc"/>
-									</label>
-								</li>
-								<li
-									if GetSortComments(ctx) == "date;desc" {
-										class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									} else {
-										class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									}
-								>
-									<label id="more-actions-copy-button" class="flex h-full w-full" data-post-id={ "post-" + postID }>
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12h-8V4Q8.65 4 6.325 6.325T4 12t2.325 5.675T12 20"></path>
-										</svg>Date (latest first)
-										<input type="radio" name="sort" class="hidden" value="date;desc"/>
-									</label>
-								</li>
-								<li
-									if GetSortComments(ctx) == "date;asc" {
-										class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									} else {
-										class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-									}
-								>
-									<label id="more-actions-copy-button" class="flex h-full w-full" data-post-id={ "post-" + postID }>
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22M6.325 6.325L12 12V4q-1.6 0-3.075.6t-2.6 1.725"></path>
-										</svg>Date (oldest first)
-										<input type="radio" name="sort" class="hidden" value="date;asc"/>
-									</label>
-								</li>
-							</ul>
-						</details>
+						@SortButton(postID, sortComments, "false")
 						<span id="filter-loading" class="htmx-indicator loading-accent loading loading-spinner loading-sm"></span>
 					</form>
 				</div>
@@ -300,36 +217,67 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 	}
 }
 
-templ SortButtonOOB(postID string) {
+// <label class="form-control">Sort by</label>
+// 						<select class="select select-bordered select-accent select-sm w-fit text-accent" name="sort">
+// 							<option disabled>Sort Options</option>
+// 							<option
+// 								value="upvote;desc"
+// 								if GetSortComments(ctx) == "date;desc" {
+// 									selected
+// 								}
+// 							>Upvotes (highest first)</option>
+// 							<option
+// 								value="upvote;asc"
+// 								if GetSortComments(ctx) == "upvote;asc" {
+// 									selected
+// 								}
+// 							>Upvotes (lowest first)</option>
+// 							<option
+// 								value="date;desc"
+// 								if GetSortComments(ctx) == "date;desc" {
+// 									selected
+// 								}
+// 							>Date (latest first)</option>
+// 							<option
+// 								value="date;asc"
+// 								if GetSortComments(ctx) == "date;asc" {
+// 									selected
+// 								}
+// 							>Date (oldest first)</option>
+// 						</select>
+templ SortButton(postID string, sortComments string, oob string) {
 	<details
-		id="more-actions-dropdown"
+		id="sort-dropdown"
 		class="dropdown-start dropdown"
 		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
 		hx-target="#posts"
 		hx-swap="outerHTML"
 		hx-indicator="#filter-loading"
-		hx-swap-oob="true"
+		hx-trigger="change"
+		if oob == "true" {
+			hx-swap-oob="true"
+		}
 	>
 		<summary
 			class="btn btn-outline btn-accent btn-sm flex items-center focus:bg-accent focus:text-accent-content"
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending" viewBox="0 0 24 24">
 				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
-			</svg>
-			if GetSortComments(ctx) == "upvote;desc" {
-				Upvotes (highest first)
-			} else if GetSortComments(ctx) == "upvote;asc" {
-				Upvotes (lowest first)
-			} else if GetSortComments(ctx) == "date;desc" {
-				Date (latest first)
-			} else if GetSortComments(ctx) == "date;asc" {
-				Date (oldest first)
-			}
+			</svg>Sort By
+			// if GetSortComments(ctx) == "upvote;desc" {
+			// 	Upvotes (highest first)
+			// } else if GetSortComments(ctx) == "upvote;asc" {
+			// 	Upvotes (lowest first)
+			// } else if GetSortComments(ctx) == "date;desc" {
+			// 	Date (latest first)
+			// } else if GetSortComments(ctx) == "date;asc" {
+			// 	Date (oldest first)
+			// } 
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 		</summary>
 		<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
 			<li
-				if GetSortComments(ctx) == "upvote;desc" {
+				if sortComments == "upvote;desc" {
 					class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
 				} else {
 					class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
@@ -343,7 +291,7 @@ templ SortButtonOOB(postID string) {
 				</label>
 			</li>
 			<li
-				if GetSortComments(ctx) == "upvote;asc" {
+				if sortComments == "upvote;asc" {
 					class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
 				} else {
 					class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
@@ -357,7 +305,7 @@ templ SortButtonOOB(postID string) {
 				</label>
 			</li>
 			<li
-				if GetSortComments(ctx) == "date;desc" {
+				if sortComments == "date;desc" {
 					class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
 				} else {
 					class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
@@ -371,7 +319,7 @@ templ SortButtonOOB(postID string) {
 				</label>
 			</li>
 			<li
-				if GetSortComments(ctx) == "date;asc" {
+				if sortComments == "date;asc" {
 					class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
 				} else {
 					class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"

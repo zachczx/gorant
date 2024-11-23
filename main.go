@@ -108,14 +108,16 @@ func main() {
 			return
 		}
 
-		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+		var filter string
+
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sortComments").(string), filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.Post("Posts", post, comments, postID, ""))
+		TemplRender(w, r, templates.Post("Posts", post, comments, postID, "", r.Context().Value("sortComments").(string)))
 	})))
 
 	mux.Handle("POST /posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -142,18 +144,15 @@ func main() {
 			fmt.Println(err)
 		}
 
-		ctx = context.WithValue(ctx, "sortComments", u.SortComments)
-		// ctx = context.WithValue(ctx, "filter", filter)
-		fmt.Println("Ctx1: ", r.Context().Value("sortComments"))
-
-		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sortComments").(string), filter)
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), u.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error("Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.PartialPostNewSorted(comments, postID, ""))
+		ctx = context.WithValue(ctx, "sortComments", u.SortComments)
+		TemplRender(w, r, templates.PartialPostNewSorted(comments, postID, "", u.SortComments))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -191,7 +190,7 @@ func main() {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sort").(string), r.Context().Value("filter").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sort").(string), ctx.Value("filter").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
@@ -206,7 +205,8 @@ func main() {
 		if err != nil {
 			fmt.Println("Error inserting: ", err)
 		}
-		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sort").(string), r.Context().Value("filter").(string))
+
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), r.Context().Value("sortComments").(string), "") // r.Context().Value("filter").(string)
 		if err != nil {
 			TemplRender(w, r, templates.Error("Oops, something went wrong."))
 			return
