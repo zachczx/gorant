@@ -15,6 +15,7 @@ import (
 
 type Post struct {
 	PostID      string `db:"post_id"`
+	PostTitle   string `db:"post_title"`
 	UserID      string `db:"user_id"`
 	Description string `db:"description"`
 	Protected   int    `db:"protected"`
@@ -24,6 +25,7 @@ type Post struct {
 
 type JoinPost struct {
 	PostID              string `db:"post_id"`
+	PostTitle           string `db:"post_title"`
 	UserID              string `db:"user_id"`
 	Description         string `db:"description"`
 	Protected           int    `db:"protected"`
@@ -34,13 +36,15 @@ type JoinPost struct {
 	CommentsCountString string
 }
 
+const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-"]+$`
+
 func ListPosts() ([]JoinPost, error) {
 	db, err := database.Connect()
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt FROM posts
+	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt FROM posts
 							LEFT JOIN users
 							ON users.user_id = posts.user_id
               
@@ -59,7 +63,7 @@ func ListPosts() ([]JoinPost, error) {
 	for rows.Next() {
 		var p JoinPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -76,7 +80,7 @@ func ListPosts() ([]JoinPost, error) {
 	return posts, nil
 }
 
-func NewPost(postID string, username string) error {
+func NewPost(postID string, postTitle string, username string) error {
 	db, err := database.Connect()
 	if err != nil {
 		return err
@@ -89,7 +93,7 @@ func NewPost(postID string, username string) error {
 
 	t := time.Now().String()
 
-	_, err = db.Exec("INSERT INTO posts (post_id, user_id, created_at) VALUES ($1, $2, $3)", postID, username, t)
+	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at) VALUES ($1, $2, $3, $4)", postID, postTitle, username, t)
 	if err != nil {
 		return err
 	}
@@ -100,7 +104,7 @@ func NewPost(postID string, username string) error {
 func ValidatePost(postID string) map[string](string) {
 	v := govalidator.New()
 
-	v.RequiredString(postID, "postID", "Please enter an ID").RegexMatches(postID, "^[A-Za-z0-9_-]+$", "postID", "No special characters allowed").MaxString(postID, 255, "postID", "Max length of ID is 255 characters.")
+	v.RequiredString(postID, "postID", "Please enter an ID").RegexMatches(postID, regex, "postID", "No special characters allowed").MaxString(postID, 255, "postID", "Max length of ID is 255 characters.")
 
 	if v.IsFailed() {
 		return v.Errors()
@@ -133,7 +137,7 @@ func GetPost(postID string, currentUser string) (Post, error) {
 	}
 
 	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
+	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.PostTitle, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
 		return post, err
 	}
 
@@ -209,4 +213,45 @@ func EditMood(postID string, mood string) error {
 	}
 
 	return nil
+}
+
+func TitleToID(title string) (string, error) {
+	r := strings.NewReplacer(
+		" ", "-",
+		"_", "-",
+		"!", "",
+		".", "",
+		"$", "",
+		"/", "",
+		"\\", "",
+		"|", "",
+		"(", "",
+		")", "",
+		"[", "",
+		"]", "",
+		"=", "",
+		"`", "",
+		"{", "",
+		"}", "",
+		"<", "",
+		">", "",
+		"?", "",
+		"@", "",
+		"#", "",
+		"%", "",
+		"^", "",
+		"&", "",
+		"*", "",
+		"—", "",
+		":", "",
+		"'", "",
+		";", "",
+		"\"", "",
+		"+", "",
+	)
+
+	ID := r.Replace(strings.ToLower(title))
+	fmt.Println(ID)
+
+	return ID, nil
 }

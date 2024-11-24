@@ -14,7 +14,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 						@MoodMapper(post.PostID, post.UserID, post.Mood)
 					</div>
 					<div class="grow space-y-2">
-						<h1 class="text-5xl font-extrabold capitalize">{ postID }</h1>
+						<h1 class="text-5xl font-extrabold capitalize">{ post.PostTitle }</h1>
 						<div
 							id="post-description"
 							if post.UserID != GetCurrentUser(ctx) && post.Description == "" {
@@ -217,34 +217,6 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 	}
 }
 
-// <label class="form-control">Sort by</label>
-// 						<select class="select select-bordered select-accent select-sm w-fit text-accent" name="sort">
-// 							<option disabled>Sort Options</option>
-// 							<option
-// 								value="upvote;desc"
-// 								if GetSortComments(ctx) == "date;desc" {
-// 									selected
-// 								}
-// 							>Upvotes (highest first)</option>
-// 							<option
-// 								value="upvote;asc"
-// 								if GetSortComments(ctx) == "upvote;asc" {
-// 									selected
-// 								}
-// 							>Upvotes (lowest first)</option>
-// 							<option
-// 								value="date;desc"
-// 								if GetSortComments(ctx) == "date;desc" {
-// 									selected
-// 								}
-// 							>Date (latest first)</option>
-// 							<option
-// 								value="date;asc"
-// 								if GetSortComments(ctx) == "date;asc" {
-// 									selected
-// 								}
-// 							>Date (oldest first)</option>
-// 						</select>
 templ SortButton(postID string, sortComments string, oob string) {
 	<details
 		id="sort-dropdown"
@@ -264,15 +236,15 @@ templ SortButton(postID string, sortComments string, oob string) {
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending" viewBox="0 0 24 24">
 				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
 			</svg>Sort By
-			// if GetSortComments(ctx) == "upvote;desc" {
-			// 	Upvotes (highest first)
-			// } else if GetSortComments(ctx) == "upvote;asc" {
-			// 	Upvotes (lowest first)
-			// } else if GetSortComments(ctx) == "date;desc" {
-			// 	Date (latest first)
-			// } else if GetSortComments(ctx) == "date;asc" {
-			// 	Date (oldest first)
-			// } 
+			if sortComments == "upvote;desc" {
+				Upvotes (highest first)
+			} else if sortComments == "upvote;asc" {
+				Upvotes (lowest first)
+			} else if sortComments == "date;desc" {
+				Date (latest first)
+			} else if sortComments == "date;asc" {
+				Date (oldest first)
+			}
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 		</summary>
 		<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">

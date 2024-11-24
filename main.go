@@ -78,25 +78,32 @@ func main() {
 	})))
 
 	mux.Handle("POST /posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.FormValue("post-id")
+		title := r.FormValue("post-title")
 
-		if v := posts.ValidatePost(postID); v != nil {
+		if v := posts.ValidatePost(title); v != nil {
 			fmt.Println(v)
 			http.Redirect(w, r, "/posts?validation=error", http.StatusSeeOther)
 			return
 		}
 
-		exists := posts.VerifyPostID(postID)
-		if exists {
-			http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+		// exists := posts.VerifyPostID(postID)
+		// if exists {
+		// 	http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+		// }
+
+		ID, err := posts.TitleToID(title)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
 		}
 
-		if err := posts.NewPost(postID, r.Context().Value("currentUser").(string)); err != nil {
+		if err := posts.NewPost(ID, title, r.Context().Value("currentUser").(string)); err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/login?r=new", http.StatusSeeOther)
 		}
 
-		http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
+		http.Redirect(w, r, "/posts/"+ID, http.StatusSeeOther)
 	})))
 
 	mux.Handle("GET /posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
