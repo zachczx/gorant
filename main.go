@@ -77,24 +77,18 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/new", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("post-title")
 
-		if v := posts.ValidatePost(title); v != nil {
-			fmt.Println(v)
-			http.Redirect(w, r, "/posts?validation=error", http.StatusSeeOther)
+		exists, ID := posts.VerifyPostID(title)
+		if exists {
+			TemplRender(w, r, templates.CreatePostError("Post with the same title already exists, please change it."))
 			return
 		}
 
-		// exists := posts.VerifyPostID(postID)
-		// if exists {
-		// 	http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
-		// }
-
-		ID, err := posts.TitleToID(title)
-		if err != nil {
-			fmt.Println(err)
-			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		if v := posts.ValidatePost(title); v != nil {
+			fmt.Println(v)
+			TemplRender(w, r, templates.CreatePostError(v["postTitle"]))
 			return
 		}
 
@@ -102,8 +96,7 @@ func main() {
 			fmt.Println(err)
 			http.Redirect(w, r, "/login?r=new", http.StatusSeeOther)
 		}
-
-		http.Redirect(w, r, "/posts/"+ID, http.StatusSeeOther)
+		w.Header().Set("HX-Redirect", "/posts/"+ID)
 	})))
 
 	mux.Handle("GET /posts/{postID}", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +175,7 @@ func main() {
 			return
 		}
 
-		if !posts.VerifyPostID(postID) {
+		if exists, _ := posts.VerifyPostID(postID); !exists {
 			fmt.Println("Error verifying post exists")
 			TemplRender(w, r, templates.Error("Error! Post doesn't exist!"))
 			return

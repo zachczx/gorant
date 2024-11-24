@@ -47,6 +47,7 @@ func (s *AuthService) CheckAuthentication(h http.Handler) http.Handler {
 				fmt.Println(err)
 			}
 			ctx = context.WithValue(ctx, "avatarPath", u.AvatarPath)
+			ctx = context.WithValue(ctx, "preferredName", u.PreferredName)
 			ctx = context.WithValue(ctx, "sortComments", u.SortComments)
 		}
 		// fmt.Println(ctx.Value("currentUser"))

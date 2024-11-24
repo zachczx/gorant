@@ -1,47 +1,66 @@
 // import { gsap } from 'gsap/dist/gsap';
 
-(function createnewFocus() {
-	const elementIds = ['navbar', 'logo', 'content', 'footer'];
-	const classList = ['blur-sm'];
-	const addNewDiv = document.getElementById('add-new');
-	addNewDiv.addEventListener('click', (evt) => {
-		console.log('triggered by', evt.target);
-		document.getElementById('post-button').innerText = 'Create';
-		const postIdInputEl = document.getElementById('post-id');
-		const classes = [
-			'active:border-4',
-			'focus:border-2',
-			'focus:ring-2',
-			'focus:ring-secondary',
-			'focus:ring-offset-4',
-			'focus:border-primary',
-			'active:border-primary',
-		];
-		postIdInputEl.classList.add(...classes);
-		postIdInputEl.focus();
-
-		// Blur effect
-
-		for (let i = 0; i < elementIds.length; i++) {
-			const el = document.getElementById(elementIds[i]);
-			el.classList.add(...classList);
-		}
-	});
-
-	document.addEventListener('click', (e) => {
-		if (
-			e.target.id !== 'post-form' &&
-			e.target.id !== 'post-id' &&
-			e.target.id !== 'post-button' &&
-			!e.target.id.includes('add-new')
-		) {
-			document.getElementById('post-button').innerText = 'Go';
-			for (let i = 0; i < elementIds.length; i++) {
-				document.getElementById(elementIds[i]).classList.remove(...classList);
-			}
+(function showInputCancelButton() {
+	document.getElementById('post-title').addEventListener('keydown', (evt) => {
+		if (evt.target.value.length > 0) {
+			document.getElementById('input-cancel-button').classList.remove('hidden');
+		} else if (evt.target.value.length === 0) {
+			document.getElementById('input-cancel-button').classList.add('hidden');
 		}
 	});
 })();
+
+(function clearInput() {
+	document.getElementById('input-cancel-button').addEventListener('click', () => {
+		const input = document.getElementById('post-title');
+		input.value = '';
+		document.getElementById('input-cancel-button').classList.add('hidden');
+		document.getElementById('post-form-message').innerHTML = '';
+		input.focus();
+	});
+})();
+// (function createnewFocus() {
+// 	const elementIds = ['navbar', 'logo', 'content', 'footer'];
+// 	const classList = ['blur-sm'];
+// 	const addNewDiv = document.getElementById('add-new');
+// 	addNewDiv.addEventListener('click', (evt) => {
+// 		console.log('triggered by', evt.target);
+// 		document.getElementById('post-button').innerText = 'Create';
+// 		const postIdInputEl = document.getElementById('post-id');
+// 		const classes = [
+// 			'active:border-4',
+// 			'focus:border-2',
+// 			'focus:ring-2',
+// 			'focus:ring-secondary',
+// 			'focus:ring-offset-4',
+// 			'focus:border-primary',
+// 			'active:border-primary',
+// 		];
+// 		postIdInputEl.classList.add(...classes);
+// 		postIdInputEl.focus();
+
+// 		// Blur effect
+
+// 		for (let i = 0; i < elementIds.length; i++) {
+// 			const el = document.getElementById(elementIds[i]);
+// 			el.classList.add(...classList);
+// 		}
+// 	});
+
+// 	document.addEventListener('click', (e) => {
+// 		if (
+// 			e.target.id !== 'post-form' &&
+// 			e.target.id !== 'post-id' &&
+// 			e.target.id !== 'post-button' &&
+// 			!e.target.id.includes('add-new')
+// 		) {
+// 			document.getElementById('post-button').innerText = 'Go';
+// 			for (let i = 0; i < elementIds.length; i++) {
+// 				document.getElementById(elementIds[i]).classList.remove(...classList);
+// 			}
+// 		}
+// 	});
+// })();
 
 // (function BlockSpecialChars() {
 // 	console.log('triggered!');

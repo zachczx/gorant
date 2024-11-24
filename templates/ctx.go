@@ -10,6 +10,13 @@ func GetCurrentUser(ctx context.Context) string {
 	return ""
 }
 
+func GetPreferredName(ctx context.Context) string {
+	if preferredName, ok := ctx.Value("preferredName").(string); ok {
+		return preferredName
+	}
+	return ""
+}
+
 func GetAvatarPath(ctx context.Context) string {
 	if avatarPath, ok := ctx.Value("avatarPath").(string); ok {
 		return avatarPath

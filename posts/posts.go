@@ -86,11 +86,6 @@ func NewPost(postID string, postTitle string, username string) error {
 		return err
 	}
 
-	exists := VerifyPostID(postID)
-	if exists {
-		return nil
-	}
-
 	t := time.Now().String()
 
 	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at) VALUES ($1, $2, $3, $4)", postID, postTitle, username, t)
@@ -101,10 +96,10 @@ func NewPost(postID string, postTitle string, username string) error {
 	return nil
 }
 
-func ValidatePost(postID string) map[string](string) {
+func ValidatePost(postTitle string) map[string](string) {
 	v := govalidator.New()
 
-	v.RequiredString(postID, "postID", "Please enter an ID").RegexMatches(postID, regex, "postID", "No special characters allowed").MaxString(postID, 255, "postID", "Max length of ID is 255 characters.")
+	v.RequiredString(postTitle, "postTitle", "Please enter an ID").RegexMatches(postTitle, regex, "postTitle", "Special characters not allowed").MaxString(postTitle, 255, "postTitle", "That's too long! Max length of title is 255 characters.")
 
 	if v.IsFailed() {
 		return v.Errors()
@@ -113,13 +108,18 @@ func ValidatePost(postID string) map[string](string) {
 	return nil
 }
 
-func VerifyPostID(postID string) bool {
-	db, err := database.Connect()
+func VerifyPostID(title string) (bool, string) {
+	var ID string
+
+	db, _ := database.Connect()
+
+	// Generate ID to test
+	ID, err := TitleToID(title)
 	if err != nil {
-		return false
+		fmt.Println(err)
 	}
 
-	res, err := db.Query("SELECT post_id FROM posts WHERE post_id=$1;", postID)
+	res, err := db.Query("SELECT post_id FROM posts WHERE post_id=$1;", ID)
 	if err != nil {
 		fmt.Println("Error executing query to verify post exists")
 		fmt.Println(err)
@@ -127,7 +127,7 @@ func VerifyPostID(postID string) bool {
 
 	defer res.Close()
 
-	return res.Next()
+	return res.Next(), ID
 }
 
 func GetPost(postID string, currentUser string) (Post, error) {
@@ -216,6 +216,8 @@ func EditMood(postID string, mood string) error {
 }
 
 func TitleToID(title string) (string, error) {
+	ss := strings.Fields(title)
+	title = strings.Join(ss, " ")
 	r := strings.NewReplacer(
 		" ", "-",
 		"_", "-",
