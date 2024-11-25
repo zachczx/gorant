@@ -71,6 +71,13 @@ func Reset() error {
 		fmt.Println("Error dropping table: users")
 		return err
 	}
+	_, err = db.Exec(`DROP TABLE IF EXISTS posts_likes cascade;`)
+	if err != nil {
+		fmt.Println("Error dropping table: posts_likes")
+		return err
+	}
+
+	// Users
 
 	_, err = db.Exec(`CREATE TABLE users (user_id VARCHAR(255) PRIMARY KEY, email VARCHAR(100) NOT NULL, preferred_name VARCHAR(255) DEFAULT '', contact_me INT DEFAULT 1, avatar VARCHAR(255) DEFAULT 'default', sort_comments VARCHAR(15) DEFAULT 'upvote;desc');`)
 	if err != nil {
@@ -79,12 +86,16 @@ func Reset() error {
 	}
 	fmt.Println("Created users table!")
 
+	// Posts
+
 	_, err = db.Exec(`CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, post_title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TEXT, mood VARCHAR(15) DEFAULT 'Neutral');`)
 	if err != nil {
 		fmt.Println("Error creating table: posts")
 		return err
 	}
 	fmt.Println("Created posts table!")
+
+	// Comments
 
 	_, err = db.Exec("CREATE TABLE comments (comment_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TEXT, post_id VARCHAR(255), FOREIGN KEY(post_id) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE);")
 	if err != nil {
@@ -100,6 +111,23 @@ func Reset() error {
 	}
 	fmt.Println("Created comments index!")
 
+	// Posts Likes
+
+	_, err = db.Exec(`CREATE TABLE posts_likes (like_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
+	if err != nil {
+		fmt.Println("Error creating table: posts_likes")
+		return err
+	}
+	fmt.Println("Created posts_likes table!")
+
+	_, err = db.Exec(`CREATE INDEX idx_posts_likes_post_id ON posts_likes (post_id);`)
+	if err != nil {
+		fmt.Println("Error creating index: idx_posts_likes_post_id")
+		return err
+	}
+	fmt.Println("Created idx_posts_likes_post_id index table!")
+
+	// Comments Votes
 	_, err = db.Exec(`CREATE TABLE comments_votes (vote_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, comment_id INT REFERENCES comments(comment_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
 	if err != nil {
 		fmt.Println("Error creating table: comments_votes")
@@ -112,7 +140,7 @@ func Reset() error {
 		fmt.Println("Error creating index: comments_votes.comment_id")
 		return err
 	}
-	fmt.Println("Created comments_votes index table!")
+	fmt.Println("Created idx_comments_votes_comment_id index table!")
 
 	return nil
 }

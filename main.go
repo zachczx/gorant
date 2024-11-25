@@ -249,7 +249,7 @@ func main() {
 			fmt.Println("Issue with getting post info: ", err)
 		}
 
-		TemplRender(w, r, templates.MoodMapper(postID, post.UserID, post.Mood))
+		TemplRender(w, r, templates.PartialMoodMapper(postID, post.UserID, post.Mood))
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -388,6 +388,22 @@ func main() {
 		TemplRender(w, r, templates.PartialEditDescriptionResponse(postID, post))
 	})))
 
+	mux.Handle("POST /posts/{postID}/like", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+
+		score, err := posts.LikePost(postID, r.Context().Value("currentUser").(string))
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error("Something went wrong!"))
+		}
+
+		if score == 1 {
+			TemplRender(w, r, templates.PartialLikePost(postID, "1"))
+		} else {
+			TemplRender(w, r, templates.PartialLikePost(postID, "0"))
+		}
+	})))
+
 	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.About())
 	})
@@ -401,7 +417,7 @@ func main() {
 				return
 			}
 
-			t := time.Now().String()
+			t := time.Now().Format(time.RFC3339)
 
 			TemplRender(w, r, templates.Reset("", t))
 		} else {

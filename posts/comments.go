@@ -22,6 +22,7 @@ type Comment struct {
 }
 
 type CommentVote struct {
+	ID        int `db:"vote_id"`
 	UserID    int `db:"user_id"`
 	CommentID int `db:"comment_id"`
 	Score     int `db:"score"`
@@ -133,7 +134,10 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 			c.CurrentUserVoted = "false"
 		}
 
-		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
+		c.CreatedAtProcessed, err = ConvertDate(c.CreatedAt)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
@@ -232,12 +236,12 @@ func UpVote(commentID string, username string) error {
 	return nil
 }
 
-func ConvertDate(date string) string {
+func ConvertDate(date string) (string, error) {
 	var s string
 	var suffix string
 	t, err := time.Parse(time.RFC3339, date)
 	if err != nil {
-		return s
+		return s, err
 	}
 
 	n := time.Now()
@@ -271,7 +275,7 @@ func ConvertDate(date string) string {
 		fmt.Println("Something went wrong")
 	}
 
-	return s
+	return s, err
 }
 
 func FilterSortComments(postID string, currentUser string, sort string, filter string) ([]JoinComment, error) {
@@ -353,7 +357,10 @@ func FilterSortComments(postID string, currentUser string, sort string, filter s
 			c.CurrentUserVoted = "false"
 		}
 
-		c.CreatedAtProcessed = ConvertDate(c.CreatedAt)
+		c.CreatedAtProcessed, err = ConvertDate(c.CreatedAt)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 

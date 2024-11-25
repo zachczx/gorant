@@ -5,16 +5,15 @@ import (
 	"gorant/posts"
 )
 
-templ Post(message string, post posts.Post, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
+templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@Base("GoRant - Post") {
 		<main class="grid w-full max-w-[1600px] content-start justify-items-center gap-4 space-y-4 lg:grid-cols-3">
-			<div class="w-full space-y-8 justify-self-start lg:col-span-3">
+			<div class="w-full space-y-8 justify-self-start lg:col-span-3 hidden">
 				<div class="flex flex-wrap items-center">
-					<div class="me-4">
-						@MoodMapper(post.PostID, post.UserID, post.Mood)
-					</div>
 					<div class="grow space-y-2">
-						<h1 class="text-5xl font-extrabold capitalize">{ post.PostTitle }</h1>
+						<h1 class="text-5xl font-extrabold capitalize">
+							{ post.PostTitle }
+						</h1>
 						<div
 							id="post-description"
 							if post.UserID != GetCurrentUser(ctx) && post.Description == "" {
@@ -32,7 +31,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 									}
 									<svg xmlns="http://www.w3.org/2000/svg" class="ms-4" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
 								</button>
-								<form id="post-description-form" class="join hidden w-full" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
+								<form id="post-description-form" class="join mt-2 hidden w-full" hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", postID))) } hx-target="#post-description" hx-swap="outerHTML">
 									<label class="input join-item input-bordered flex w-full max-w-xl items-center rounded-lg">
 										<svg xmlns="http://www.w3.org/2000/svg" class="me-4 inline text-neutral/30" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path></svg>
 										<input
@@ -60,48 +59,89 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 						</div>
 					</div>
 				</div>
-				<div class="flex flex-wrap space-x-2">
-					if post.UserID == GetCurrentUser(ctx) {
-						<details id="more-actions-dropdown" class="dropdown-start dropdown">
-							<summary class="btn btn-outline btn-accent btn-sm flex items-center justify-center rounded-lg focus:bg-accent focus:text-accent-content">
-								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="m9.25 22l-.4-3.2q-.325-.125-.612-.3t-.563-.375L4.7 19.375l-2.75-4.75l2.575-1.95Q4.5 12.5 4.5 12.338v-.675q0-.163.025-.338L1.95 9.375l2.75-4.75l2.975 1.25q.275-.2.575-.375t.6-.3l.4-3.2h5.5l.4 3.2q.325.125.613.3t.562.375l2.975-1.25l2.75 4.75l-2.575 1.95q.025.175.025.338v.674q0 .163-.05.338l2.575 1.95l-2.75 4.75l-2.95-1.25q-.275.2-.575.375t-.6.3l-.4 3.2zm2.8-6.5q1.45 0 2.475-1.025T15.55 12t-1.025-2.475T12.05 8.5q-1.475 0-2.488 1.025T8.55 12t1.013 2.475T12.05 15.5"></path></svg>
-							</summary>
-							<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
-								<li class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content">
-									<button id="more-actions-edit-button" class="flex h-full w-full">
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
-										</svg>Edit Description
-									</button>
-								</li>
-								<li class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content">
-									<button id="more-actions-copy-button" class="flex h-full w-full" data-post-id={ "post-" + postID }>
-										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M9 18q-.825 0-1.412-.587T7 16V4q0-.825.588-1.412T9 2h9q.825 0 1.413.588T20 4v12q0 .825-.587 1.413T18 18zm0-2h9V4H9zm-4 6q-.825 0-1.412-.587T3 20V7q0-.425.288-.712T4 6t.713.288T5 7v13h10q.425 0 .713.288T16 21t-.288.713T15 22zm4-6V4z"></path>
-										</svg>Copy Link to Post
-									</button>
-								</li>
-								<form method="post" action={ templ.URL(fmt.Sprintf("/posts/%s/delete", post.PostID)) }>
-									<li class="rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content">
-										<button class="flex">
+			</div>
+			<div class="relative w-full">
+				<div class="sticky top-2 grid justify-items-center">
+					<div class="rounded-lg grid w-full content-center border border-neutral/10 bg-white/70 shadow-lg lg:max-w-2xl">
+						<h1 class="text-3xl text-center border-t-8 border-t-primary/70 rounded-t-lg p-4 font-extrabold capitalize">
+							{ post.PostTitle }
+						</h1>
+						<div class="flex items-center justify-around p-2 border-b border-b-neutral/5">
+							<div class="flex items-center">
+								@PartialLikePost(postID, post.CurrentUserLikeString)
+							</div>
+							<div class="flex items-center">
+								@MoodMapper(post.PostID, post.UserID, post.Mood)
+							</div>
+							// <div class="flex items-center">
+							// 	<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7 text-accent solar-chat-round-line-bold" viewBox="0 0 24 24">
+							// 		<path fill="currentColor" fill-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12c0 1.6.376 3.112 1.043 4.453c.178.356.237.763.134 1.148l-.595 2.226a1.3 1.3 0 0 0 1.591 1.592l2.226-.596a1.63 1.63 0 0 1 1.149.133A9.96 9.96 0 0 0 12 22m-4-8.75a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5zm-.75-2.75A.75.75 0 0 1 8 9.75h8a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1-.75-.75" clip-rule="evenodd"></path>
+							// 	</svg>
+							// </div>
+							<details id="more-actions-dropdown" class="dropdown-end dropdown inline-block">
+								<summary class="flex items-center justify-center text-accent cursor-pointer">
+									<!--btn btn-outline btn-accent border-0 btn-sm rounded-lg focus:bg-accent focus:text-accent-content -->
+									<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7" viewBox="0 0 24 24"><path fill="currentColor" d="m9.25 22l-.4-3.2q-.325-.125-.612-.3t-.563-.375L4.7 19.375l-2.75-4.75l2.575-1.95Q4.5 12.5 4.5 12.338v-.675q0-.163.025-.338L1.95 9.375l2.75-4.75l2.975 1.25q.275-.2.575-.375t.6-.3l.4-3.2h5.5l.4 3.2q.325.125.613.3t.562.375l2.975-1.25l2.75 4.75l-2.575 1.95q.025.175.025.338v.674q0 .163-.05.338l2.575 1.95l-2.75 4.75l-2.95-1.25q-.275.2-.575.375t-.6.3l-.4 3.2zm2.8-6.5q1.45 0 2.475-1.025T15.55 12t-1.025-2.475T12.05 8.5q-1.475 0-2.488 1.025T8.55 12t1.013 2.475T12.05 15.5"></path></svg>
+								</summary>
+								<ul class="menu dropdown-content z-10 w-64 max-w-96 rounded-box border border-neutral/30 backdrop-blur-[40px] bg-white/70 p-2 shadow-lg">
+									if post.UserID == GetCurrentUser(ctx) {
+										<li class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content">
+											<button id="more-actions-edit-button" class="flex h-full w-full">
+												<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+													<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
+												</svg>Edit Description
+											</button>
+										</li>
+									}
+									<li class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content">
+										<button id="more-actions-copy-button" class="flex h-full w-full" data-post-id={ "post-" + postID }>
 											<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-												<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
-											</svg>Delete This Post
+												<path fill="currentColor" d="M9 18q-.825 0-1.412-.587T7 16V4q0-.825.588-1.412T9 2h9q.825 0 1.413.588T20 4v12q0 .825-.587 1.413T18 18zm0-2h9V4H9zm-4 6q-.825 0-1.412-.587T3 20V7q0-.425.288-.712T4 6t.713.288T5 7v13h10q.425 0 .713.288T16 21t-.288.713T15 22zm4-6V4z"></path>
+											</svg>Copy Link to Post
 										</button>
 									</li>
-								</form>
-							</ul>
-						</details>
-					}
-					<form
-						class="flex flex-wrap space-x-2"
-						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
-						hx-target="#posts"
-						hx-swap="outerHTML"
-						hx-indicator="#filter-loading"
-						hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
-					>
-						<label class="input input-sm input-bordered input-accent flex w-96 max-w-full items-center gap-2 text-accent">
+									if post.UserID == GetCurrentUser(ctx) {
+										<form method="post" action={ templ.URL(fmt.Sprintf("/posts/%s/delete", post.PostID)) }>
+											<li class="rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content">
+												<button class="flex">
+													<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+														<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+													</svg>Delete This Post
+												</button>
+											</li>
+										</form>
+									}
+								</ul>
+							</details>
+						</div>
+						@PostForm(postID, "false")
+					</div>
+					<div class="w-full" id="form-message">
+						if GetCurrentUser(ctx) == "" {
+							<div class="w-full pb-4" id="">
+								<div class="flex items-center rounded-lg border border-neutral/10 p-4 text-neutral/80">
+									<a href="/auth/login" class="flex items-center">
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+										You'll need to be logged in to post.
+									</a>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+			<div class="lg:col-span-2 w-full">
+				@MoodBar(post.Mood, "false")
+				<form
+					class="flex w-full flex-wrap space-x-2 mb-4"
+					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
+					hx-target="#posts"
+					hx-swap="outerHTML"
+					hx-indicator="#filter-loading"
+					hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
+				>
+					<div class="join">
+						<label class="input input-sm bg-white/70 text-neutral/70 border-neutral/20 flex w-96 max-w-full join-item items-center gap-2 text-accent">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18q-.425 0-.712-.288T10 17t.288-.712T11 16h2q.425 0 .713.288T14 17t-.288.713T13 18zm-4-5q-.425 0-.712-.288T6 12t.288-.712T7 11h10q.425 0 .713.288T18 12t-.288.713T17 13zM4 8q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
 							<input
 								id="filter-input"
@@ -113,7 +153,7 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 							<button
 								id="filter-cancel-button"
 								type="button"
-								class="hidden text-accent"
+								class="hidden text-neutral/70"
 								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/filter", postID))) }
 								hx-target="#posts"
 								hx-swap="outerHTML"
@@ -122,10 +162,20 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 							</button>
 						</label>
+						<button
+							class="join-item btn btn-accent btn-sm"
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
+							hx-target="#posts"
+							hx-swap="outerHTML"
+							hx-indicator="#filter-loading"
+						>Filter</button>
+					</div>
+					<span id="filter-loading" class="htmx-indicator loading-accent loading loading-spinner loading-sm"></span>
+					<div class="flex grow justify-end">
 						@SortButton(postID, sortComments, "false")
-						<span id="filter-loading" class="htmx-indicator loading-accent loading loading-spinner loading-sm"></span>
-					</form>
-				</div>
+					</div>
+				</form>
+				@PartialPostNew(comments, postID, highlight)
 			</div>
 			<script>
 				(function activateDescriptionForm() {
@@ -195,24 +245,6 @@ templ Post(message string, post posts.Post, comments []posts.JoinComment, postID
 					document.getElementById("filter-input").value = ""
 				}
 			</script>
-			@PartialPostNew(comments, postID, highlight)
-			<div class="relative w-full">
-				<div class="sticky top-2 grid justify-items-center">
-					<div class="w-full" id="form-message">
-						if GetCurrentUser(ctx) == "" {
-							<div class="w-full pb-4" id="">
-								<div class="flex items-center rounded-lg border border-neutral/20 p-4 text-neutral/80">
-									<a href="/auth/login" class="flex items-center">
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-										You'll need to be logged in to post.
-									</a>
-								</div>
-							</div>
-						}
-					</div>
-					@PostForm(postID, "false")
-				</div>
-			</div>
 		</main>
 	}
 }
@@ -231,11 +263,11 @@ templ SortButton(postID string, sortComments string, oob string) {
 		}
 	>
 		<summary
-			class="group btn btn-outline btn-accent btn-sm flex items-center focus:bg-accent focus:text-accent-content"
+			class="group btn btn-outline text-neutral/70 border-neutral/10 bg-white/70 btn-sm flex items-center hover:btn-accent focus:bg-accent focus:text-accent-content"
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending" viewBox="0 0 24 24">
-				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.3" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
-			</svg><span class="font-normal">Sort:</span>
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
+				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
+			</svg>
 			<span class="font-bold">
 				if sortComments == "upvote;desc" {
 					Upvotes (highest first)
@@ -249,7 +281,7 @@ templ SortButton(postID string, sortComments string, oob string) {
 			</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
 		</summary>
-		<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
+		<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-white/70 backdrop-blur-[40px] p-2 shadow-lg">
 			<li
 				if sortComments == "upvote;desc" {
 					class="flex rounded-md bg-accent text-accent-content hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
@@ -320,15 +352,15 @@ templ PostForm(postID string, oobSwap string) {
 		}
 		hx-swap="outerHTML"
 		hx-target="#posts"
-		class="w-full space-y-4 rounded-lg border border-neutral/20 p-4 shadow-lg lg:max-w-2xl"
+		class="w-full space-y-2 p-4"
 	>
-		<h2 class="text-xl font-bold">Add Comment</h2>
+		<h2 class="text-xl font-bold text-base-content/70">Add Comment</h2>
 		<label class="form-control">
 			<div class="label flex">
-				<div class="label-text grow">Message</div>
-				<div class="text-xs italic"><span id="form-message-chars-remaining"></span> characters left</div>
+				<div class="label-text grow text-base-content/70">Message</div>
+				<div class="text-xs italic text-base-content/70"><span id="form-message-chars-remaining"></span> characters left</div>
 			</div>
-			<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24" minlength="10" maxlength="2000" rows="7" required></textarea>
+			<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered bg-white/70 min-h-24" minlength="10" maxlength="2000" rows="7" required></textarea>
 			<div id="form-message-error"></div>
 		</label>
 		<div>
@@ -345,7 +377,7 @@ templ PostForm(postID string, oobSwap string) {
 templ MoodMapper(postID string, postUserID string, mood string) {
 	if postUserID == GetCurrentUser(ctx) {
 		<div id="mood" class="dropdown-start dropdown dropdown-bottom">
-			<div tabindex="0" role="button" class="flex items-center text-5xl">
+			<div tabindex="0" role="button" class="flex items-center text-2xl">
 				if mood == "elated" {
 					😄
 				} else if mood == "happy" {
@@ -423,4 +455,173 @@ templ MoodMapper(postID string, postUserID string, mood string) {
 			}
 		</div>
 	}
+}
+
+templ PartialMoodMapper(postID string, postUserID string, mood string) {
+	if postUserID == GetCurrentUser(ctx) {
+		<div id="mood" class="dropdown-start dropdown dropdown-bottom">
+			<div tabindex="0" role="button" class="flex items-center text-2xl">
+				if mood == "elated" {
+					😄
+				} else if mood == "happy" {
+					🙂
+				} else if mood == "sad" {
+					☹️
+				} else if mood == "upset" {
+					😫
+				} else if mood == "angry" {
+					😡
+				} else {
+					😐
+				}
+				<svg xmlns="http://www.w3.org/2000/svg" width="0.5em" height="0.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+			</div>
+			<ul tabindex="0" class="menu dropdown-content z-[1] w-auto bg-base-100 p-2 shadow">
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/elated", postID))) }
+					><span class="me-2 inline text-xl">😄</span> Elated</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/happy", postID))) }
+					><span class="me-2 inline text-xl">🙂</span> Happy</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/neutral", postID))) }
+					><span class="me-2 inline text-xl">😐</span> Neutral</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/sad", postID))) }
+					><span class="me-2 inline text-xl">☹️</span> Sad</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/upset", postID))) }
+					><span class="me-2 inline text-xl">😫</span> Upset</button>
+				</li>
+				<li class="text-base font-normal">
+					<button
+						hx-target="#mood"
+						hx-swap="outerHTML"
+						hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/mood/edit/angry", postID))) }
+					><span class="me-2 inline text-xl">😡</span> Angry</button>
+				</li>
+			</ul>
+		</div>
+	} else {
+		<div id="mood" class="flex items-center text-5xl">
+			if mood == "elated" {
+				😄
+			} else if mood == "happy" {
+				🙂
+			} else if mood == "sad" {
+				☹️
+			} else if mood == "upset" {
+				😫
+			} else if mood == "angry" {
+				😡
+			} else {
+				😐
+			}
+		</div>
+	}
+	@MoodBar(mood, "true")
+}
+
+templ MoodBar(mood string, oob string) {
+	<ul
+		id="mood-bar"
+		class="text-6xl flex justify-around relative mb-8"
+		if oob == "true" {
+			hx-swap-oob="true"
+		}
+	>
+		<div class="border-4 rounded-full border-accent/30 w-full absolute top-1/2 -translate-y-1/2"></div>
+		<li
+			if mood== "elated" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			😄
+		</li>
+		<li
+			if mood == "happy" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			🙂
+		</li>
+		<li
+			if mood == "neutral" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			😐
+		</li>
+		<li
+			if mood == "sad" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			☹️
+		</li>
+		<li
+			if mood == "upset" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			😫
+		</li>
+		<li
+			if mood == "angry" {
+				class="flex items-center z-[1] text-8xl"
+			} else {
+				class="flex items-center z-[1] saturate-[0.2]"
+			}
+		>
+			😡
+		</li>
+	</ul>
+}
+
+templ PartialLikePost(postID string, like string) {
+	<button
+		id="post-like-button"
+		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/like", postID))) }
+		hx-swap="outerHTML"
+		hx-target="#post-like-button"
+	>
+		if like == "1" {
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7 text-error/60" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
+			</svg>
+		} else {
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7 text-neutral/60" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125M11.05 6.75q-.725-1.025-1.55-1.563t-2-.537q-1.5 0-2.5 1t-1 2.5q0 1.3.925 2.763t2.213 2.837t2.65 2.575T12 18.3q.85-.775 2.213-1.975t2.65-2.575t2.212-2.837T20 8.15q0-1.5-1-2.5t-2.5-1q-1.175 0-2 .538T12.95 6.75q-.175.25-.425.375T12 7.25t-.525-.125t-.425-.375m.95 4.725"></path>
+			</svg>
+		}
+	</button>
 }

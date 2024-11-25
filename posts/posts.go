@@ -14,26 +14,39 @@ import (
 )
 
 type Post struct {
-	PostID      string `db:"post_id"`
-	PostTitle   string `db:"post_title"`
-	UserID      string `db:"user_id"`
-	Description string `db:"description"`
-	Protected   int    `db:"protected"`
-	CreatedAt   string `db:"created_at"`
-	Mood        string `db:"mood"`
+	PostID             string `db:"post_id"`
+	PostTitle          string `db:"post_title"`
+	UserID             string `db:"user_id"`
+	Description        string `db:"description"`
+	Protected          int    `db:"protected"`
+	CreatedAt          string `db:"created_at"`
+	Mood               string `db:"mood"`
+	CreatedAtProcessed string
+}
+
+type PostLike struct {
+	ID     int    `db:"like_id"`
+	UserID string `db:"user_id"`
+	PostID string `db:"post_id"`
+	Score  string `db:"score"`
 }
 
 type JoinPost struct {
-	PostID              string `db:"post_id"`
-	PostTitle           string `db:"post_title"`
-	UserID              string `db:"user_id"`
-	Description         string `db:"description"`
-	Protected           int    `db:"protected"`
-	CreatedAt           string `db:"created_at"`
-	Mood                string `db:"mood"`
-	PreferredName       string
-	CommentsCount       sql.NullInt64 `db:"comments_cnt"`
-	CommentsCountString string
+	PostID                string `db:"post_id"`
+	PostTitle             string `db:"post_title"`
+	UserID                string `db:"user_id"`
+	Description           string `db:"description"`
+	Protected             int    `db:"protected"`
+	CreatedAt             string `db:"created_at"`
+	Mood                  string `db:"mood"`
+	PreferredName         string
+	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
+	CommentsCountString   string
+	CreatedAtProcessed    string
+	LikesCount            sql.NullInt64 `db:"likes_cnt"`
+	LikesCountString      string
+	CurrentUserLike       sql.NullInt64 `db:"score"`
+	CurrentUserLikeString string
 }
 
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-"]+$`
@@ -44,13 +57,15 @@ func ListPosts() ([]JoinPost, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt FROM posts
+	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt FROM posts
 							LEFT JOIN users
 							ON users.user_id = posts.user_id
               
 							LEFT JOIN (SELECT comments.post_id, COUNT(1) AS comments_cnt FROM comments GROUP BY comments.post_id) AS comments
 							ON comments.post_id = posts.post_id
-							;`)
+
+							LEFT JOIN (SELECT post_id, COUNT(1) as likes_cnt FROM posts_likes GROUP BY posts_likes.post_id) as posts_likes
+							ON posts.post_id = posts_likes.post_id;`)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
@@ -63,7 +78,7 @@ func ListPosts() ([]JoinPost, error) {
 	for rows.Next() {
 		var p JoinPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount, &p.LikesCount); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -72,6 +87,17 @@ func ListPosts() ([]JoinPost, error) {
 			p.CommentsCountString = strconv.FormatInt(p.CommentsCount.Int64, 10)
 		} else {
 			p.CommentsCountString = "0"
+		}
+
+		if p.LikesCount.Valid {
+			p.LikesCountString = strconv.FormatInt(p.LikesCount.Int64, 10)
+		} else {
+			p.LikesCountString = "0"
+		}
+
+		p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
+		if err != nil {
+			fmt.Println(err)
 		}
 
 		posts = append(posts, p)
@@ -86,7 +112,7 @@ func NewPost(postID string, postTitle string, username string) error {
 		return err
 	}
 
-	t := time.Now().String()
+	t := time.Now().Format(time.RFC3339)
 
 	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at) VALUES ($1, $2, $3, $4)", postID, postTitle, username, t)
 	if err != nil {
@@ -130,18 +156,75 @@ func VerifyPostID(title string) (bool, string) {
 	return res.Next(), ID
 }
 
-func GetPost(postID string, currentUser string) (Post, error) {
+func GetPost(postID string, currentUser string) (JoinPost, error) {
 	db, err := database.Connect()
 	if err != nil {
-		return Post{}, err
+		return JoinPost{}, err
 	}
 
-	var post Post
-	if err := db.QueryRow("SELECT * FROM posts WHERE post_id=$1", postID).Scan(&post.PostID, &post.PostTitle, &post.UserID, &post.Description, &post.Protected, &post.CreatedAt, &post.Mood); err != nil {
-		return post, err
+	var p JoinPost
+	row, err := db.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score FROM posts  
+							LEFT JOIN (SELECT * FROM posts_likes) as posts_likes 
+							ON posts.post_id = posts_likes.post_id
+							AND posts_likes.user_id=$2
+
+							WHERE posts.post_id=$1`, postID, currentUser)
+	if err != nil {
+		return p, err
+	}
+	defer row.Close()
+
+	for row.Next() {
+		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike); err != nil {
+			return p, err
+		}
+
+		if p.CurrentUserLike.Valid {
+			p.CurrentUserLikeString = strconv.FormatInt(p.CurrentUserLike.Int64, 10)
+		} else {
+			p.CurrentUserLikeString = "0"
+		}
+	}
+	fmt.Println(p)
+
+	p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
+	if err != nil {
+		return p, err
 	}
 
-	return post, nil
+	return p, nil
+}
+
+func LikePost(postID string, currentUser string) (int, error) {
+	db, err := database.Connect()
+
+	var score int
+
+	if err != nil {
+		return score, err
+	}
+
+	var exists string
+	err = db.QueryRow("SELECT score FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser).Scan(&exists)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			if _, err = db.Exec("INSERT INTO posts_likes (user_id, post_id, score) VALUES ($1, $2, 1)", currentUser, postID); err != nil {
+				return score, err
+			}
+			score = 1
+			return score, nil
+		} else {
+			return score, err
+		}
+	}
+
+	_, err = db.Exec("DELETE FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser)
+	if err != nil {
+		return score, err
+	}
+	score = 0
+
+	return score, nil
 }
 
 func EditPostDescription(postID string, description string) error {

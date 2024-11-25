@@ -1,6 +1,25 @@
 package templates
 
 templ Reset(message string, time string) {
-	<h1>Reset successful!</h1>
-	<h2>Time taken: <u>{ time }</u></h2>
+	<html>
+		<head></head>
+		<body>
+			<h1>Reset successful!</h1>
+			<h2>Time: <u>{ time }</u></h2>
+			<h2>Redirecting in... <span id="counter" style="color: red; font-size: 32px;">10</span></h2>
+			<script>
+				const counterEl = document.getElementById("counter")
+				let counter = 10
+
+				setInterval(() => {
+					counter -= 1
+					if (counter < 0) {
+						window.location.href = "/"
+					} else {
+						counterEl.innerText = counter
+					}
+				}, 1000)			
+			</script>
+		</body>
+	</html>
 }

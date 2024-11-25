@@ -19,7 +19,7 @@ templ Base(title string) {
 			<script src="/static/js/ext/htmx-preload.min.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b border-b-neutral/20 bg-primary/30 p-0" preload>
+			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload>
 				<div class="navbar-start">
 					<div class="dropdown">
 						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -86,22 +86,24 @@ templ Base(title string) {
 									</button>
 								</div>
 								<ul tabindex="0" class="max-w-screen menu dropdown-content z-[1] rounded-box border border-neutral/30 bg-base-100 p-2 shadow-lg">
-									<li class="mb-2 pb-2 rounded-t-md border-b border-b-neutral/30">
-										<div class="flex">
-											<div class="avatar me-2">
-												<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
-													<img src={ string(templ.URL(GetAvatarPath(ctx))) } alt=""/>
+									<li class="mb-2 rounded-t-md border-b border-b-neutral/30 pb-2">
+										<a href="/settings">
+											<div class="flex">
+												<div class="avatar me-2">
+													<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
+														<img src={ string(templ.URL(GetAvatarPath(ctx))) } alt=""/>
+													</div>
 												</div>
+												if GetPreferredName(ctx) == GetCurrentUser(ctx) {
+													<div class="font-bold">{ GetCurrentUser(ctx) }</div>
+												} else {
+													<div class="grid">
+														<div class="text-2xl font-bold">{ GetPreferredName(ctx) }</div>
+														<div class="text-base-content/60">{ GetCurrentUser(ctx) }</div>
+													</div>
+												}
 											</div>
-											if GetPreferredName(ctx) == GetCurrentUser(ctx) {
-												<div class="font-bold">{ GetCurrentUser(ctx) }</div>
-											} else {
-												<div class="grid">
-													<div class="text-2xl font-bold">{ GetPreferredName(ctx) }</div>
-													<div class="text-base-content/60">{ GetCurrentUser(ctx) }</div>
-												</div>
-											}
-										</div>
+										</a>
 									</li>
 									<li class="flex rounded-md hover:bg-accent hover:text-accent-content"><a href="/settings"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M14.5 23q-.625 0-1.062-.437T13 21.5v-7q0-.625.438-1.062T14.5 13h7q.625 0 1.063.438T23 14.5v7q0 .625-.437 1.063T21.5 23zm-5.25-1l-.4-3.2q-.325-.125-.612-.3t-.563-.375L4.7 19.375l-2.75-4.75l2.575-1.95Q4.5 12.5 4.5 12.338v-.675q0-.163.025-.338L1.95 9.375l2.75-4.75l2.975 1.25q.275-.2.575-.375t.6-.3l.4-3.2h5.5l.4 3.2q.325.125.613.3t.562.375l2.975-1.25l2.75 4.75L19.925 11H15.4q-.35-1.075-1.25-1.787t-2.1-.713q-1.45 0-2.475 1.025T8.55 12q0 1.2.675 2.1T11 15.35V22zM15 21h6v-.825q-.625-.575-1.4-.875T18 19t-1.6.3t-1.4.875zm3-3q.625 0 1.063-.437T19.5 16.5t-.437-1.062T18 15t-1.062.438T16.5 16.5t.438 1.063T18 18"></path></svg>Settings</a></li>
 									<li class="flex rounded-md hover:bg-accent hover:text-accent-content"><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h7v2zm11-4l-1.375-1.45l2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5z"></path></svg>Logout</a></li>
@@ -125,7 +127,7 @@ templ Base(title string) {
 					<h2 class="pb-6 text-4xl font-bold">Credits</h2>
 					<h3 class="font-bold">SVGs</h3>
 					<ul class="list-disc">
-						<li class="ms-6">Happy sad by Ahmad Arzaha from <a href="https://thenounproject.com/browse/icons/term/happy-sad/" class="underline" target="_blank" title="Happy sad Icons">Noun Project</a> (CC BY 3.0)</li>
+						<li class="ms-6">Watermelon illustrations by <a href="https://www.drawkit.com/illustrations/watermelon-illustrations" class="underline" target="_blank" title="Watermelon Illustrations">Drawkit</a></li>
 						<li class="ms-6">empty wallet by Amethyst Studio from <a href="https://thenounproject.com/browse/icons/term/empty-wallet/" class="underline" target="_blank" title="empty wallet Icons">Noun Project</a> (CC BY 3.0)</li>
 					</ul>
 					<div class="modal-action w-full">
@@ -152,11 +154,11 @@ templ StarterWelcome(posts []posts.JoinPost) {
 				// @HappySadSvg()
 				@Watermelon()
 			</h1>
-			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="flex w-full justify-center  lg:pt-0">
-				<label class="lg:max-w-11/12 input input-lg input-bordered input-accent py-10 flex w-full lg:w-[40rem] items-center rounded-full bg-primary/10 text-base-content shadow-lg focus:shadow-lg focus:outline-none active:border-2 active:shadow-lg relative">
+			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="flex w-full justify-center lg:pt-0">
+				<label class="lg:max-w-11/12 input input-lg input-accent relative flex w-full items-center rounded-full bg-white/70 h-20 text-base-content border-neutral/20 focus:shadow-lg focus:outline-none active:border-2 lg:w-[750px]">
 					// <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-accent" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path></svg>
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
-					<input type="text" id="post-title" name="post-title" placeholder="Give your new post a title" class="grow" autocomplete="off" required/>
+					<input type="text" id="post-title" name="post-title" placeholder="Give your new post a title" class="grow text-xl" autocomplete="off" required/>
 					<button
 						id="input-cancel-button"
 						type="button"
@@ -164,14 +166,21 @@ templ StarterWelcome(posts []posts.JoinPost) {
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 					</button>
-					<button id="post-button" class="btn btn-accent join-item btn-lg min-w-20 rounded-full text-xl shadow-lg absolute right-2 top-2">Create</button>
+					<button id="post-button" class="btn btn-accent btn-lg absolute right-2 top-1.5 min-w-20 rounded-full text-xl">Create</button>
 				</label>
 			</form>
 			<div id="post-form-message" class="mt-4 text-sm text-error">
 				{ children... }
 			</div>
 		</div>
-		<div id="content" class="w-full max-w-[1000px] space-y-8 lg:pt-16">
+		<div
+			id="content"
+			if len(posts) > 0 {
+				class="w-full max-w-[1000px] space-y-8 lg:pt-16"
+			} else {
+				class="hidden"
+			}
+		>
 			<div class="flex items-center">
 				<h2 class="grow text-3xl font-bold">Posts</h2>
 				// if GetCurrentUser(ctx) == "" {
@@ -186,8 +195,8 @@ templ StarterWelcome(posts []posts.JoinPost) {
 			</div>
 			<div id="posts" class="grid gap-4">
 				for i := 0; i < len(posts); i++ {
-					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/15 bg-primary/10 p-2 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
-						<div class="group grid place-items-center overflow-hidden rounded-xl border border-neutral/5 bg-black/5 text-center text-5xl">
+					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/5 bg-primary/10 p-2 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
+						<div class="group grid place-items-center overflow-hidden rounded-full border border-neutral/5 bg-black/5 text-center text-5xl">
 							<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 								if posts[i].Mood  == "elated" {
 									😄
@@ -206,11 +215,22 @@ templ StarterWelcome(posts []posts.JoinPost) {
 						</div>
 						<div class="grow pe-4 ps-6">
 							<h3 class="truncate text-xl font-medium">
-								{ posts[i].PostID }
+								{ posts[i].PostTitle }
 							</h3>
+							<div class="text-sm text-base-content/80">by { posts[i].PreferredName }</div>
 							<div class="flex items-center">
-								<div class="grow text-sm text-base-content/80">by { posts[i].PreferredName }</div>
-								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-8 text-error/60" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path></svg>
+								<div class="grow text-sm text-base-content/60">{ posts[i].CreatedAtProcessed }</div>
+								<div class="flex items-center me-8">
+									if posts[i].LikesCountString == "0" {
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-neutral/60" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125M11.05 6.75q-.725-1.025-1.55-1.563t-2-.537q-1.5 0-2.5 1t-1 2.5q0 1.3.925 2.763t2.213 2.837t2.65 2.575T12 18.3q.85-.775 2.213-1.975t2.65-2.575t2.212-2.837T20 8.15q0-1.5-1-2.5t-2.5-1q-1.175 0-2 .538T12.95 6.75q-.175.25-.425.375T12 7.25t-.525-.125t-.425-.375m.95 4.725"></path>
+										</svg> { posts[i].LikesCountString }
+									} else {
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-neutral/60" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
+										</svg> { posts[i].LikesCountString }
+									}
+								</div>
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-neutral/60" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ posts[i].CommentsCountString }
 							</div>
 						</div>
