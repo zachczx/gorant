@@ -95,6 +95,7 @@ func main() {
 		if err := posts.NewPost(ID, title, r.Context().Value("currentUser").(string)); err != nil {
 			fmt.Println(err)
 			w.Header().Set("HX-Redirect", "/login?r=new")
+			return
 		}
 		w.Header().Set("HX-Redirect", "/posts/"+ID)
 	})))
