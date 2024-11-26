@@ -9,6 +9,7 @@ module.exports = {
 		extend: {
 			animation: {
 				'slide-up-down': 'slide-up-down 4.8s ease-out 0s 1 forwards',
+				'slide-down-up': 'slide-down-up 4.8s ease-out 0s 1 forwards',
 				'highlight-border': 'highlight-border 4s linear 0s 1 forwards',
 				'highlight-comment-main': 'highlight-comment-main 4s steps(1) 0s 1 forwards',
 				'highlight-comment-side': 'highlight-comment-side 4s steps(1) 0s 1 forwards',
@@ -48,6 +49,24 @@ module.exports = {
 					},
 					'100%': {
 						transform: 'translateY(0.7rem)',
+						opacity: '5%',
+					},
+				},
+				'slide-down-up': {
+					'0%': {
+						transform: 'translateY(-0.1rem)',
+						opacity: '5%',
+					},
+					'10%': {
+						transform: 'translateY(0.1rem)',
+						opacity: '100%',
+					},
+					'90%': {
+						transform: 'translateY(0.1rem)',
+						opacity: '100%',
+					},
+					'100%': {
+						transform: 'translateY(-0.1rem)',
 						opacity: '5%',
 					},
 				},

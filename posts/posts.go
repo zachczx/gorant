@@ -185,7 +185,6 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 			p.CurrentUserLikeString = "0"
 		}
 	}
-	fmt.Println(p)
 
 	p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
 	if err != nil {

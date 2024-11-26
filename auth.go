@@ -39,7 +39,6 @@ func NewAuthService(projectId, secret string) *AuthService {
 func (s *AuthService) CheckAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
-		ctx := context.WithValue(ctx, "currentUser", "")
 		if user != nil {
 			ctx = context.WithValue(ctx, "currentUser", user.Emails[0].Email)
 			u, err := usersZ.GetSettings(user.Emails[0].Email)

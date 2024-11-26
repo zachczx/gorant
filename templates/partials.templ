@@ -80,7 +80,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 										<div tabindex="0" role="button" class="flex items-center justify-center rounded-lg text-neutral/70">
 											<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols-more-horiz inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14q-.825 0-1.412-.587T4 12t.588-1.412T6 10t1.413.588T8 12t-.587 1.413T6 14m6 0q-.825 0-1.412-.587T10 12t.588-1.412T12 10t1.413.588T14 12t-.587 1.413T12 14m6 0q-.825 0-1.412-.587T16 12t.588-1.412T18 10t1.413.588T20 12t-.587 1.413T18 14"></path></svg>
 										</div>
-										<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-white/70 backdrop-blur-[40px] p-2 shadow-lg">
+										<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
 											<li
 												hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", comments[i].CommentID))) }
 												hx-swap="outerHTML"
@@ -123,40 +123,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 				<h2 class="text-center">Start by posting a comment!</h2>
 			</div>
 		}
-		<script>
-			(function() {
-				const deleteButtons = document.getElementsByClassName("delete-button")
-				const postUpvoteClasses = ["bg-red-400/40", "transition-all", "opacity-40", "duration-1000", "ease-out"]
-				const postBodyClasses = ["bg-red-400/20", "transition-all", "opacity-40", "duration-1000", "ease-out"]
-				for (let i = 0; i < deleteButtons.length; i++) {
-					deleteButtons[i].addEventListener("click", () => {
-						const parentCommentId = "post-" + deleteButtons[i].dataset.parentCommentId
-						
-
-						const parentComment = document.getElementById(parentCommentId)
-						if (parentComment.classList.contains("animate-highlight-border")) {
-							parentComment.classList.remove("animate-highlight-border")
-						}
-
-						const postUpvote = document.getElementById("post-upvote-" + deleteButtons[i].dataset.parentCommentId)
-						const postBody = document.getElementById("post-body-" + deleteButtons[i].dataset.parentCommentId)
-
-						const deleteLoader = document.getElementById("post-delete-loader-" + deleteButtons[i].dataset.parentCommentId)
-						deleteLoader.classList.remove("hidden")
-						deleteLoader.classList.add("flex")
-
-						postUpvote.classList.remove("bg-primary/30")
-						postUpvote.classList.add(...postUpvoteClasses)
-						postBody.classList.add(...postBodyClasses)
-						// Needs to remove the animation and force a recalculation.
-						// Otherwise css animation won't start on the el which had animate-highlight-border applied to it.
-						// Read more: https://stackoverflow.com/questions/22093141/adding-class-via-js-wont-trigger-css-animation
-						// void parentComment.offsetWidth
-						// parentComment.classList.add(...classes)
-					})
-				}
-				})()
-		</script>
+		<script src="/static/js/post-partial.js"></script>
 		<!-- Children props are for Toasts -->
 		{ children... }
 	</article>
@@ -164,23 +131,17 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 
 templ PartialPostNewError(comments []posts.JoinComment, postID string, messages map[string]string) {
 	@PartialPostNew(comments, postID, "")
-	<div class="w-full rounded-lg py-4" id="form-message" hx-swap-oob="true">
-		<div class="grid w-full content-center space-y-2 border border-error p-2 pb-4 text-error">
-			<h2 class="flex items-center text-xl font-bold">
-				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-				Error!
-			</h2>
-			<ul class="list-disc ps-6">
-				// if messages["name"] != "" {
-				// 	<li>{ messages["name"] }</li>
-				// }
-				if messages["content"] != "" {
-					<li>{ messages["content"] }</li>
-				}
-			</ul>
+	if messages["content"] != "" {
+		<div id="form-message-error" class="mt-1 rounded-lg text-sm text-error flex items-center" hx-swap-oob="true">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-1" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>{ messages["content"] }
+			<script>
+			(() => {
+				let classes = ["border-2", "border-error", "focus:border","focus:outline-error", "focus:border-error"]
+				document.getElementById("comment-form-message-input").classList.add(...classes)
+			})()
+		</script>
 		</div>
-	</div>
-	<div id="form-message-error" class="rounded-lg text-error" hx-swap-oob="true">{ messages["content"] }</div>
+	}
 }
 
 templ PartialPostNewSorted(comments []posts.JoinComment, postID string, highlight string, sortComments string) {
@@ -189,15 +150,9 @@ templ PartialPostNewSorted(comments []posts.JoinComment, postID string, highligh
 }
 
 templ PartialPostNewSuccess(comments []posts.JoinComment, postID string, highlight string) {
-	@PartialPostNew(comments, postID, highlight)
-	<div class="w-full animate-slide-down py-4" id="form-message" hx-swap-oob="true">
-		<div class="flex w-full items-center rounded-lg border border-success bg-success p-2 text-success-content shadow-lg">
-			<h2 class="flex items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-				Successfully added!
-			</h2>
-		</div>
-	</div>
+	@PartialPostNew(comments, postID, highlight) {
+		@Toast("success", "Comment added!")
+	}
 	@PostForm(postID, "true")
 }
 

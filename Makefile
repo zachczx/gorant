@@ -23,13 +23,22 @@ dev/air:
 	air -c .air.toml
 
 dev/esbuild:
-	npx esbuild ./static/js/comment-form.js ./static/js/index.js --bundle --outdir=./static/js/output --minify --watch
+	npx esbuild ./static/js/index.js ./static/js/post.js ./static/js/post-partial.js --bundle --outdir=./static/js/output --minify --watch
 
 dev/prettier:
-	npx prettier . --write
+	npx prettier . --write ./static/js
+
+# unused 
+dev/biome:
+	npx @biomejs/biome check --write ./static/js/
+
+# used only when needed
+dev/eslint:
+	npx eslint
 
 dev: 
 	make -j5 dev/templ dev/prettier dev/esbuild dev/tailwind dev/air
 
 # prettier screws up the minification if last
+# 
 # esbuild needs to be before tailwind to generate the proper classes, e.g. keeps generating spinner instead of dots even with correct classes

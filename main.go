@@ -29,6 +29,10 @@ func main() {
 		os.Getenv("STYTCH_SECRET"),
 	)
 
+	ctx = context.WithValue(ctx, "currentUser", "")
+	ctx = context.WithValue(ctx, "sortComments", "")
+	ctx = context.WithValue(ctx, "filter", "")
+
 	mux := http.NewServeMux()
 	mux.Handle("GET /", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, err := posts.ListPosts()
@@ -37,30 +41,6 @@ func main() {
 		}
 		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
-
-	//------------------------------------------------------------
-	// Tried out lazy loading, but quite jarring with the loaders
-	//------------------------------------------------------------
-
-	/* 	mux.HandleFunc("GET /landing", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	   		TemplRender(w, r, templates.Landing())
-	   	}))
-
-	   	mux.Handle("POST /posts/list", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	   		// time.Sleep(10 * time.Second)
-	   		p, err := posts.ListPosts()
-	   		if err != nil {
-	   			fmt.Println("Error fetching posts", err)
-	   		}
-
-	   		TemplRender(w, r, templates.PartialLandingListPost(p))
-	   	})))
-
-	   	mux.Handle("POST /user/list", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	   		// time.Sleep(5 * time.Second)
-
-	   		TemplRender(w, r, templates.PartialNavUser())
-	   	}))) */
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.Error("Oops something went wrong."))
@@ -153,10 +133,12 @@ func main() {
 		}
 
 		ctx = context.WithValue(ctx, "sortComments", u.SortComments)
+		ctx = context.WithValue(ctx, "filter", filter)
 		TemplRender(w, r, templates.PartialPostNewSorted(comments, postID, "", u.SortComments))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("GET not allowed on this route.")
 		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
@@ -166,7 +148,7 @@ func main() {
 		if r.Context().Value("currentUser").(string) == "" {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
-			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 			if err != nil {
 				fmt.Println(err)
 				TemplRender(w, r, templates.Error("Error!"))
@@ -191,7 +173,7 @@ func main() {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sort").(string), ctx.Value("filter").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error("Oops, something went wrong."))
@@ -258,7 +240,7 @@ func main() {
 		commentID := r.PathValue("commentID")
 
 		if r.Context().Value("currentUser").(string) == "" {
-			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 			if err != nil {
 				fmt.Println("Error fetching posts: ", err)
 			}
@@ -273,7 +255,7 @@ func main() {
 		}
 
 		var comments []posts.JoinComment
-		comments, err = posts.GetComments(postID, r.Context().Value("currentUser").(string))
+		comments, err = posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -340,19 +322,13 @@ func main() {
 		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
 	})))
 
-	// comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
-	// 	if err != nil {
-	// 		fmt.Println("Error fetching posts", err)
-	// 	}
-	// 	TemplRender(w, r, templates.PartialPostDelete(comments, postID))
-
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
 		if r.Context().Value("currentUser").(string) == "" {
 			fmt.Println("I'm inside unauthenticated")
-			comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -365,7 +341,7 @@ func main() {
 			return
 		}
 
-		comments, err := posts.GetComments(postID, r.Context().Value("currentUser").(string))
+		comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
