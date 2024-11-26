@@ -13,18 +13,18 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 				<div
 					id={ "post-" + comments[i].CommentID }
 					if comments[i].CommentID == highlight {
-						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-[2000]"
+						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000"
 					} else {
-						class="relative flex h-auto rounded-lg border border-neutral/10 transition-all duration-[2000]"
+						class="relative flex h-auto rounded-lg border border-neutral/10 transition-all duration-1000"
 					}
 				>
 					<div id={ "post-delete-loader-" + comments[i].CommentID } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
 					<div
 						id={ "post-upvote-" + comments[i].CommentID }
 						if comments[i].CommentID == highlight {
-							class="grid w-20 animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid lg:w-20 animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
 						} else {
-							class="grid w-20 content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid lg:w-20 content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
 						}
 					>
 						if comments[i].CurrentUserVoted == "true" {
@@ -112,7 +112,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 								}
 							</div>
 						</div>
-						<div id={ "post-" + comments[i].CommentID + "-content" } class="whitespace-pre-line pt-4 text-base">{ comments[i].Content }</div>
+						<div id={ "post-" + comments[i].CommentID + "-content" } class="whitespace-pre-line pt-4 text-base hyphenate">{ comments[i].Content }</div>
 					</div>
 				</div>
 			}
@@ -132,7 +132,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 templ PartialPostNewError(comments []posts.JoinComment, postID string, messages map[string]string) {
 	@PartialPostNew(comments, postID, "")
 	if messages["content"] != "" {
-		<div id="form-message-error" class="mt-1 rounded-lg text-sm text-error flex items-center" hx-swap-oob="true">
+		<div id="form-message-error" class="mt-1 flex items-center rounded-lg text-sm text-error" hx-swap-oob="true">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-1" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>{ messages["content"] }
 			<script>
 			(() => {

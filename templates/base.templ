@@ -18,54 +18,14 @@ templ Base(title string) {
 			<script src="/static/js/ext/htmx.min.js"></script>
 			<script src="/static/js/ext/htmx-preload.min.js"></script>
 		</head>
-		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans" hx-ext="preload">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans overflow-x-hidden" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload>
 				<div class="navbar-start">
-					<div class="dropdown">
-						<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M4 6h16M4 12h8m-8 6h16"
-								></path>
-							</svg>
-						</div>
-						<ul
-							tabindex="-1"
-							class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box bg-base-100 p-2 opacity-0 shadow"
-						>
-							<li>
-								<a>Posts</a>
-								<ul class="p-2"></ul>
-							</li>
-							<li><a>Contact</a></li>
-							<li><a href="/about">About</a></li>
-						</ul>
-					</div>
 					<a href="/" class="group py-2 ps-6 text-3xl">
 						<span class="inline-block rounded-full bg-accent p-2 font-medium text-accent-content transition-all duration-200 group-hover:bg-orange-700">Go</span><span class="inline-block rounded py-2 pe-4 ps-2 font-bold text-accent transition-all duration-500 ease-in-out group-hover:text-orange-500">Rant</span>
 					</a>
 				</div>
-				<div class="navbar-center hidden lg:flex">
-					<ul class="menu menu-horizontal px-1 opacity-0">
-						<li>
-							<details>
-								<summary>Posts</summary>
-								<ul class="p-2"></ul>
-							</details>
-						</li>
-						<li><a>Contact</a></li>
-						<li><a href="/about">About</a></li>
-					</ul>
-				</div>
+				<div class="navbar-center hidden lg:flex"></div>
 				<div class="navbar-end pe-6">
 					if GetCurrentUser(ctx)  == "" {
 						<div>
@@ -264,7 +224,7 @@ templ Error(message string) {
 
 templ Toast(status string, message string) {
 	if status == "error" {
-		<div id="toast" class="toast toast-top toast-center animate-slide-down-up text-base font-normal">
+		<div id="toast" class="toast toast-center toast-top animate-slide-down-up text-base font-normal">
 			<div class="alert alert-info rounded-lg bg-error/70 backdrop-blur-md">
 				<span class="flex items-center text-error-content">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
@@ -273,7 +233,7 @@ templ Toast(status string, message string) {
 			</div>
 		</div>
 	} else if status == "success" {
-		<div id="toast" class="toast toast-top toast-center animate-slide-down-up text-base font-normal">
+		<div id="toast" class="toast toast-center toast-top animate-slide-down-up text-base font-normal">
 			<div class="alert alert-info rounded-lg bg-success/70 backdrop-blur-md">
 				<div class="flex items-center text-success-content">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>

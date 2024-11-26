@@ -7,7 +7,7 @@ import (
 
 templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@Base("GoRant - Post") {
-		<main class="grid w-full max-w-[1600px] content-start justify-items-center gap-4 space-y-4 lg:grid-cols-3">
+		<main class="grid lg:max-w-[1600px] content-start justify-items-center space-y-4 lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
 				<div class="flex flex-wrap items-center">
 					<div class="grow space-y-2">
@@ -61,12 +61,12 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 				</div>
 			</div>
 			<div class="relative w-full">
-				<div class="sticky top-2 grid justify-items-center">
+				<div class="sticky top-2 grid justify-items-center z-[1] backdrop-blur">
 					<div class="grid w-full content-center rounded-lg border border-neutral/10 bg-white/70 shadow-lg lg:max-w-2xl">
 						<h1 class="rounded-t-lg border-t-8 border-t-primary/70 p-4 text-center text-3xl font-extrabold capitalize">
 							{ post.PostTitle }
 						</h1>
-						<div class="flex items-center justify-around border-b border-b-neutral/5 p-2">
+						<div class="flex items-center justify-around bg-primary/10 border-b border-b-neutral/5 border-t border-t-neutral/5 p-2">
 							<div class="flex items-center">
 								@PartialLikePost(postID, post.CurrentUserLikeString)
 							</div>
@@ -133,15 +133,15 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 			<div class="w-full lg:col-span-2">
 				@MoodBar(post.Mood, "false")
 				<form
-					class="mb-4 flex w-full flex-wrap space-x-2"
+					class="mb-4 grid lg:flex w-full space-x-2 px-1 lg:px-8"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
 					hx-target="#posts"
 					hx-swap="outerHTML"
 					hx-indicator="#filter-loading"
 					hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
 				>
-					<div class="join">
-						<label class="input input-sm join-item flex w-96 max-w-full items-center gap-2 border-neutral/20 bg-white/70 text-accent text-neutral/70">
+					<div class="join ">
+						<label class="input input-sm join-item lg:w-96 w-full flex items-center gap-2 border-neutral/20 bg-white/70 text-accent text-neutral/70">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18q-.425 0-.712-.288T10 17t.288-.712T11 16h2q.425 0 .713.288T14 17t-.288.713T13 18zm-4-5q-.425 0-.712-.288T6 12t.288-.712T7 11h10q.425 0 .713.288T18 12t-.288.713T17 13zM4 8q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
 							<input
 								id="filter-input"
@@ -175,7 +175,9 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 						@SortButton(postID, sortComments, "false")
 					</div>
 				</form>
-				@PartialPostNew(comments, postID, highlight)
+				<div class="px-1 lg:px-8">
+					@PartialPostNew(comments, postID, highlight)
+				</div>
 			</div>
 			<script src="/static/js/output/post.js"></script>
 		</main>
@@ -397,15 +399,15 @@ templ PartialMoodMapper(postID string, postUserID string, mood string) {
 templ MoodBar(mood string, oob string) {
 	<ul
 		id="mood-bar"
-		class="relative mb-8 flex justify-around text-6xl"
+		class="relative mb-8 flex flex-wrap justify-around text-xl lg:text-6xl"
 		if oob == "true" {
 			hx-swap-oob="true"
 		}
 	>
-		<div class="absolute top-1/2 w-full -translate-y-1/2 rounded-full border-4 border-accent/30"></div>
+		<div class="absolute top-1/2 hidden lg:flex lg:w-[3000px] -translate-y-1/2 rounded-full border-4 border-accent/30"></div>
 		<li
 			if mood== "elated" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
@@ -414,7 +416,7 @@ templ MoodBar(mood string, oob string) {
 		</li>
 		<li
 			if mood == "happy" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
@@ -423,7 +425,7 @@ templ MoodBar(mood string, oob string) {
 		</li>
 		<li
 			if mood == "neutral" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
@@ -432,7 +434,7 @@ templ MoodBar(mood string, oob string) {
 		</li>
 		<li
 			if mood == "sad" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
@@ -441,7 +443,7 @@ templ MoodBar(mood string, oob string) {
 		</li>
 		<li
 			if mood == "upset" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
@@ -450,7 +452,7 @@ templ MoodBar(mood string, oob string) {
 		</li>
 		<li
 			if mood == "angry" {
-				class="z-[1] flex items-center justify-center text-8xl"
+				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
 			} else {
 				class="z-[1] flex items-center saturate-[0.2]"
 			}
