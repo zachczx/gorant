@@ -39,6 +39,8 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
+
+		fmt.Println("Current user: ", ctx.Value("currentUser"))
 		TemplRender(w, r, templates.StarterWelcome(p))
 	})))
 
@@ -236,17 +238,14 @@ func main() {
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		commentID := r.PathValue("commentID")
-
-		if r.Context().Value("currentUser").(string) == "" {
-			comments, err := posts.FilterSortComments(postID, r.Context().Value("currentUser").(string), ctx.Value("sortComments").(string), ctx.Value("filter").(string))
-			if err != nil {
-				fmt.Println("Error fetching posts: ", err)
-			}
-			TemplRender(w, r, templates.PartialPostVoteError(comments, postID))
+		if ctx.Value("currentUser") == "" {
+			fmt.Println("Inisde here")
+			w.WriteHeader(403)
+			TemplRender(w, r, templates.PartialPostVoteError())
 			return
 		}
+		postID := r.PathValue("postID")
+		commentID := r.PathValue("commentID")
 
 		var err error
 		err = posts.UpVote(commentID, r.Context().Value("currentUser").(string))
@@ -366,12 +365,18 @@ func main() {
 	})))
 
 	mux.Handle("POST /posts/{postID}/like", service.CheckAuthentication(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if ctx.Value("currentUser").(string) == "" {
+			fmt.Println("Inside here")
+			w.WriteHeader(403)
+			TemplRender(w, r, templates.PartialLikeErrorLogin())
+			return
+		}
 		postID := r.PathValue("postID")
-
 		score, err := posts.LikePost(postID, r.Context().Value("currentUser").(string))
 		if err != nil {
 			fmt.Println(err)
-			TemplRender(w, r, templates.Error("Something went wrong!"))
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
 		}
 
 		if score == 1 {

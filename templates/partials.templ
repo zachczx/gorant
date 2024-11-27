@@ -22,15 +22,17 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 					<div
 						id={ "post-upvote-" + comments[i].CommentID }
 						if comments[i].CommentID == highlight {
-							class="grid lg:w-20 animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-20"
 						} else {
-							class="grid lg:w-20 content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold"
+							class="grid content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-20"
 						}
+						hx-ext="response-targets"
 					>
 						if comments[i].CurrentUserVoted == "true" {
 							<button
 								hx-target="#posts"
 								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].CommentID))) }
+								hx-target-403="#toast"
 								class="inline-block h-auto text-4xl text-orange-600"
 							>
 								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
@@ -39,6 +41,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 							<button
 								hx-target="#posts"
 								hx-trigger="click"
+								hx-target-403="#toast"
 								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", postID, comments[i].CommentID))) }
 								class="inline-block h-auto text-4xl hover:text-orange-600 active:-translate-y-1"
 							>
@@ -112,7 +115,7 @@ templ PartialPostNew(comments []posts.JoinComment, postID string, highlight stri
 								}
 							</div>
 						</div>
-						<div id={ "post-" + comments[i].CommentID + "-content" } class="whitespace-pre-line pt-4 text-base hyphenate">{ comments[i].Content }</div>
+						<div id={ "post-" + comments[i].CommentID + "-content" } class="hyphenate whitespace-pre-line pt-4 text-base">{ comments[i].Content }</div>
 					</div>
 				</div>
 			}
@@ -160,10 +163,12 @@ templ PartialPostVote(comments []posts.JoinComment, postID string, highlight str
 	@PartialPostNew(comments, postID, highlight)
 }
 
-templ PartialPostVoteError(comments []posts.JoinComment, postID string) {
-	@PartialPostNew(comments, postID, "") {
-		@Toast("error", "You need to be logged in to upvote!")
-	}
+templ PartialPostVoteError() {
+	@Toast("error", "You need to be logged in to upvote!")
+}
+
+templ PartialLikeErrorLogin() {
+	@Toast("error", "You need to be logged in to like the post!")
 }
 
 templ PartialPostNewErrorLogin(comments []posts.JoinComment, postID string) {

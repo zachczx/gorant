@@ -180,7 +180,7 @@ func (s *AuthService) logout(ctx context.Context, h http.Handler) http.Handler {
 		delete(sess.Values, "token")
 		sess.Save(r, w)
 
-		ctx = context.WithValue(r.Context(), "currentUser", "")
+		ctx = context.WithValue(ctx, "currentUser", "")
 
 		h.ServeHTTP(w, r)
 	})

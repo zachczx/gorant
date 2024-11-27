@@ -17,8 +17,9 @@ templ Base(title string) {
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
 			<script src="/static/js/ext/htmx.min.js"></script>
 			<script src="/static/js/ext/htmx-preload.min.js"></script>
+			<script src="/static/js/ext/htmx-response-targets.min.js"></script>
 		</head>
-		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] font-sans overflow-x-hidden" hx-ext="preload">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload>
 				<div class="navbar-start">
 					<a href="/" class="group py-2 ps-6 text-3xl">
@@ -76,6 +77,7 @@ templ Base(title string) {
 			<div id="container" class="grid justify-items-center px-4 pt-10" preload>
 				{ children... }
 			</div>
+			<div id="toast" class="hidden"></div>
 			<footer id="footer" class="mt-16 text-center text-sm">
 				<p>Copyright © 2024 Zixian Chen. All rights reserved.</p>
 				<div>
@@ -115,10 +117,10 @@ templ StarterWelcome(posts []posts.JoinPost) {
 				@Watermelon()
 			</h1>
 			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="flex w-full justify-center lg:pt-0">
-				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-20 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border-2 lg:w-[750px]">
+				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-20 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 					// <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-accent" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path></svg>
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
-					<input type="text" id="post-title" name="post-title" placeholder="Give your new post a title" class="grow text-xl" autocomplete="off" required/>
+					<input type="text" id="post-title" name="post-title" placeholder="Rant about something" class="grow text-xl" autocomplete="off" required/>
 					<button
 						id="input-cancel-button"
 						type="button"
@@ -143,15 +145,6 @@ templ StarterWelcome(posts []posts.JoinPost) {
 		>
 			<div class="flex items-center">
 				<h2 class="grow text-3xl font-bold">Posts</h2>
-				// if GetCurrentUser(ctx) == "" {
-				// 	<a href="/login?r=new" id="add-new-login-first" class="btn btn-accent rounded-3xl">
-				// 		<h3 id="add-new-header" class="text-lg font-bold">New Post</h3>
-				// 	</a>
-				// } else {
-				// 	<button id="add-new" class="btn btn-accent rounded-lg px-6 text-lg">
-				// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2 inline" viewBox="0 0 24 24"><path fill="currentColor" d="M7 9h8V7H7zm0 4h5v-2H7zm10 7v-3h-3v-2h3v-3h2v3h3v2h-3v3zM3 20V5q0-.825.588-1.412T5 3h12q.825 0 1.413.588T19 5v5.075q-.25-.05-.5-.062T18 10q-2.525 0-4.262 1.75T12 16q0 .25.013.5t.062.5H6z"></path></svg>New Topic
-				// 	</button>
-				// }
 			</div>
 			<div id="posts" class="grid gap-4">
 				for i := 0; i < len(posts); i++ {
@@ -174,10 +167,10 @@ templ StarterWelcome(posts []posts.JoinPost) {
 							</span>
 						</div>
 						<div class="grow pe-4 ps-6">
-							<h3 class="truncate text-xl font-medium">
+							<h3 class="truncate text-xl font-medium leading-loose">
 								{ posts[i].PostTitle }
 							</h3>
-							<div class="text-sm text-base-content/80">by { posts[i].PreferredName }</div>
+							<div class="text-sm text-base-content/60">by { posts[i].PreferredName }</div>
 							<div class="flex items-center">
 								<div class="grow text-sm text-base-content/60">{ posts[i].CreatedAtProcessed }</div>
 								<div class="me-8 flex items-center">
@@ -226,18 +219,18 @@ templ Toast(status string, message string) {
 	if status == "error" {
 		<div id="toast" class="toast toast-center toast-top animate-slide-down-up text-base font-normal">
 			<div class="alert alert-info rounded-lg bg-error/70 backdrop-blur-md">
-				<span class="flex items-center text-error-content">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-					{ message }
-				</span>
+				<div class="flex items-center text-error-content">
+					<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+					<span id="toast-message">{ message }</span>
+				</div>
 			</div>
 		</div>
 	} else if status == "success" {
 		<div id="toast" class="toast toast-center toast-top animate-slide-down-up text-base font-normal">
 			<div class="alert alert-info rounded-lg bg-success/70 backdrop-blur-md">
 				<div class="flex items-center text-success-content">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-					<span>{ message }</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+					<span id="toast-message">{ message }</span>
 				</div>
 			</div>
 		</div>

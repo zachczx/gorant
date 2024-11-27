@@ -7,7 +7,7 @@ import (
 
 templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@Base("GoRant - Post") {
-		<main class="grid lg:max-w-[1600px] content-start justify-items-center space-y-4 lg:grid-cols-3">
+		<main class="grid content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
 				<div class="flex flex-wrap items-center">
 					<div class="grow space-y-2">
@@ -61,12 +61,12 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 				</div>
 			</div>
 			<div class="relative w-full">
-				<div class="sticky top-2 grid justify-items-center z-[1] backdrop-blur">
+				<div class="sticky top-2 z-[1] grid justify-items-center backdrop-blur">
 					<div class="grid w-full content-center rounded-lg border border-neutral/10 bg-white/70 shadow-lg lg:max-w-2xl">
-						<h1 class="rounded-t-lg border-t-8 border-t-primary/70 p-4 text-center text-3xl font-extrabold capitalize">
+						<h1 class="rounded-t-lg border-t-8 border-t-primary/70 p-4 text-center text-3xl font-extrabold capitalize leading-loose">
 							{ post.PostTitle }
 						</h1>
-						<div class="flex items-center justify-around bg-primary/10 border-b border-b-neutral/5 border-t border-t-neutral/5 p-2">
+						<div class="flex items-center justify-around border-b border-t border-b-neutral/5 border-t-neutral/5 bg-primary/10 p-2">
 							<div class="flex items-center">
 								@PartialLikePost(postID, post.CurrentUserLikeString)
 							</div>
@@ -116,32 +116,20 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 						</div>
 						@PostForm(postID, "false")
 					</div>
-					<div class="w-full" id="form-message">
-						if GetCurrentUser(ctx) == "" {
-							<div class="w-full pb-4" id="">
-								<div class="flex items-center rounded-lg border border-neutral/10 p-4 text-neutral/80">
-									<a href="/auth/login" class="flex items-center">
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
-										You'll need to be logged in to post.
-									</a>
-								</div>
-							</div>
-						}
-					</div>
 				</div>
 			</div>
 			<div class="w-full lg:col-span-2">
 				@MoodBar(post.Mood, "false")
 				<form
-					class="mb-4 grid lg:flex w-full space-x-2 px-1 lg:px-8"
+					class="mb-4 grid w-full space-x-2 px-1 lg:flex lg:px-8"
 					hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
 					hx-target="#posts"
 					hx-swap="outerHTML"
 					hx-indicator="#filter-loading"
 					hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
 				>
-					<div class="join ">
-						<label class="input input-sm join-item lg:w-96 w-full flex items-center gap-2 border-neutral/20 bg-white/70 text-accent text-neutral/70">
+					<div class="join">
+						<label class="input input-sm join-item flex w-full items-center gap-2 border-neutral/20 bg-white/70 text-accent text-neutral/70 lg:w-96">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18q-.425 0-.712-.288T10 17t.288-.712T11 16h2q.425 0 .713.288T14 17t-.288.713T13 18zm-4-5q-.425 0-.712-.288T6 12t.288-.712T7 11h10q.425 0 .713.288T18 12t-.288.713T17 13zM4 8q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
 							<input
 								id="filter-input"
@@ -181,6 +169,7 @@ templ Post(message string, post posts.JoinPost, comments []posts.JoinComment, po
 			</div>
 			<script src="/static/js/output/post.js"></script>
 		</main>
+		<div id="toast" class="hidden"></div>
 	}
 }
 
@@ -296,7 +285,16 @@ templ PostForm(postID string, oobSwap string) {
 				<div class="text-xs italic text-base-content/70"><span id="form-message-chars-remaining"></span> characters left</div>
 			</div>
 			<textarea name="message" id="comment-form-message-input" placeholder="Enter a message of at least 10 chars" class="textarea textarea-bordered min-h-24 bg-white/70" minlength="1" maxlength="2000" rows="7" required></textarea>
-			<div id="form-message-error"></div>
+			<div id="form-message-error">
+				if GetCurrentUser(ctx) == "" {
+					<div class="flex items-center text-accent my-1">
+						<a href="/auth/login" class="flex items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
+							You'll need to login before posting.
+						</a>
+					</div>
+				}
+			</div>
 		</label>
 		<div>
 			if GetCurrentUser(ctx) != "" {
@@ -373,7 +371,7 @@ templ MoodMapper(postID string, postUserID string, mood string) {
 			</ul>
 		</div>
 	} else {
-		<div id="mood" class="flex items-center text-5xl">
+		<div id="mood" class="flex items-center text-2xl">
 			if mood == "elated" {
 				😄
 			} else if mood == "happy" {
@@ -404,7 +402,7 @@ templ MoodBar(mood string, oob string) {
 			hx-swap-oob="true"
 		}
 	>
-		<div class="absolute top-1/2 -left-1/2 hidden lg:flex lg:w-[4000px] -translate-y-1/2 rounded-full border-4 border-accent/30"></div>
+		<div class="absolute -left-1/2 top-1/2 hidden -translate-y-1/2 rounded-full border-4 border-accent/30 lg:flex lg:w-[4000px]"></div>
 		<li
 			if mood== "elated" {
 				class="z-[1] flex items-center justify-center text-3xl lg:text-8xl"
@@ -468,6 +466,8 @@ templ PartialLikePost(postID string, like string) {
 		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/like", postID))) }
 		hx-swap="outerHTML"
 		hx-target="#post-like-button"
+		hx-ext="response-targets"
+		hx-target-403="#toast"
 	>
 		if like == "1" {
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7 text-error/60" viewBox="0 0 24 24">
