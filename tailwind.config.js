@@ -54,19 +54,19 @@ module.exports = {
 				},
 				'slide-down-up': {
 					'0%': {
-						transform: 'translateY(-0.1rem)',
+						transform: 'translateY(-0.5rem) translateX(-50%)',
 						opacity: '5%',
 					},
 					'10%': {
-						transform: 'translateY(0.1rem)',
+						transform: 'translateY(0.5rem) translateX(-50%)',
 						opacity: '100%',
 					},
 					'90%': {
-						transform: 'translateY(0.1rem)',
+						transform: 'translateY(0.5rem) translateX(-50%)',
 						opacity: '100%',
 					},
 					'100%': {
-						transform: 'translateY(-0.1rem)',
+						transform: 'translateY(-0.5rem) translateX(-50%)',
 						opacity: '5%',
 					},
 				},
@@ -100,24 +100,6 @@ module.exports = {
 					'75%': {
 						transform: 'rotate(-20deg)',
 					},
-					// '30%': {
-					// 	transform: 'rotate(20deg)',
-					// },
-					// '35%': {
-					// 	transform: 'rotate(-20deg)',
-					// },
-					// '60%': {
-					// 	transform: 'rotate(20deg)',
-					// },
-					// '65%': {
-					// 	transform: 'rotate(-20deg)',
-					// },
-					// '90%': {
-					// 	transform: 'rotate(10deg)',
-					// },
-					// '95%': {
-					// 	transform: 'rotate(-10deg)',
-					// },
 				},
 				'wiggle-alt': {
 					'0%': {
@@ -183,9 +165,6 @@ module.exports = {
 					error: '#DC2626',
 					'error-content': '#fdfdfd', //'#ffd9d4',
 				},
-				// cyberpunk: {
-				// 	...require('daisyui/src/theming/themes')['cyberpunk'],
-				// },
 			},
 		],
 	},

@@ -9,14 +9,14 @@ import (
 
 	"gorant/database"
 	"gorant/templates"
-	usersZ "gorant/users"
+	"gorant/users"
 
 	gorillaSessions "github.com/gorilla/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks"
 	emailML "github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks/email"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/stytchapi"
-	"github.com/stytchauth/stytch-go/v15/stytch/consumer/users"
+	stytchUsers "github.com/stytchauth/stytch-go/v15/stytch/consumer/users"
 )
 
 type AuthService struct {
@@ -36,27 +36,21 @@ func NewAuthService(projectId, secret string) *AuthService {
 	}
 }
 
-func (s *AuthService) CheckAuthentication(h http.Handler) http.Handler {
+func (s *AuthService) CheckAuthentication(currentUser *users.User, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.getAuthenticatedUser(w, r)
+		var err error
 		if user != nil {
-			ctx = context.WithValue(ctx, "currentUser", user.Emails[0].Email)
-			u, err := usersZ.GetSettings(user.Emails[0].Email)
+			err = currentUser.GetSettings(user.Emails[0].Email)
 			if err != nil {
 				fmt.Println(err)
 			}
-			ctx = context.WithValue(ctx, "avatarPath", u.AvatarPath)
-			ctx = context.WithValue(ctx, "preferredName", u.PreferredName)
-			ctx = context.WithValue(ctx, "sortComments", u.SortComments)
 		}
-		// fmt.Println(ctx.Value("currentUser"))
-		// fmt.Println(ctx.Value("avatarPath"))
-
-		h.ServeHTTP(w, r.WithContext(ctx))
+		h.ServeHTTP(w, r)
 	})
 }
 
-func (s *AuthService) getAuthenticatedUser(w http.ResponseWriter, r *http.Request) *users.User {
+func (s *AuthService) getAuthenticatedUser(w http.ResponseWriter, r *http.Request) *stytchUsers.User {
 	session, err := s.store.Get(r, "stytch_session")
 	if err != nil || session == nil {
 		return nil
@@ -83,6 +77,7 @@ func (s *AuthService) getAuthenticatedUser(w http.ResponseWriter, r *http.Reques
 	return &resp.User
 }
 
+// TODO: still using ctx here, needs to be removed
 func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Printf("Error parsing form: %v\n", err)
@@ -107,10 +102,10 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	TemplRender(w, r, templates.LoginSuccess())
+	TemplRender(w, r, templates.LoginSubmitted(emptyUser))
 }
 
-func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
+func (s *AuthService) authenticateHandler(currentUser users.User) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenType := r.URL.Query().Get("stytch_token_type")
 		token := r.URL.Query().Get("token")
@@ -118,7 +113,7 @@ func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
 		if tokenType != "magic_links" {
 			log.Printf("Error: unrecognized token type %s\n", tokenType)
 			// http.Error(w, fmt.Sprintf("Unrecognized token type %s", tokenType), http.StatusBadRequest)
-			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			TemplRender(w, r, templates.Error(emptyUser, "There was an error logging you in."))
 			return
 		}
 
@@ -128,21 +123,20 @@ func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
 		})
 		if err != nil {
 			log.Printf("Error authenticating: %v\n", err)
-			// http.Error(w, err.Error(), http.StatusInternalServerError)
-			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			TemplRender(w, r, templates.Error(emptyUser, "There was an error logging you in."))
 			return
 		}
 
 		session, err := s.store.Get(r, "stytch_session")
 		if err != nil {
-			// http.Error(w, err.Error(), http.StatusInternalServerError)
-			TemplRender(w, r, templates.Error("There was an error logging you in."))
+			TemplRender(w, r, templates.Error(emptyUser, "There was an error logging you in."))
 			return
 		}
 
 		session.Values["token"] = resp.SessionToken
 		session.Save(r, w)
-		ctx = context.WithValue(r.Context(), "currentUser", resp.User.Emails[0].Email)
+
+		currentUser.UserID = resp.User.Emails[0].Email
 
 		var exists bool
 		db, err := database.Connect()
@@ -169,7 +163,7 @@ func (s *AuthService) authenticateHandler(ctx context.Context) http.Handler {
 	})
 }
 
-func (s *AuthService) logout(ctx context.Context, h http.Handler) http.Handler {
+func (s *AuthService) logout(currentUser *users.User, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sess, err := s.store.Get(r, "stytch_session")
 		if err != nil {
@@ -180,7 +174,9 @@ func (s *AuthService) logout(ctx context.Context, h http.Handler) http.Handler {
 		delete(sess.Values, "token")
 		sess.Save(r, w)
 
-		ctx = context.WithValue(ctx, "currentUser", "")
+		fmt.Println("Before: ", currentUser)
+		*currentUser = users.User{}
+		fmt.Println("After: ", currentUser)
 
 		h.ServeHTTP(w, r)
 	})

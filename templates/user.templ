@@ -2,27 +2,36 @@ package templates
 
 import "gorant/users"
 
-templ Settings(s users.User) {
-	@Base("User Settings") {
-		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8">
+templ Settings(currentUser users.User) {
+	@Base("User Settings", currentUser) {
+		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="space-y-4">
 				<div id="settings-message"></div>
+				// Children placeholder is for first time login users
 				{ children... }
 				<div class="space-y-8 rounded-lg border border-neutral/30 p-8 shadow-lg">
 					<h1 class="min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
-					<form method="post" class="grid gap-4" hx-post="/settings/edit" hx-target="#settings-message" hx-swap="outerHTML" id="settings-form">
-						// action="/settings/edit" 
+					<form
+						method="post"
+						class="grid gap-4"
+						hx-post="/settings/edit"
+						hx-target="#settings-message"
+						hx-swap="outerHTML"
+						hx-target-error="#toast"
+						id="settings-form"
+					>
 						<label class="form-control">
 							<div class="label">
 								<span class="label-text font-medium">Email</span>
 							</div>
-							<input type="text" name="username" value={ GetCurrentUser(ctx) } class="input input-bordered w-full" disabled/>
+							<input type="text" name="username" value={ currentUser.Email } class="input input-bordered w-full" disabled/>
 						</label>
 						<label class="form-control w-full">
 							<div class="label">
 								<span class="label-text font-medium">Display Name</span>
 							</div>
-							<input type="text" name="preferred-name" value={ s.PreferredName } class="input input-bordered w-full"/>
+							<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
+							<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
 						</label>
 						<label class="form-control w-full">
 							<div class="label">
@@ -31,25 +40,25 @@ templ Settings(s users.User) {
 							<select class="select select-bordered w-full" name="sort-comments">
 								<option
 									value="date;desc"
-									if s.SortComments == "date;desc" {
+									if currentUser.SortComments == "date;desc" {
 										selected
 									}
 								>Upvotes (highest first)</option>
 								<option
 									value="upvote;asc"
-									if s.SortComments == "upvote;asc" {
+									if currentUser.SortComments == "upvote;asc" {
 										selected
 									}
 								>Upvotes (lowest first)</option>
 								<option
 									value="date;desc"
-									if s.SortComments == "date;desc" {
+									if currentUser.SortComments == "date;desc" {
 										selected
 									}
 								>Date (latest first)</option>
 								<option
 									value="date;asc"
-									if s.SortComments == "date;asc" {
+									if currentUser.SortComments == "date;asc" {
 										selected
 									}
 								>Date (oldest first)</option>
@@ -66,7 +75,7 @@ templ Settings(s users.User) {
 										name="avatar-radio"
 										value="shiba"
 										class="radio-accent radio radio-sm hidden"
-										if s.Avatar == "shiba" || s.Avatar == "default" {
+										if currentUser.Avatar == "shiba" || currentUser.Avatar == "default" {
 											checked="checked"
 										}
 									/>
@@ -80,7 +89,7 @@ templ Settings(s users.User) {
 										name="avatar-radio"
 										value="bulldog"
 										class="radio-accent radio radio-sm hidden"
-										if s.Avatar == "bulldog" {
+										if currentUser.Avatar == "bulldog" {
 											checked="checked"
 										}
 									/>
@@ -94,7 +103,7 @@ templ Settings(s users.User) {
 										name="avatar-radio"
 										value="parrot"
 										class="radio-accent radio radio-sm hidden"
-										if s.Avatar == "parrot" {
+										if currentUser.Avatar == "parrot" {
 											checked="checked"
 										}
 									/>
@@ -108,7 +117,7 @@ templ Settings(s users.User) {
 										name="avatar-radio"
 										value="cat"
 										class="radio-accent radio radio-sm hidden"
-										if s.Avatar == "cat" {
+										if currentUser.Avatar == "cat" {
 											checked="checked"
 										}
 									/>
@@ -118,37 +127,13 @@ templ Settings(s users.User) {
 								</label>
 							</div>
 						</div>
-						<script>
-							const choices = document.querySelectorAll("#avatar-grid > .avatar")
-							const classes = ["border-4", "border-primary"]
-
-							document.addEventListener("click", (evt) => {
-								if (evt.target.classList.contains("avatar-pic")){
-									console.log(evt.target)
-								}
-							})
-
-							// for (let i = 0; i < choices.length; i++) {
-							// 	choices[i].addEventListener("click", (evt) => {
-							// 		const avatarPic = choices[i].querySelector(".avatar-pic.rounded-full")
-							// 		if (choices[i].querySelector("input").checked = true) {
-							// 			//reset all 
-							// 			const allAvatarPic = document.querySelectorAll(".avatar-pic.rounded-full")
-							// 			for (let i = 0; i < allAvatarPic.length; i++) {
-							// 				allAvatarPic[i].classList.remove(...classes)
-							// 			}
-							// 			avatarPic.classList.add(...classes)
-							// 		} 									
-							// 	})
-							// }							
-						</script>
 						<div class="form-control mt-4">
 							<label class="label cursor-pointer">
 								<span class="label-text me-4 font-medium">Only send me essential emails.</span>
 								<input
 									name="contact-me"
 									type="checkbox"
-									if s.ContactMeString == "0" {
+									if currentUser.ContactMeString == "0" {
 										checked="checked"
 									}
 									class="checkbox-accent checkbox"
@@ -161,11 +146,12 @@ templ Settings(s users.User) {
 				</div>
 			</div>
 		</main>
+		<script src="/static/js/output/settings.js"></script>
 	}
 }
 
-templ SettingsFirstLogin(s users.User) {
-	@Settings(s) {
+templ SettingsFirstLogin(currentUser users.User) {
+	@Settings(currentUser) {
 		<div id="first-login-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
 			<h2 class="flex flex-wrap items-center px-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>

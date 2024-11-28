@@ -29,24 +29,25 @@ type Settings struct {
 	SortComments  string
 }
 
-func GetSettings(username string) (User, error) {
+func (u *User) GetSettings(username string) error {
 	db, err := database.Connect()
 	if err != nil {
 		fmt.Println("Error connecting to DB", err)
 	}
 
-	var s User
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&s.UserID, &s.Email, &s.PreferredName, &s.ContactMe, &s.Avatar, &s.SortComments); err != nil {
+	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Weird, no rows found!")
-			return s, err
+			return err
 		}
 	}
-	s.ContactMeString = strconv.Itoa(s.ContactMe)
-	s.AvatarPath = ChooseAvatar(s.Avatar)
+	u.ContactMeString = strconv.Itoa(u.ContactMe)
+	u.AvatarPath = ChooseAvatar(u.Avatar)
 
-	return s, nil
+	return nil
 }
+
+const regex string = "^[0-9A-Za-z \\-\\_\\+\\(\\)\\[\\]\\|]+$"
 
 func Validate(s Settings) map[string](string) {
 	v := govalidator.New()
@@ -59,9 +60,8 @@ func Validate(s Settings) map[string](string) {
 			break
 		}
 	}
-	fmt.Println("Avatar check: ", ok)
 
-	v.RequiredString(s.PreferredName, "preferred_name", "Please enter a preferred name").MaxString(s.PreferredName, 255, "preferred_name", "Message is more than 255 characters.")
+	v.RequiredString(s.PreferredName, "preferred_name", "Please enter a preferred name").RegexMatches(s.PreferredName, regex, "preferred_name", "No special characters allowed! (Use only A-Z, a-z, 0-9, -, _, brackets, +)").MaxString(s.PreferredName, 255, "preferred_name", "Message is more than 255 characters.")
 	v.CustomRule(ok, "avatar", "Unrecognized avatar")
 
 	if v.IsFailed() {
