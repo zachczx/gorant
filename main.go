@@ -36,6 +36,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Current user: ", currentUser.UserID)
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
@@ -71,6 +72,8 @@ func main() {
 
 	mux.Handle("POST /posts/new", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("post-title")
+		m := r.FormValue("mood")
+		fmt.Println("Mood: ", m)
 
 		exists, ID := posts.VerifyPostID(title)
 		if exists {
@@ -85,7 +88,7 @@ func main() {
 		}
 
 		if r.FormValue("guest-mode") == "true" {
-			err := posts.NewPost(ID, title, os.Getenv("ANON_USER_ID"))
+			err := posts.NewPost(ID, title, os.Getenv("ANON_USER_ID"), m)
 			if err != nil {
 				fmt.Println(err)
 				w.Header().Set("HX-Redirect", "/error")
@@ -95,7 +98,7 @@ func main() {
 			return
 		}
 
-		if err := posts.NewPost(ID, title, currentUser.UserID); err != nil {
+		if err := posts.NewPost(ID, title, currentUser.UserID, ""); err != nil {
 			fmt.Println(err)
 			w.Header().Set("HX-Redirect", "/login?r=new")
 			return

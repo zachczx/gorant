@@ -14,10 +14,20 @@ module.exports = {
 				'highlight-comment-main': 'highlight-comment-main 4s steps(1) 0s 1 forwards',
 				'highlight-comment-side': 'highlight-comment-side 4s steps(1) 0s 1 forwards',
 				'slide-down': 'slide-down 0.4s ease-out 0s 1 forwards',
+				'drawer-slide-down': 'drawer-slide-down 0.4s ease-out 0s 1 forwards',
+				'drawer-slide-up': 'drawer-slide-up 0.4s ease-out 0s 1 forwards',
 				'delete-slide-right': 'delete-slide-right 1s ease-out 0s 1 forwards',
 				wiggle: 'wiggle 1.2s linear 0s infinite forwards',
 			},
 			keyframes: {
+				'drawer-slide-down': {
+					'0%': { display: 'none', opacity: '20%', transform: 'translateY(-0.5rem)' },
+					'100%': { display: 'inline', opacity: '100%', transform: 'translateY(0rem)' },
+				},
+				'drawer-slide-up': {
+					'0%': { opacity: '100%', transform: 'translateY(0rem)' },
+					'100%': { opacity: '60%', transform: 'translateY(-0.5rem)' },
+				},
 				'delete-slide-right': {
 					'100%': {
 						transform: 'translateX(1rem) translate3d(0, 0, 0)',

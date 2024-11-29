@@ -88,3 +88,26 @@
 // function test() {
 // 	console.log('New func triggered!');
 // }
+
+document.addEventListener('htmx:afterSwap', (evt) => {
+	if (evt.detail.target.id === 'post-form') {
+		openCloseDrawerHandle();
+	}
+});
+
+function openCloseDrawerHandle() {
+	const drawerOpenHandle = document.getElementById('drawer-open-handle');
+	const drawerOpen = document.getElementById('drawer-open');
+	const drawerClose = document.getElementById('drawer-close');
+	const drawerCloseHandle = document.getElementById('drawer-close-handle');
+
+	drawerCloseHandle.addEventListener('click', () => {
+		drawerClose.classList.add('hidden');
+		drawerOpen.classList.remove('hidden');
+	});
+
+	drawerOpenHandle.addEventListener('click', () => {
+		drawerOpen.classList.add('hidden');
+		drawerClose.classList.remove('hidden');
+	});
+}

@@ -106,7 +106,7 @@ func ListPosts() ([]JoinPost, error) {
 	return posts, nil
 }
 
-func NewPost(postID string, postTitle string, username string) error {
+func NewPost(postID string, postTitle string, username string, mood string) error {
 	db, err := database.Connect()
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func NewPost(postID string, postTitle string, username string) error {
 
 	t := time.Now().Format(time.RFC3339)
 
-	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at) VALUES ($1, $2, $3, $4)", postID, postTitle, username, t)
+	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5)", postID, postTitle, username, t, mood)
 	if err != nil {
 		return err
 	}

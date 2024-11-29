@@ -91,6 +91,11 @@
 		transition-timing-function: ease-out;
 		transition-duration: 0.15s;
 	}
+	.avatar > input[type='radio']:checked + span {
+		border: 4px #97dc42 solid;
+		transition-timing-function: ease-out;
+		transition-duration: 0.15s;
+	}
 
 	/* Hyphenation/break word for long words in comments */
 	.hyphenate {
