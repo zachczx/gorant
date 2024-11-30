@@ -13,9 +13,9 @@ templ PartialPostNew(currentUser users.User, comments []posts.JoinComment, postI
 				<div
 					id={ "post-" + comments[i].CommentID }
 					if comments[i].CommentID == highlight {
-						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000"
+						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000 w-full"
 					} else {
-						class="relative flex h-auto rounded-lg border border-neutral/10 transition-all duration-1000"
+						class="relative flex h-auto rounded-lg border border-neutral/10 transition-all duration-1000 w-full"
 					}
 				>
 					<div id={ "post-delete-loader-" + comments[i].CommentID } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
@@ -139,7 +139,7 @@ templ PartialPostNewError(currentUser users.User, comments []posts.JoinComment, 
 	}
 }
 
-templ PartialPostNewSorted(currentUser users.User, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
+templ PartialPostNewSorted(currentUser users.User, comments []posts.JoinComment, postID string, highlight string) {
 	@PartialPostNew(currentUser, comments, postID, highlight)
 	@SortButton(currentUser, postID, "true")
 }

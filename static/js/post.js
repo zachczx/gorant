@@ -119,6 +119,8 @@
 	});
 })();
 
-function clearFilterInput() {
-	document.getElementById('filter-input').value = '';
-}
+(function clearFilterInput() {
+	document.getElementById('filter-cancel-button').addEventListener('click', () => {
+		document.getElementById('filter-input').value = '';
+	});
+})();

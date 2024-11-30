@@ -101,6 +101,7 @@ func SaveSortComments(username string, s string) (string, error) {
 	}
 
 	switch s {
+
 	case "upvote;desc", "upvote;asc", "date;desc", "date;asc":
 		_, err = db.Exec("UPDATE users SET sort_comments=$1 WHERE user_id=$2;", s, username)
 		if err != nil {

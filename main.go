@@ -44,7 +44,7 @@ func main() {
 		TemplRender(w, r, templates.StarterWelcome(*currentUser, p))
 	})))
 
-	mux.HandleFunc("POST /guest", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /anonymous", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Hx-Request") == "" {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -52,7 +52,7 @@ func main() {
 
 		t := r.FormValue("post-title")
 
-		TemplRender(w, r, templates.GuestMode(t))
+		TemplRender(w, r, templates.AnonymousMode(t))
 	})
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +87,7 @@ func main() {
 			return
 		}
 
-		if r.FormValue("guest-mode") == "true" {
+		if r.FormValue("anonymous-mode") == "true" {
 			err := posts.NewPost(ID, title, os.Getenv("ANON_USER_ID"), m)
 			if err != nil {
 				fmt.Println(err)
@@ -129,15 +129,20 @@ func main() {
 
 	mux.Handle("POST /posts/{postID}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-
 		filter := r.FormValue("f")
-
 		sort := r.FormValue("sort")
-		fmt.Println("Form value sort: ", r.FormValue("sort"))
 
-		_, err := users.SaveSortComments(currentUser.UserID, sort)
-		if err != nil {
-			fmt.Println(err)
+		fmt.Println("Form value sort: ", r.FormValue("sort"))
+		fmt.Println("Filter value: ", filter)
+
+		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
+		if sort != "" {
+			s, err := users.SaveSortComments(currentUser.UserID, sort)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			currentUser.SortComments = s
 		}
 
 		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, filter)
@@ -147,7 +152,7 @@ func main() {
 			return
 		}
 
-		TemplRender(w, r, templates.PartialPostNewSorted(*currentUser, comments, postID, "", currentUser.SortComments))
+		TemplRender(w, r, templates.PartialPostNewSorted(*currentUser, comments, postID, ""))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
