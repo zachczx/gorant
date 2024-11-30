@@ -106,6 +106,36 @@
 		-moz-hyphens: auto;
 		hyphens: auto;
 	}
+
+	/* Drawer Handle for Guest Mode */
+	.drawer-content {
+		max-height: 0;
+		overflow: hidden;
+
+		-webkit-transition: max-height 0.4s ease-out;
+		-moz-transition: max-height 0.4s ease-out;
+		-ms-transition: max-height 0.4s ease-out;
+		-o-transition: max-height 0.4s ease-out;
+		transition: max-height 0.4s ease-out;
+	}
+
+	.drawer-content:has(~ .drawer-handle:checked) {
+		max-height: 200px;
+	}
+
+	.drawer-handle:checked ~ .drawer-button > :first-of-type {
+		display: flex;
+	}
+	.drawer-handle:checked ~ .drawer-button > :last-of-type {
+		display: none;
+	}
+
+	.drawer-handle:not(checked) ~ .drawer-button > :first-of-type {
+		display: none;
+	}
+	.drawer-handle:not(checked) ~ .drawer-button > :last-of-type {
+		display: flex;
+	}
 }
 
 @layer utilities {
