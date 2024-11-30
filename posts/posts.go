@@ -31,6 +31,17 @@ type PostLike struct {
 	Score  string `db:"score"`
 }
 
+type Tag struct {
+	TagID int    `db:"tag_id"`
+	Tag   string `db:"tag"`
+}
+
+type PostTag struct {
+	PostsTagID int    `db:"posts_tags_id"`
+	PostID     string `db:"post_id"`
+	TagID      int    `db:"tag_id"`
+}
+
 type JoinPost struct {
 	PostID                string `db:"post_id"`
 	PostTitle             string `db:"post_title"`
@@ -106,7 +117,7 @@ func ListPosts() ([]JoinPost, error) {
 	return posts, nil
 }
 
-func NewPost(postID string, postTitle string, username string, mood string) error {
+func NewPost(p Post) error {
 	db, err := database.Connect()
 	if err != nil {
 		return err
@@ -114,7 +125,9 @@ func NewPost(postID string, postTitle string, username string, mood string) erro
 
 	t := time.Now().Format(time.RFC3339)
 
-	_, err = db.Exec("INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5)", postID, postTitle, username, t, mood)
+	var returnID string
+	err = db.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
+						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&returnID)
 	if err != nil {
 		return err
 	}
@@ -272,6 +285,20 @@ func EditMood(postID string, mood string) error {
 		return err
 	}
 
+	if err := ValidateMood(mood); err != nil {
+		return err
+	}
+
+	_, err = db.Exec("UPDATE posts SET mood=$1 WHERE post_id=$2", mood, postID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func ValidateMood(mood string) error {
 	allowedMoods := [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angry"}
 
 	res := false
@@ -284,13 +311,7 @@ func EditMood(postID string, mood string) error {
 		}
 	}
 	if !res {
-		err = errors.New("new mood is not in allowed list")
-		return err
-	}
-
-	_, err = db.Exec("UPDATE posts SET mood=$1 WHERE post_id=$2", mood, postID)
-	if err != nil {
-		fmt.Println(err)
+		err := errors.New("new mood is not in allowed list")
 		return err
 	}
 

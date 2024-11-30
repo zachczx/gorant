@@ -86,9 +86,21 @@ func main() {
 			TemplRender(w, r, templates.CreatePostError(v["postTitle"]))
 			return
 		}
+		// TODO need to validate mood as well
+
+		p := posts.Post{
+			PostID:    ID,
+			PostTitle: title,
+			UserID:    currentUser.UserID,
+			Mood:      m,
+		}
+
+		if currentUser.UserID == "" {
+			p.UserID = os.Getenv("ANON_USER_ID")
+		}
 
 		if r.FormValue("anonymous-mode") == "true" {
-			err := posts.NewPost(ID, title, os.Getenv("ANON_USER_ID"), m)
+			err := posts.NewPost(p)
 			if err != nil {
 				fmt.Println(err)
 				w.Header().Set("HX-Redirect", "/error")
@@ -98,7 +110,7 @@ func main() {
 			return
 		}
 
-		if err := posts.NewPost(ID, title, currentUser.UserID, ""); err != nil {
+		if err := posts.NewPost(p); err != nil {
 			fmt.Println(err)
 			w.Header().Set("HX-Redirect", "/login?r=new")
 			return
