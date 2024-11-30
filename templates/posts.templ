@@ -8,7 +8,7 @@ import (
 
 templ Post(currentUser users.User, message string, post posts.JoinPost, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
 	@Base("GoRant - Post", currentUser) {
-		<main class="grid content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3 w-full">
+		<main class="grid w-full content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
 				<div class="flex flex-wrap items-center">
 					<div class="grow space-y-2">
@@ -174,7 +174,7 @@ templ Post(currentUser users.User, message string, post posts.JoinPost, comments
 						@SortButton(currentUser, postID, "false")
 					</div>
 				</form>
-				<div class="px-1 lg:px-8 w-full">
+				<div class="w-full px-1 lg:px-8">
 					@PartialPostNew(currentUser, comments, postID, highlight)
 				</div>
 			</div>

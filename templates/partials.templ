@@ -13,9 +13,9 @@ templ PartialPostNew(currentUser users.User, comments []posts.JoinComment, postI
 				<div
 					id={ "post-" + comments[i].CommentID }
 					if comments[i].CommentID == highlight {
-						class="relative flex h-auto animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000 w-full"
+						class="relative flex h-auto w-full animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000"
 					} else {
-						class="relative flex h-auto rounded-lg border border-neutral/10 transition-all duration-1000 w-full"
+						class="relative flex h-auto w-full rounded-lg border border-neutral/10 transition-all duration-1000"
 					}
 				>
 					<div id={ "post-delete-loader-" + comments[i].CommentID } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
