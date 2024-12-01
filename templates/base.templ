@@ -24,7 +24,7 @@ templ Base(title string, currentUser users.User) {
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload>
 				<div class="navbar-start">
 					<a href="/" class="group py-2 ps-6 text-3xl">
-						<span class="inline-block rounded-full bg-accent p-2 font-medium text-accent-content transition-all duration-200 group-hover:bg-orange-700">Go</span><span class="inline-block rounded py-2 pe-4 ps-2 font-bold text-accent transition-all duration-500 ease-in-out group-hover:text-orange-500">Rant</span>
+						<span class="inline-block rounded-xl bg-accent px-2 py-1 font-medium text-accent-content transition-all duration-200 group-hover:bg-orange-700">Rant</span><span class="inline-block rounded py-2 pe-4 ps-1 font-bold text-accent transition-all duration-500 ease-in-out group-hover:text-orange-500">Kit</span>
 					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex"></div>
@@ -269,7 +269,7 @@ templ AnonymousMode(input string) {
 templ CreatePostDrawer() {
 	<div>
 		<div class="drawer-content">
-			<div class="lg:max-w-11/12 space-y-4 rounded-b-xl border border-t-0 border-neutral/20 p-4 bg-white/70 lg:w-[600px]">
+			<div class="lg:max-w-11/12 space-y-4 rounded-b-xl border border-t-0 border-neutral/20 bg-white/70 p-4 lg:w-[600px]">
 				<div class="">
 					<div class="label">
 						<span class="label-text font-medium text-neutral/70">
@@ -353,9 +353,9 @@ templ CreatePostDrawer() {
 								Tags
 							</span>
 						</div>
-						<div class="flex rounded-xl input input-bordered">
+						<div class="input input-bordered flex rounded-xl">
 							<ul id="tags-list" class="flex items-center"></ul>
-							<input id="tags-input" type="text" name="tags-input" placeholder="Separate tags with commas" class="grow w-full"/>
+							<input id="tags-input" type="text" name="tags-input" placeholder="Separate tags with commas" class="w-full grow"/>
 						</div>
 						<input id="tags-data" type="hidden" name="tags-data" value=""/>
 					</label>
