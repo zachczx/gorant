@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"gorant/database"
@@ -73,7 +74,7 @@ func main() {
 	mux.Handle("POST /posts/new", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("post-title")
 		m := r.FormValue("mood")
-		fmt.Println("Mood: ", m)
+		tags := r.FormValue("tags-data")
 
 		exists, ID := posts.VerifyPostID(title)
 		if exists {
@@ -95,12 +96,14 @@ func main() {
 			Mood:      m,
 		}
 
+		t := strings.Split(tags, ",")
+
 		if currentUser.UserID == "" {
 			p.UserID = os.Getenv("ANON_USER_ID")
 		}
 
 		if r.FormValue("anonymous-mode") == "true" {
-			err := posts.NewPost(p)
+			err := posts.NewPost(p, t)
 			if err != nil {
 				fmt.Println(err)
 				w.Header().Set("HX-Redirect", "/error")
@@ -110,7 +113,7 @@ func main() {
 			return
 		}
 
-		if err := posts.NewPost(p); err != nil {
+		if err := posts.NewPost(p, t); err != nil {
 			fmt.Println(err)
 			w.Header().Set("HX-Redirect", "/login?r=new")
 			return

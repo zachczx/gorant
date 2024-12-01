@@ -117,7 +117,7 @@ func ListPosts() ([]JoinPost, error) {
 	return posts, nil
 }
 
-func NewPost(p Post) error {
+func NewPost(p Post, tags []string) error {
 	db, err := database.Connect()
 	if err != nil {
 		return err
@@ -125,11 +125,38 @@ func NewPost(p Post) error {
 
 	t := time.Now().Format(time.RFC3339)
 
-	var returnID string
+	var postID string
 	err = db.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
-						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&returnID)
+						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&postID)
 	if err != nil {
 		return err
+	}
+
+	// Prepare tag struct for namedexec
+	var tag Tag
+	tagsStruct := []Tag{}
+	for _, v := range tags {
+		tag.Tag, err = TitleToID(v)
+		if err != nil {
+			return err
+		}
+
+		tagsStruct = append(tagsStruct, tag)
+	}
+
+	// insert tags into tags table
+	_, err = db.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagsStruct)
+	if err != nil {
+		// Print error instead of returning, duplicate value error is alright
+		fmt.Println(err)
+	}
+
+	for _, v := range tags {
+		_, err = db.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
+		if err != nil {
+			// this err needs to be returned because it's not normal
+			return err
+		}
 	}
 
 	return nil

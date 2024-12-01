@@ -115,7 +115,7 @@
 	}
 
 	.drawer-content:has(~ .drawer-handle:checked) {
-		max-height: 200px;
+		max-height: 400px;
 	}
 
 	.drawer-handle:checked ~ .drawer-button > :first-of-type {
@@ -130,6 +130,11 @@
 	}
 	.drawer-handle:not(checked) ~ .drawer-button > :last-of-type {
 		display: flex;
+	}
+
+	.zzz {
+		color: orange;
+		border: 1px solid red;
 	}
 }
 

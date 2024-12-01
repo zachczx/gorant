@@ -155,7 +155,7 @@ func Reset() error {
 	fmt.Println("Created index: idx_comments_votes_comment_id")
 
 	// Tags
-	_, err = db.Exec(`CREATE TABLE tags (tag_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, tag VARCHAR(30) NOT NULL);`)
+	_, err = db.Exec(`CREATE TABLE tags (tag_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, tag VARCHAR(30) UNIQUE NOT NULL);`)
 	if err != nil {
 		fmt.Println("Error creating table: tags")
 		return err

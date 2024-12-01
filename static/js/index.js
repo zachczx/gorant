@@ -88,3 +88,69 @@
 // function test() {
 // 	console.log('New func triggered!');
 // }
+
+// For UI supporting Tag's tag-style input
+
+//Window is used because document.addEventListener() is unreliable
+window.addEventListener('load', () => {
+	if (checkDomForTagsEls()) {
+		tagsUi();
+	}
+});
+
+document.addEventListener('htmx:afterSwap', () => {
+	if (checkDomForTagsEls()) {
+		tagsUi();
+	}
+});
+
+function checkDomForTagsEls() {
+	if (
+		document.getElementById('tags-input') &&
+		document.getElementById('tags-list') &&
+		document.getElementById('tags-data')
+	) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function tagsUi() {
+	const tagsInput = document.getElementById('tags-input');
+	const tagsList = document.getElementById('tags-list');
+	let tagsData = document.getElementById('tags-data');
+
+	const classes = [
+		'btn',
+		'btn-outline',
+		'border-neutral/70',
+		'text-neutral/70',
+		'hover:bg-transparent',
+		'btn-xs',
+		'me-2',
+	];
+
+	tagsInput.addEventListener('keyup', (evt) => {
+		if (evt.key === 'Enter' || evt.key === ',' || evt.key === ' ' || evt.key === ';' || evt.key === '.') {
+			evt.preventDefault();
+			let tags = tagsInput.value.split(',');
+			for (let i = 0; i < tags.length; i++) {
+				tags[i] = tags[i].trim();
+				if (tags[i].length > 0) {
+					let el = document.createElement('li');
+					el.classList.add(...classes);
+					el.innerHTML = tags[i];
+					tagsList.appendChild(el);
+
+					if (tagsData.value.length === 0) {
+						tagsData.value = tags[i];
+					} else {
+						tagsData.value = tagsData.value + ',' + tags[i];
+					}
+				}
+			}
+			tagsInput.value = '';
+		}
+	});
+}

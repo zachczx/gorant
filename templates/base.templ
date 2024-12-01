@@ -112,7 +112,7 @@ templ About(currentUser users.User) {
 
 templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 	@Base("GoRant", currentUser) {
-		<div class="grid content-center w-full justify-items-center">
+		<div class="grid w-full content-center justify-items-center">
 			<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
 				@Watermelon()
 			</h1>
@@ -226,7 +226,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 }
 
 templ AnonymousMode(input string) {
-	<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid content-center w-full justify-items-center lg:pt-0">
+	<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full content-center justify-items-center lg:pt-0">
 		<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="hugeicons:anonymous me-4 text-gray-400" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" color="currentColor"><path d="M7 15a3 3 0 1 0 0 6a3 3 0 0 0 0-6m10 0a3 3 0 1 0 0 6a3 3 0 0 0 0-6m-3 2h-4m12-4c-2.457-1.227-6.027-2-10-2s-7.543.773-10 2"></path><path d="m19 11.5l-1.058-6.788c-.215-1.384-1.719-2.134-2.933-1.463l-.615.34a4.94 4.94 0 0 1-4.788 0l-.615-.34c-1.214-.67-2.718.08-2.933 1.463L5 11.5"></path></g></svg>
 			<input
@@ -268,76 +268,98 @@ templ AnonymousMode(input string) {
 
 templ CreatePostDrawer() {
 	<div>
-		<div class="drawer-content bg-white/70">
-			<div class="lg:max-w-11/12 flex w-full justify-around justify-self-center rounded-b-xl border border-t-0 border-neutral/20 bg-white/70 px-4 py-2 lg:w-[500px]">
-				<div class="label-text me-4 flex items-center text-center font-medium text-neutral/70">Mood:</div>
-				<label id="angry" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="angry"
-						class="radio-accent radio radio-sm hidden"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						😡
-					</span>
-				</label>
-				<label id="upset" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="upset"
-						class="radio-accent radio radio-sm hidden"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						😫
-					</span>
-				</label>
-				<label id="sad" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="sad"
-						class="radio-accent radio radio-sm hidden"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						☹️
-					</span>
-				</label>
-				<label id="neutral" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="neutral"
-						class="radio-accent radio radio-sm hidden"
-						checked="checked"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						😐
-					</span>
-				</label>
-				<label id="happy" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="happy"
-						class="radio-accent radio radio-sm hidden"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						🙂
-					</span>
-				</label>
-				<label id="elated" class="avatar grid cursor-pointer justify-items-center">
-					<input
-						type="radio"
-						name="mood"
-						value="elated"
-						class="radio-accent radio radio-sm hidden"
-					/>
-					<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
-						😄
-					</span>
-				</label>
+		<div class="drawer-content">
+			<div class="lg:max-w-11/12 space-y-4 rounded-b-xl border border-t-0 border-neutral/20 p-4 bg-white/70 lg:w-[600px]">
+				<div class="">
+					<div class="label">
+						<span class="label-text font-medium text-neutral/70">
+							Mood
+						</span>
+					</div>
+					<div class="flex w-full justify-around justify-self-center">
+						<label id="angry" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="angry"
+								class="radio-accent radio radio-sm hidden"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								😡
+							</span>
+						</label>
+						<label id="upset" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="upset"
+								class="radio-accent radio radio-sm hidden"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								😫
+							</span>
+						</label>
+						<label id="sad" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="sad"
+								class="radio-accent radio radio-sm hidden"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								☹️
+							</span>
+						</label>
+						<label id="neutral" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="neutral"
+								class="radio-accent radio radio-sm hidden"
+								checked="checked"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								😐
+							</span>
+						</label>
+						<label id="happy" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="happy"
+								class="radio-accent radio radio-sm hidden"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								🙂
+							</span>
+						</label>
+						<label id="elated" class="avatar grid cursor-pointer justify-items-center">
+							<input
+								type="radio"
+								name="mood"
+								value="elated"
+								class="radio-accent radio radio-sm hidden"
+							/>
+							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+								😄
+							</span>
+						</label>
+					</div>
+				</div>
+				<div id="tags-container" class="max-w-[600px]">
+					<label class="form-control w-full">
+						<div class="label">
+							<span class="label-text font-medium text-neutral/70">
+								Tags
+							</span>
+						</div>
+						<div class="flex rounded-xl input input-bordered">
+							<ul id="tags-list" class="flex items-center"></ul>
+							<input id="tags-input" type="text" name="tags-input" placeholder="Separate tags with commas" class="grow w-full"/>
+						</div>
+						<input id="tags-data" type="hidden" name="tags-data" value=""/>
+					</label>
+				</div>
 			</div>
 		</div>
 		<input type="checkbox" name="show-hide" id="show-hide" class="drawer-handle hidden"/>
