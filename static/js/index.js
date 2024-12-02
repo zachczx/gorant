@@ -20,13 +20,9 @@
 
 // Disable button if special characters are detected
 
-window.addEventListener('load', () => {
-	BlockSpecialChars();
-});
+window.addEventListener('load', BlockSpecialChars);
 
-window.addEventListener('htmx:afterSwap', () => {
-	BlockSpecialChars();
-});
+window.addEventListener('htmx:afterSwap', BlockSpecialChars);
 
 const regex = /^[A-Za-z0-9 _!.$\/\\|()[\]=`{}<>?@#%^&*—:;'"+\-"]+$/;
 
