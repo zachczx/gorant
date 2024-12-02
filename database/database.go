@@ -18,6 +18,8 @@ type Config struct {
 	FilePath string
 }
 
+var db *sqlx.DB
+
 func Connect() (*sqlx.DB, error) {
 	postgres := Config{
 		HostURL:  os.Getenv("DB_HOST"),
@@ -27,7 +29,6 @@ func Connect() (*sqlx.DB, error) {
 		Password: os.Getenv("DB_PASSWORD"),
 	}
 
-	var db *sqlx.DB
 	var err error
 
 	pg := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgres.User, postgres.Password, postgres.HostURL, postgres.Port, postgres.Name)
