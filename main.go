@@ -33,7 +33,7 @@ func main() {
 		os.Getenv("STYTCH_SECRET"),
 	)
 
-	currentUser := &users.User{}
+	currentUser := &users.User{SortComments: "upvote;desc"}
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -1,5 +1,3 @@
-// import { gsap } from 'gsap/dist/gsap';
-
 (function showInputCancelButton() {
 	document.getElementById('post-title').addEventListener('keydown', (evt) => {
 		if (evt.target.value.length > 0) {
@@ -19,75 +17,44 @@
 		input.focus();
 	});
 })();
-// (function createnewFocus() {
-// 	const elementIds = ['navbar', 'logo', 'content', 'footer'];
-// 	const classList = ['blur-sm'];
-// 	const addNewDiv = document.getElementById('add-new');
-// 	addNewDiv.addEventListener('click', (evt) => {
-// 		console.log('triggered by', evt.target);
-// 		document.getElementById('post-button').innerText = 'Create';
-// 		const postIdInputEl = document.getElementById('post-id');
-// 		const classes = [
-// 			'active:border-4',
-// 			'focus:border-2',
-// 			'focus:ring-2',
-// 			'focus:ring-secondary',
-// 			'focus:ring-offset-4',
-// 			'focus:border-primary',
-// 			'active:border-primary',
-// 		];
-// 		postIdInputEl.classList.add(...classes);
-// 		postIdInputEl.focus();
 
-// 		// Blur effect
+// Disable button if special characters are detected
 
-// 		for (let i = 0; i < elementIds.length; i++) {
-// 			const el = document.getElementById(elementIds[i]);
-// 			el.classList.add(...classList);
-// 		}
-// 	});
+window.addEventListener('load', () => {
+	BlockSpecialChars();
+});
 
-// 	document.addEventListener('click', (e) => {
-// 		if (
-// 			e.target.id !== 'post-form' &&
-// 			e.target.id !== 'post-id' &&
-// 			e.target.id !== 'post-button' &&
-// 			!e.target.id.includes('add-new')
-// 		) {
-// 			document.getElementById('post-button').innerText = 'Go';
-// 			for (let i = 0; i < elementIds.length; i++) {
-// 				document.getElementById(elementIds[i]).classList.remove(...classList);
-// 			}
-// 		}
-// 	});
-// })();
+window.addEventListener('htmx:afterSwap', () => {
+	BlockSpecialChars();
+});
 
-// (function BlockSpecialChars() {
-// 	console.log('triggered!');
-// 	const pattern = /^[A-Za-z0-9_-]+$/;
-// 	const inputEl = document.getElementById('post-id');
-// 	const postButton = document.getElementById('post-button');
-// 	const postFormMessage = document.getElementById('post-form-message');
+const regex = /^[A-Za-z0-9 _!.$\/\\|()[\]=`{}<>?@#%^&*—:;'"+\-"]+$/;
 
-// 	inputEl.addEventListener('keyup', () => {
-// 		if (!pattern.test(inputEl.value) && inputEl.value.length > 0) {
-// 			postButton.disabled = 'true';
-// 			postFormMessage.classList.remove('hidden');
-// 			inputEl.classList.remove('input-accent');
-// 			inputEl.classList.add('input-error');
-// 			postFormMessage.innerText = 'No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.';
-// 		} else {
-// 			postFormMessage.classList.add('hidden');
-// 			inputEl.classList.remove('input-error');
-// 			inputEl.classList.add('input-accent');
-// 			postButton.removeAttribute('disabled');
-// 		}
-// 	});
-// })();
+function BlockSpecialChars() {
+	const inputEl = document.getElementById('post-title');
+	const postButton = document.getElementById('post-button');
+	const postFormMessage = document.getElementById('post-form-message');
 
-// function test() {
-// 	console.log('New func triggered!');
-// }
+	if (inputEl && postButton && postFormMessage) {
+		inputEl.addEventListener('keyup', () => {
+			console.log('triggered');
+			if (!regex.test(inputEl.value) && inputEl.value.length > 0) {
+				postButton.disabled = 'true';
+				postFormMessage.classList.remove('hidden');
+				inputEl.classList.remove('input-accent');
+				inputEl.classList.add('input-error');
+				postFormMessage.innerText = 'Invalid characters found. Please use A-Z, a-z, 0-9, and standard symbols.';
+			} else {
+				postFormMessage.classList.add('hidden');
+				inputEl.classList.remove('input-error');
+				inputEl.classList.add('input-accent');
+				if (postButton.disabled) {
+					postButton.removeAttribute('disabled');
+				}
+			}
+		});
+	}
+}
 
 // For UI supporting Tag's tag-style input
 
@@ -120,15 +87,19 @@ function tagsUi() {
 	const tagsInput = document.getElementById('tags-input');
 	const tagsList = document.getElementById('tags-list');
 	let tagsData = document.getElementById('tags-data');
+	let margin = 0;
 
 	const classes = [
+		'user-tag',
 		'btn',
-		'btn-outline',
-		'border-neutral/70',
+		'bg-primary/50',
 		'text-neutral/70',
-		'hover:bg-transparent',
-		'btn-xs',
+		'border-0',
+		'hover:bg-primary/60',
+		'btn-sm',
+		'text-md',
 		'me-2',
+		'my-2',
 	];
 
 	tagsInput.addEventListener('keyup', (evt) => {
@@ -136,9 +107,10 @@ function tagsUi() {
 			evt.preventDefault();
 			let tags = tagsInput.value.split(',');
 			for (let i = 0; i < tags.length; i++) {
-				tags[i] = tags[i].trim();
+				tags[i] = tags[i].trim().toLowerCase();
 				if (tags[i].length > 0) {
 					let el = document.createElement('li');
+					el.id = 'user-tag-' + tags[i];
 					el.classList.add(...classes);
 					el.innerHTML = tags[i];
 					tagsList.appendChild(el);
@@ -151,6 +123,25 @@ function tagsUi() {
 				}
 			}
 			tagsInput.value = '';
+
+			if (tagsList.childElementCount > 0) {
+				margin = 'me-' + String(tagsList.childElementCount * 2);
+				tagsList.classList.add(margin);
+			}
+		}
+	});
+
+	tagsList.addEventListener('click', (evt) => {
+		if (evt.target.id.includes('user-tag-')) {
+			console.log('Clicked a tag');
+			tagsList.removeChild(evt.target);
+			if (!tagsData.value.includes(',')) {
+				tagsData.value = tagsData.value.replace(evt.target.innerText, '');
+			} else if (tagsData.value.includes(',') && tagsData.value.includes(evt.target.innerText + ',')) {
+				tagsData.value = tagsData.value.replace(evt.target.innerText + ',', '');
+			} else if (tagsData.value.includes(',') && tagsData.value.includes(',' + evt.target.innerText)) {
+				tagsData.value = tagsData.value.replace(',' + evt.target.innerText, '');
+			}
 		}
 	});
 }

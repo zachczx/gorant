@@ -28,7 +28,7 @@ templ Base(title string, currentUser users.User) {
 					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex"></div>
-				<div class="navbar-end pe-6">
+				<div class="navbar-end lg:pe-6">
 					if currentUser.UserID  == "" {
 						<div>
 							<a href="/login" class="btn btn-accent btn-sm me-2">Sign Up</a>
@@ -116,7 +116,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 			<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
 				@Watermelon()
 			</h1>
-			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full content-start justify-items-center lg:pt-0">
+			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-start justify-items-center lg:pt-0">
 				if currentUser.UserID != "" {
 					// Logged in
 					<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
@@ -126,7 +126,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 							id="post-title"
 							name="post-title"
 							placeholder="Rant about something"
-							class="grow text-xl"
+							class="grow w-full text-xl"
 							minlength="10"
 							maxlength="255"
 							autocomplete="off"
@@ -139,14 +139,17 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 						</button>
-						<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 min-w-20 rounded-full text-xl">Create</button>
+						<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 min-w-20 rounded-full text-xl">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>
+							<span class="hidden lg:flex pe-1">Create</span>
+						</button>
 					</label>
 					@CreatePostDrawer()
 				} else {
 					// Not logged in
 					<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
-						<input type="text" id="post-title" name="post-title" placeholder="Rant about something" class="grow text-xl" autocomplete="off" required/>
+						<input type="text" id="post-title" name="post-title" placeholder="Rant about something" class="grow w-full text-xl" autocomplete="off" required/>
 						<button
 							id="input-cancel-button"
 							type="button"
@@ -156,8 +159,8 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 						</button>
 					</label>
 					<div class="mt-4 flex space-x-4">
-						<a href="/login" class="btn btn-accent min-w-[150px] rounded-full text-xl">Sign Up</a>
-						<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent min-w-20 rounded-full text-xl">Incognito Mode</a>
+						<a href="/login" class="btn btn-accent rounded-lg btn-md text-lg lg:text-xl">Sign Up</a>
+						<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent rounded-lg btn-md text-lg lg:text-xl">Incognito</a>
 					</div>
 				}
 				<div id="post-form-message" class="text-sm text-error">
@@ -168,7 +171,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 		<div
 			id="content"
 			if len(posts) > 0 {
-				class="w-full max-w-[1000px] space-y-8 lg:pt-16"
+				class="w-full max-w-[1000px] space-y-8 pt-8 lg:pt-16"
 			} else {
 				class="hidden"
 			}
@@ -179,7 +182,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 			<div id="posts" class="grid gap-4">
 				for i := 0; i < len(posts); i++ {
 					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/5 bg-primary/10 p-2 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
-						<div class="group grid place-items-center overflow-hidden rounded-full border border-neutral/5 bg-black/5 text-center text-5xl">
+						<div class="group grid place-items-center overflow-hidden lg:rounded-full lg:border lg:border-neutral/5 lg:bg-black/5 text-center text-3xl lg:text-5xl">
 							<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 								if posts[i].Mood  == "elated" {
 									😄
@@ -226,15 +229,15 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 }
 
 templ AnonymousMode(input string) {
-	<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full content-center justify-items-center lg:pt-0">
+	<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-center justify-items-center lg:pt-0">
 		<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="hugeicons:anonymous me-4 text-gray-400" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" color="currentColor"><path d="M7 15a3 3 0 1 0 0 6a3 3 0 0 0 0-6m10 0a3 3 0 1 0 0 6a3 3 0 0 0 0-6m-3 2h-4m12-4c-2.457-1.227-6.027-2-10-2s-7.543.773-10 2"></path><path d="m19 11.5l-1.058-6.788c-.215-1.384-1.719-2.134-2.933-1.463l-.615.34a4.94 4.94 0 0 1-4.788 0l-.615-.34c-1.214-.67-2.718.08-2.933 1.463L5 11.5"></path></g></svg>
 			<input
 				type="text"
 				id="post-title"
 				name="post-title"
-				placeholder="Anonymous mode"
-				class="grow text-xl"
+				placeholder=""
+				class="grow w-full text-xl"
 				minlength="10"
 				maxlength="255"
 				autocomplete="off"
@@ -250,7 +253,10 @@ templ AnonymousMode(input string) {
 			>
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 			</button>
-			<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 min-w-32 rounded-full text-xl">Create</button>
+			<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 lg:min-w-32 rounded-full text-xl">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>
+				<span class="hidden lg:flex pe-1">Create</span>
+			</button>
 		</label>
 		@CreatePostDrawer()
 		<div id="post-form-message" class="text-sm text-error">
@@ -260,57 +266,57 @@ templ AnonymousMode(input string) {
 	</form>
 	<div class="mt-8 flex text-neutral/70">
 		<span>Posting as:&nbsp;&nbsp;<b>Anonymous</b></span>
-		<span class="tooltip tooltip-bottom ms-1 flex items-start" data-tip="After you post, you can't reply, like, or upvote comments.">
+		<span class="tooltip tooltip-left lg:tooltip-bottom ms-1 flex items-start before:max-w-48 lg:before:max-w-96" data-tip="You can't comment, like, upvote.">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24"><path fill="currentColor" d="M11.95 18q.525 0 .888-.363t.362-.887t-.362-.888t-.888-.362t-.887.363t-.363.887t.363.888t.887.362m-.9-3.85h1.85q0-.825.188-1.3t1.062-1.3q.65-.65 1.025-1.238T15.55 8.9q0-1.4-1.025-2.15T12.1 6q-1.425 0-2.312.75T8.55 8.55l1.65.65q.125-.45.563-.975T12.1 7.7q.8 0 1.2.438t.4.962q0 .5-.3.938t-.75.812q-1.1.975-1.35 1.475t-.25 1.825M12 22q-2.075 0-3.9-.787t-3.175-2.138T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 		</span>
 	</div>
 }
 
 templ CreatePostDrawer() {
-	<div>
+	<div class="max-w-11/12 justify-self-center lg:w-[650px]">
 		<div class="drawer-content">
-			<div class="lg:max-w-11/12 space-y-4 rounded-b-xl border border-t-0 border-neutral/20 bg-white/70 p-4 lg:w-[600px]">
+			<div class="space-y-4 rounded-b-xl border border-t-0 border-neutral/20 bg-white/70 p-4">
 				<div class="">
 					<div class="label">
 						<span class="label-text font-medium text-neutral/70">
 							Mood
 						</span>
 					</div>
-					<div class="flex w-full justify-around justify-self-center">
-						<label id="angry" class="avatar grid cursor-pointer justify-items-center">
+					<div class="flex w-full justify-around justify-self-center rounded-xl border border-neutral/20 py-0.5">
+						<label id="angry" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
 								value="angry"
 								class="radio-accent radio radio-sm hidden"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								😡
-							</span>
+							</div>
 						</label>
-						<label id="upset" class="avatar grid cursor-pointer justify-items-center">
+						<label id="upset" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
 								value="upset"
 								class="radio-accent radio radio-sm hidden"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								😫
-							</span>
+							</div>
 						</label>
-						<label id="sad" class="avatar grid cursor-pointer justify-items-center">
+						<label id="sad" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
 								value="sad"
 								class="radio-accent radio radio-sm hidden"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								☹️
-							</span>
+							</div>
 						</label>
-						<label id="neutral" class="avatar grid cursor-pointer justify-items-center">
+						<label id="neutral" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
@@ -318,44 +324,44 @@ templ CreatePostDrawer() {
 								class="radio-accent radio radio-sm hidden"
 								checked="checked"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								😐
-							</span>
+							</div>
 						</label>
-						<label id="happy" class="avatar grid cursor-pointer justify-items-center">
+						<label id="happy" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
 								value="happy"
 								class="radio-accent radio radio-sm hidden"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								🙂
-							</span>
+							</div>
 						</label>
-						<label id="elated" class="avatar grid cursor-pointer justify-items-center">
+						<label id="elated" class="mood avatar grid cursor-pointer justify-items-center">
 							<input
 								type="radio"
 								name="mood"
 								value="elated"
 								class="radio-accent radio radio-sm hidden"
 							/>
-							<span class="flex h-full items-center justify-center rounded-full border-4 border-white/70 text-3xl">
+							<div class="flex h-full items-center justify-center rounded-full text-3xl">
 								😄
-							</span>
+							</div>
 						</label>
 					</div>
 				</div>
-				<div id="tags-container" class="max-w-[600px]">
+				<div id="tags-container" class="w-full">
 					<label class="form-control w-full">
 						<div class="label">
 							<span class="label-text font-medium text-neutral/70">
 								Tags
 							</span>
 						</div>
-						<div class="input input-bordered flex rounded-xl">
-							<ul id="tags-list" class="flex items-center"></ul>
-							<input id="tags-input" type="text" name="tags-input" placeholder="Separate tags with commas" class="w-full grow"/>
+						<div class="input input-bordered h-auto rounded-xl bg-white/70 py-2">
+							<input id="tags-input" type="text" name="tags-input" placeholder="Key in your tags" class="block"/>
+							<ul id="tags-list" class="flex flex-wrap items-center"></ul>
 						</div>
 						<input id="tags-data" type="hidden" name="tags-data" value=""/>
 					</label>

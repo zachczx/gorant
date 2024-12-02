@@ -13,9 +13,8 @@ My personal Go webapp starter kit.
 ## JS tools
 
 1. Hypermedia/AJAX - HTMX
-2. Formatting - Prettier, prettier-plugin-tailwindcss, prettier-plugin-tailwindcss-extra
+2. Formatting - Prettier
 3. Bundling - ESBuild
-4. Animations - GSAP
 
 ## CSS tools
 

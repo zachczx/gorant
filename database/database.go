@@ -170,5 +170,12 @@ func Reset() error {
 	}
 	fmt.Println("Created table: posts_tags")
 
+	_, err = db.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')")
+	if err != nil {
+		fmt.Println("Error creating user: anonymous")
+		return err
+	}
+	fmt.Println("Created user: anonymous")
+
 	return nil
 }
