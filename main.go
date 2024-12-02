@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"gorant/users"
 
 	"github.com/a-h/templ"
+	"github.com/jmoiron/sqlx"
 
 	_ "modernc.org/sqlite"
 )
@@ -28,6 +30,13 @@ var (
 )
 
 func main() {
+	var err error
+	pg := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
+	database.DB, err = sqlx.Open("pgx", pg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	service := NewAuthService(
 		os.Getenv("STYTCH_PROJECT_ID"),
 		os.Getenv("STYTCH_SECRET"),

@@ -30,12 +30,7 @@ type Settings struct {
 }
 
 func (u *User) GetSettings(username string) error {
-	db, err := database.Connect()
-	if err != nil {
-		fmt.Println("Error connecting to DB", err)
-	}
-
-	if err := db.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
+	if err := database.DB.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("Weird, no rows found!")
 			return err
@@ -72,11 +67,6 @@ func Validate(s Settings) map[string](string) {
 }
 
 func SaveSettings(username string, s Settings) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
 	// ContactMe is the opposite of the form value:
 	// - Checking box (on) = Don't contact me = 0
 	// - Not checking box ("") = Contact me = 1 = Default
@@ -86,7 +76,7 @@ func SaveSettings(username string, s Settings) error {
 		s.ContactMe = "1"
 	}
 
-	_, err = db.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3, sort_comments=$4 WHERE user_id=$5;", s.PreferredName, s.ContactMe, s.Avatar, s.SortComments, username)
+	_, err := database.DB.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3, sort_comments=$4 WHERE user_id=$5;", s.PreferredName, s.ContactMe, s.Avatar, s.SortComments, username)
 	if err != nil {
 		return err
 	}
@@ -95,21 +85,16 @@ func SaveSettings(username string, s Settings) error {
 }
 
 func SaveSortComments(username string, s string) (string, error) {
-	db, err := database.Connect()
-	if err != nil {
-		return s, err
-	}
-
 	switch s {
 
 	case "upvote;desc", "upvote;asc", "date;desc", "date;asc":
-		_, err = db.Exec("UPDATE users SET sort_comments=$1 WHERE user_id=$2;", s, username)
+		_, err := database.DB.Exec("UPDATE users SET sort_comments=$1 WHERE user_id=$2;", s, username)
 		if err != nil {
 			return s, err
 		}
 
 	default:
-		err = errors.New("unknown value")
+		err := errors.New("unknown value")
 		return s, err
 
 	}

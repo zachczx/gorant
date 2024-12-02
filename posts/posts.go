@@ -63,12 +63,7 @@ type JoinPost struct {
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-"]+$`
 
 func ListPosts() ([]JoinPost, error) {
-	db, err := database.Connect()
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := db.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt FROM posts
+	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt FROM posts
 							LEFT JOIN users
 							ON users.user_id = posts.user_id
               
@@ -118,15 +113,10 @@ func ListPosts() ([]JoinPost, error) {
 }
 
 func NewPost(p Post, tags []string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
 	t := time.Now().Format(time.RFC3339)
 
 	var postID string
-	err = db.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
+	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
 						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&postID)
 	if err != nil {
 		return err
@@ -145,14 +135,14 @@ func NewPost(p Post, tags []string) error {
 	}
 
 	// insert tags into tags table
-	_, err = db.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagsStruct)
+	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagsStruct)
 	if err != nil {
 		// Print error instead of returning, duplicate value error is alright
 		fmt.Println(err)
 	}
 
 	for _, v := range tags {
-		_, err = db.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
+		_, err = database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
 		if err != nil {
 			// this err needs to be returned because it's not normal
 			return err
@@ -177,15 +167,13 @@ func ValidatePost(postTitle string) map[string](string) {
 func VerifyPostID(title string) (bool, string) {
 	var ID string
 
-	db, _ := database.Connect()
-
 	// Generate ID to test
 	ID, err := TitleToID(title)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	res, err := db.Query("SELECT post_id FROM posts WHERE post_id=$1;", ID)
+	res, err := database.DB.Query("SELECT post_id FROM posts WHERE post_id=$1;", ID)
 	if err != nil {
 		fmt.Println("Error executing query to verify post exists")
 		fmt.Println(err)
@@ -197,13 +185,8 @@ func VerifyPostID(title string) (bool, string) {
 }
 
 func GetPost(postID string, currentUser string) (JoinPost, error) {
-	db, err := database.Connect()
-	if err != nil {
-		return JoinPost{}, err
-	}
-
 	var p JoinPost
-	row, err := db.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score FROM posts  
+	row, err := database.DB.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score FROM posts  
 							LEFT JOIN (SELECT * FROM posts_likes) as posts_likes 
 							ON posts.post_id = posts_likes.post_id
 							AND posts_likes.user_id=$2
@@ -235,19 +218,13 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 }
 
 func LikePost(postID string, currentUser string) (int, error) {
-	db, err := database.Connect()
-
 	var score int
 
-	if err != nil {
-		return score, err
-	}
-
 	var exists string
-	err = db.QueryRow("SELECT score FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser).Scan(&exists)
+	err := database.DB.QueryRow("SELECT score FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser).Scan(&exists)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			if _, err = db.Exec("INSERT INTO posts_likes (user_id, post_id, score) VALUES ($1, $2, 1)", currentUser, postID); err != nil {
+			if _, err = database.DB.Exec("INSERT INTO posts_likes (user_id, post_id, score) VALUES ($1, $2, 1)", currentUser, postID); err != nil {
 				return score, err
 			}
 			score = 1
@@ -257,7 +234,7 @@ func LikePost(postID string, currentUser string) (int, error) {
 		}
 	}
 
-	_, err = db.Exec("DELETE FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser)
+	_, err = database.DB.Exec("DELETE FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser)
 	if err != nil {
 		return score, err
 	}
@@ -267,12 +244,7 @@ func LikePost(postID string, currentUser string) (int, error) {
 }
 
 func EditPostDescription(postID string, description string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec("UPDATE posts SET description=$1 WHERE post_id=$2", description, postID)
+	_, err := database.DB.Exec("UPDATE posts SET description=$1 WHERE post_id=$2", description, postID)
 	if err != nil {
 		return err
 	}
@@ -280,13 +252,8 @@ func EditPostDescription(postID string, description string) error {
 }
 
 func DeletePost(postID string, username string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
 	var u string
-	if err := db.QueryRow("SELECT user_id FROM posts WHERE post_id=$1", postID).Scan(&u); err != nil {
+	if err := database.DB.QueryRow("SELECT user_id FROM posts WHERE post_id=$1", postID).Scan(&u); err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("error: cannot find user_id with given postID")
 		}
@@ -299,7 +266,7 @@ func DeletePost(postID string, username string) error {
 		return errors.New("error: logged in user is not owner of post")
 	}
 
-	if _, err := db.Exec("DELETE FROM posts WHERE post_id=$1", postID); err != nil {
+	if _, err := database.DB.Exec("DELETE FROM posts WHERE post_id=$1", postID); err != nil {
 		return err
 	}
 
@@ -307,16 +274,11 @@ func DeletePost(postID string, username string) error {
 }
 
 func EditMood(postID string, mood string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
 	if err := ValidateMood(mood); err != nil {
 		return err
 	}
 
-	_, err = db.Exec("UPDATE posts SET mood=$1 WHERE post_id=$2", mood, postID)
+	_, err := database.DB.Exec("UPDATE posts SET mood=$1 WHERE post_id=$2", mood, postID)
 	if err != nil {
 		fmt.Println(err)
 		return err

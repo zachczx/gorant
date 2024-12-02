@@ -55,18 +55,14 @@ type JoinComment struct {
 
 func Insert(c Comment) (string, error) {
 	var insertedID string
-	db, err := database.Connect()
-	if err != nil {
-		return insertedID, err
-	}
 
 	var lastInsertID int
-	err = db.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.CreatedAt, c.PostID).Scan(&lastInsertID)
+	err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.CreatedAt, c.PostID).Scan(&lastInsertID)
 	if err != nil {
 		return insertedID, err
 	}
 
-	// r, err := db.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
+	// r, err := database.DB.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
 	// if err != nil {
 	// 	fmt.Println("Error inserting values: ", err)
 	// 	return insertedID, err
@@ -82,15 +78,11 @@ func Insert(c Comment) (string, error) {
 
 func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 	var comments []JoinComment
-	db, err := database.Connect()
-	if err != nil {
-		return comments, err
-	}
 
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
-	rows, err := db.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
+	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
 
 							LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
 							FROM comments_votes 
@@ -150,12 +142,7 @@ func GetComments(postID string, currentUser string) ([]JoinComment, error) {
 func GetComment(commentID string, currentUser string) (Comment, error) {
 	var c Comment
 
-	db, err := database.Connect()
-	if err != nil {
-		return c, err
-	}
-
-	err = db.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID)
+	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID)
 	if err != nil {
 		return c, err
 	}
@@ -164,15 +151,10 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 }
 
 func EditComment(commentID string, editedContent string, currentUser string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
 	/////////////////////
 	// TODO Need to add validation before saving into DB
 	/////////////////////
-	_, err = db.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", editedContent, commentID, currentUser)
+	_, err := database.DB.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", editedContent, commentID, currentUser)
 	if err != nil {
 		return err
 	}
@@ -181,12 +163,7 @@ func EditComment(commentID string, editedContent string, currentUser string) err
 }
 
 func Delete(commentID string, username string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(`DELETE FROM comments WHERE comment_id=$1 AND user_id=$2`, commentID, username)
+	_, err := database.DB.Exec(`DELETE FROM comments WHERE comment_id=$1 AND user_id=$2`, commentID, username)
 	if err != nil {
 		return err
 	}
@@ -208,12 +185,7 @@ func Validate(c Comment) map[string](string) {
 }
 
 func UpVote(commentID string, username string) error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-
-	res, err := db.Query("SELECT comment_id FROM comments_votes WHERE comment_id=$1 AND user_id=$2", commentID, username)
+	res, err := database.DB.Query("SELECT comment_id FROM comments_votes WHERE comment_id=$1 AND user_id=$2", commentID, username)
 	if err != nil {
 		fmt.Println("Error querying db", err)
 	}
@@ -227,7 +199,7 @@ func UpVote(commentID string, username string) error {
 	}
 	res.Close()
 
-	_, err = db.Exec(q, commentID, username)
+	_, err = database.DB.Exec(q, commentID, username)
 	if err != nil {
 		fmt.Println("Error inserting upvote value: ", err)
 		return err
@@ -280,11 +252,6 @@ func ConvertDate(date string) (string, error) {
 
 func FilterSortComments(postID string, currentUser string, sort string, filter string) ([]JoinComment, error) {
 	var comments []JoinComment
-	db, err := database.Connect()
-	if err != nil {
-		return comments, err
-	}
-
 	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
 
 					LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
@@ -316,13 +283,14 @@ func FilterSortComments(postID string, currentUser string, sort string, filter s
 	// fmt.Println(q)
 
 	var rows *sql.Rows
+	var err error
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
 	if filter != "" {
-		rows, err = db.Query(q, postID, filter)
+		rows, err = database.DB.Query(q, postID, filter)
 	} else {
-		rows, err = db.Query(q, postID)
+		rows, err = database.DB.Query(q, postID)
 	}
 	if err != nil {
 		return comments, err
