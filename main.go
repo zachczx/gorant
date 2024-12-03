@@ -23,6 +23,10 @@ type User struct {
 	Username string
 }
 
+const (
+	anonymousUserID = "anonymous@rantkit.com"
+)
+
 var (
 	ctx       context.Context = context.Background()
 	emptyUser users.User
@@ -110,7 +114,7 @@ func main() {
 		}
 
 		if currentUser.UserID == "" {
-			p.UserID = os.Getenv("ANON_USER_ID")
+			p.UserID = anonymousUserID
 		}
 
 		if r.FormValue("anonymous-mode") == "true" {
