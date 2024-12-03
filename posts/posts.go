@@ -229,8 +229,6 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 		return p, err
 	}
 
-	fmt.Println("p.Tags: ", p.Tags)
-
 	return p, nil
 }
 
