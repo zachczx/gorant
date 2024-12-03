@@ -24,7 +24,7 @@ window.addEventListener('load', BlockSpecialChars);
 
 window.addEventListener('htmx:afterSwap', BlockSpecialChars);
 
-const regex = /^[A-Za-z0-9 _!.$\/\\|()[\]=`{}<>?@#%^&*—:;'"+\-"]+$/;
+const regex = /^[A-Za-z0-9 _!.$\/\\|()[\]=`{}<>?@#%^&*—,:;'"+\-"]+$/;
 
 function BlockSpecialChars() {
 	const inputEl = document.getElementById('post-title');

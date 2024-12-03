@@ -22,6 +22,7 @@ type Post struct {
 	CreatedAt          string `db:"created_at"`
 	Mood               string `db:"mood"`
 	CreatedAtProcessed string
+	Tags               string `db:"tags"`
 }
 
 type PostLike struct {
@@ -58,9 +59,11 @@ type JoinPost struct {
 	LikesCountString      string
 	CurrentUserLike       sql.NullInt64 `db:"score"`
 	CurrentUserLikeString string
+	TagsString            string `db:"tags"`
+	Tags                  []string
 }
 
-const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-"]+$`
+const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
 func ListPosts() ([]JoinPost, error) {
 	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt FROM posts
@@ -120,6 +123,11 @@ func NewPost(p Post, tags []string) error {
 						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&postID)
 	if err != nil {
 		return err
+	}
+
+	fmt.Println("Length: ", len(tags))
+	if len(tags) == 0 {
+		return nil
 	}
 
 	// Prepare tag struct for namedexec
@@ -186,20 +194,27 @@ func VerifyPostID(title string) (bool, string) {
 
 func GetPost(postID string, currentUser string) (JoinPost, error) {
 	var p JoinPost
-	row, err := database.DB.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score FROM posts  
-							LEFT JOIN (SELECT * FROM posts_likes) as posts_likes 
-							ON posts.post_id = posts_likes.post_id
-							AND posts_likes.user_id=$2
-
-							WHERE posts.post_id=$1`, postID, currentUser)
+	row, err := database.DB.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score, STRING_AGG(posts_tags.tag, ',') AS tags
+									FROM posts
+										LEFT JOIN (SELECT * FROM posts_likes) AS posts_likes ON posts.post_id = posts_likes.post_id
+										AND posts_likes.user_id = $2
+										LEFT JOIN (SELECT posts_tags.post_id, tags.tag
+											FROM posts_tags
+											LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id) AS posts_tags ON posts_tags.post_id = posts.post_id
+									WHERE posts.post_id = $1
+									GROUP BY posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score;`, postID, currentUser)
 	if err != nil {
 		return p, err
 	}
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike); err != nil {
+		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike, &p.TagsString); err != nil {
 			return p, err
+		}
+
+		if p.TagsString != "" {
+			p.Tags = strings.Split(p.TagsString, ",")
 		}
 
 		if p.CurrentUserLike.Valid {
@@ -213,6 +228,8 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 	if err != nil {
 		return p, err
 	}
+
+	fmt.Println("p.Tags: ", p.Tags)
 
 	return p, nil
 }
@@ -342,6 +359,7 @@ func TitleToID(title string) (string, error) {
 		";", "",
 		"\"", "",
 		"+", "",
+		",", "",
 	)
 
 	ID := r.Replace(strings.ToLower(title))

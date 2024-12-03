@@ -23,8 +23,8 @@ templ Base(title string, currentUser users.User) {
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload="mouseover">
 				<div class="navbar-start">
-					<a href="/" class="group py-2 ps-6 text-3xl">
-						<span class="inline-block rounded-xl bg-accent px-2 py-1 font-medium text-accent-content transition-all duration-200 group-hover:bg-orange-700">Rant</span><span class="inline-block rounded py-2 pe-4 ps-1 font-bold text-accent transition-all duration-500 ease-in-out group-hover:text-orange-500">Kit</span>
+					<a href="/" class="text-accent ps-2 lg:ps-6 font-bold text-3xl">
+						RantKit
 					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex"></div>
@@ -80,9 +80,9 @@ templ Base(title string, currentUser users.User) {
 			</div>
 			<div id="toast" class="hidden"></div>
 			<footer id="footer" class="mt-16 text-center text-sm">
-				<p>Copyright © 2024 Zixian Chen. All rights reserved.</p>
+				<p>Copyright © 2024 RantKit. All rights reserved.</p>
 				<div>
-					<a href="https://zixianchen.com/projects" class="underline">Portfolio</a> | <a href="https://zixianchen.com/contact/" class="underline">Feedback</a> | <button id="credit-modal" class="underline" onclick="credit_modal.showModal()">Credits</button>
+					<a href="https://zixianchen.com/projects" class="underline">Other Stuff</a> | <button id="credit-modal" class="underline" onclick="credit_modal.showModal()">Credits</button>
 				</div>
 			</footer>
 			<dialog id="credit_modal" class="modal">
@@ -182,7 +182,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 			<div id="posts" class="grid gap-4">
 				for i := 0; i < len(posts); i++ {
 					<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/5 bg-primary/10 p-2 transition-all duration-200 ease-out hover:border-secondary hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
-						<div class="group grid place-items-center overflow-hidden text-center text-3xl lg:rounded-full lg:border lg:border-neutral/5 lg:bg-black/5 lg:text-5xl">
+						<div class="group grid place-items-center overflow-hidden text-center text-3xl min-w-10 lg:min-w-14 lg:text-5xl">
 							<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 								if posts[i].Mood  == "elated" {
 									😄
@@ -200,7 +200,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 							</span>
 						</div>
 						<div class="grow pe-4 ps-6">
-							<h3 class="truncate text-xl font-medium leading-loose">
+							<h3 class="text-xl line-clamp-1 font-medium leading-loose">
 								{ posts[i].PostTitle }
 							</h3>
 							<div class="text-sm text-base-content/60">by { posts[i].PreferredName }</div>

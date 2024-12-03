@@ -15,9 +15,8 @@ import (
 	"gorant/users"
 
 	"github.com/a-h/templ"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-
-	_ "modernc.org/sqlite"
 )
 
 type User struct {
@@ -105,7 +104,10 @@ func main() {
 			Mood:      m,
 		}
 
-		t := strings.Split(tags, ",")
+		var t []string
+		if tags != "" {
+			t = strings.Split(tags, ",")
+		}
 
 		if currentUser.UserID == "" {
 			p.UserID = os.Getenv("ANON_USER_ID")
@@ -502,7 +504,7 @@ func main() {
 
 	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
 
-	mux.Handle("GET /authenticate", service.authenticateHandler(*currentUser))
+	mux.Handle("GET /authenticate", service.authenticateHandler(currentUser))
 
 	mux.Handle("GET /logout", service.logout(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.LoggedOut(*currentUser))

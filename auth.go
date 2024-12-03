@@ -105,7 +105,7 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 	TemplRender(w, r, templates.LoginSubmitted(emptyUser))
 }
 
-func (s *AuthService) authenticateHandler(currentUser users.User) http.Handler {
+func (s *AuthService) authenticateHandler(currentUser *users.User) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenType := r.URL.Query().Get("stytch_token_type")
 		token := r.URL.Query().Get("token")
@@ -153,8 +153,6 @@ func (s *AuthService) authenticateHandler(currentUser users.User) http.Handler {
 				fmt.Println("User already exists, no DB action needed")
 			}
 		}
-
-		database.DB.Close()
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})

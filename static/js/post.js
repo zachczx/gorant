@@ -83,9 +83,20 @@
 	});
 })();
 
+// Post title
+const postTitleTruncated = document.getElementById('post-title-truncated');
+const postTitleTruncatedClasses = ['line-clamp-2', 'max-h-[6.3rem]'];
+postTitleTruncated.addEventListener('click', (evt) => {
+	if (evt.target.classList.contains('line-clamp-2')) {
+		evt.target.classList.remove(...postTitleTruncatedClasses);
+	} else {
+		evt.target.classList.add(...postTitleTruncatedClasses);
+	}
+});
+
 // Post Settings Button Click Outside
 
-(function () {
+(() => {
 	document.addEventListener('click', (evt) => {
 		const moreActionsDropdown = document.getElementById('more-actions-dropdown');
 		if (moreActionsDropdown) {

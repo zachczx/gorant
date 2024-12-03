@@ -152,11 +152,6 @@
 	.drawer-handle:not(checked) ~ .drawer-button > :last-of-type {
 		display: flex;
 	}
-
-	.zzz {
-		color: orange;
-		border: 1px solid red;
-	}
 }
 
 @layer utilities {
