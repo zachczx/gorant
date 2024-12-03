@@ -1,3 +1,5 @@
+// Input cancel button
+
 (function showInputCancelButton() {
 	document.getElementById('post-title').addEventListener('keydown', (evt) => {
 		if (evt.target.value.length > 0) {
@@ -33,7 +35,6 @@ function BlockSpecialChars() {
 
 	if (inputEl && postButton && postFormMessage) {
 		inputEl.addEventListener('keyup', () => {
-			console.log('triggered');
 			if (!regex.test(inputEl.value) && inputEl.value.length > 0) {
 				postButton.disabled = 'true';
 				postFormMessage.classList.remove('hidden');
@@ -98,7 +99,7 @@ function tagsUi() {
 		'my-2',
 	];
 
-	tagsInput.addEventListener('keyup', (evt) => {
+	tagsInput.addEventListener('keydown', (evt) => {
 		if (evt.key === 'Enter' || evt.key === ',' || evt.key === ' ' || evt.key === ';' || evt.key === '.') {
 			evt.preventDefault();
 			let tags = tagsInput.value.split(',');
