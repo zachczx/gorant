@@ -59,22 +59,26 @@ type JoinPost struct {
 	LikesCountString      string
 	CurrentUserLike       sql.NullInt64 `db:"score"`
 	CurrentUserLikeString string
-	TagsString            string `db:"tags"`
+	TagsNullString        sql.NullString `db:"tags"`
 	Tags                  []string
 }
 
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
 func ListPosts() ([]JoinPost, error) {
-	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt FROM posts
-							LEFT JOIN users
-							ON users.user_id = posts.user_id
-              
-							LEFT JOIN (SELECT comments.post_id, COUNT(1) AS comments_cnt FROM comments GROUP BY comments.post_id) AS comments
-							ON comments.post_id = posts.post_id
-
-							LEFT JOIN (SELECT post_id, COUNT(1) as likes_cnt FROM posts_likes GROUP BY posts_likes.post_id) as posts_likes
-							ON posts.post_id = posts_likes.post_id;`)
+	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+									FROM posts
+										LEFT JOIN users ON users.user_id=posts.user_id
+										LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+												FROM comments
+												GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+										LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+												FROM posts_likes
+												GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
+										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+												FROM posts_tags
+														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
@@ -87,7 +91,7 @@ func ListPosts() ([]JoinPost, error) {
 	for rows.Next() {
 		var p JoinPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount, &p.LikesCount); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount, &p.LikesCount, &p.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -102,6 +106,12 @@ func ListPosts() ([]JoinPost, error) {
 			p.LikesCountString = strconv.FormatInt(p.LikesCount.Int64, 10)
 		} else {
 			p.LikesCountString = "0"
+		}
+
+		if p.TagsNullString.Valid {
+			p.Tags = strings.Split(p.TagsNullString.String, ",")
+		} else {
+			p.Tags = []string{}
 		}
 
 		p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
@@ -209,12 +219,14 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike, &p.TagsString); err != nil {
+		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike, &p.TagsNullString); err != nil {
 			return p, err
 		}
 
-		if p.TagsString != "" {
-			p.Tags = strings.Split(p.TagsString, ",")
+		if p.TagsNullString.Valid {
+			p.Tags = strings.Split(p.TagsNullString.String, ",")
+		} else {
+			p.Tags = []string{}
 		}
 
 		if p.CurrentUserLike.Valid {
