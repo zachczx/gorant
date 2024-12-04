@@ -12,7 +12,7 @@ templ Base(title string, currentUser users.User) {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta description="GoRant: Go starter kit"/>
+			<meta description="Grumplr: For grumpy grumblers"/>
 			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
 			<title>{ title }</title>
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
@@ -24,7 +24,7 @@ templ Base(title string, currentUser users.User) {
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0" preload="mouseover">
 				<div class="navbar-start">
 					<a href="/" class="ps-2 text-3xl font-bold text-accent lg:ps-6">
-						RantKit
+						Grumplr
 					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex"></div>
@@ -80,7 +80,7 @@ templ Base(title string, currentUser users.User) {
 			</div>
 			<div id="toast" class="hidden"></div>
 			<footer id="footer" class="mt-16 text-center text-sm">
-				<p>Copyright © 2024 RantKit. All rights reserved.</p>
+				<p>Copyright © 2024 Grumplr. All rights reserved.</p>
 				<div>
 					<a href="https://zixianchen.com/projects" class="underline">Other Stuff</a> | <button id="credit-modal" class="underline" onclick="credit_modal.showModal()">Credits</button>
 				</div>
@@ -111,7 +111,7 @@ templ About(currentUser users.User) {
 }
 
 templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
-	@Base("GoRant", currentUser) {
+	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-center justify-items-center">
 			<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
 				@Watermelon()
@@ -400,7 +400,7 @@ templ CreatePostError(message string) {
 }
 
 templ Error(currentUser users.User, message string) {
-	@Base("GoRant", currentUser) {
+	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
 			<img src="/static/images/reshot-illustration-404-page-HASGL2MQBU.svg" alt="Error" class="py-10"/>

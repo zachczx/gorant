@@ -7,7 +7,7 @@ import (
 )
 
 templ Post(currentUser users.User, message string, post posts.JoinPost, comments []posts.JoinComment, postID string, highlight string, sortComments string) {
-	@Base("GoRant - Post", currentUser) {
+	@Base("Grumplr - Post", currentUser) {
 		<main class="grid w-full content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
 				<div class="flex flex-wrap items-center">
