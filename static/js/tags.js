@@ -21,7 +21,8 @@ function checkDomForTagsEls() {
 	if (
 		document.getElementById('tags-input') &&
 		document.getElementById('tags-list') &&
-		document.getElementById('tags-data')
+		document.getElementById('tags-data') &&
+		document.getElementById('tags-save-button')
 	) {
 		return true;
 	} else {
@@ -33,6 +34,7 @@ function tagsUi() {
 	console.log('Loading tagsUI');
 	const tagsInput = document.getElementById('tags-input');
 	const tagsList = document.getElementById('tags-list');
+	const tagsSaveButton = document.getElementById('tags-save-button');
 	let tagsData = document.getElementById('tags-data');
 	let margin = 0;
 
@@ -68,7 +70,14 @@ function tagsUi() {
 	}
 
 	tagsInput.addEventListener('keydown', (evt) => {
-		if (evt.key === 'Enter' || evt.key === ',' || evt.key === ' ' || evt.key === ';' || evt.key === '.') {
+		if (
+			evt.key === 'Enter' ||
+			evt.key === ',' ||
+			evt.key === ' ' ||
+			evt.key === ';' ||
+			evt.key === '.' ||
+			(evt.key === 'Tab' && tagsInput.value.length > 0)
+		) {
 			evt.preventDefault();
 			let tags = tagsInput.value.split(',');
 			for (let i = 0; i < tags.length; i++) {
@@ -109,5 +118,22 @@ function tagsUi() {
 				tagsData.value = tagsData.value.replace(',' + evt.target.innerText, '');
 			}
 		}
+	});
+
+	// This helps when user enters into input field, but doesn't press any of the triggers to add the value to the hidden field.
+	// This does a last check to add all remaining input in the field before posting it
+	//
+	// Note: Seems like just the click event precedes the request, so this doesn't require evt.preventDefault()
+	// Note: However, I added a delay of 100ms to hx-trigger just to be safe
+	tagsSaveButton.addEventListener('click', () => {
+		if (tagsInput.value.length > 0) {
+			tagsData.value = tagsData.value + ',' + tagsInput.value;
+		}
+	});
+
+	window.addEventListener('htmx:beforeSend', (evt) => {
+		console.log(evt.detail.elt);
+		console.log(evt.detail.xhr);
+		console.log(evt.detail.requestConfig);
 	});
 }
