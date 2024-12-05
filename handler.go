@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/go-swiss/compress"
@@ -26,7 +27,9 @@ func StatusLogger(next http.Handler) http.Handler {
 		next.ServeHTTP(&rec, r)
 		since := time.Since(start)
 
-		log.Printf(">>>>[%v] --- Route[%v] --- [%v] --- [%v] --- [%v]\r\n\r\n", rec.status, r.URL, since, r.Proto, w.Header().Get("Content-Encoding"))
+		if !strings.Contains(r.URL.Path, "/static/") {
+			log.Printf(">>>>[%v %v] -- [%v] -- [%v] -- [%v] -- [%v]\r\n\r\n", rec.status, r.Method, r.URL, since, r.Proto, w.Header().Get("Content-Encoding"))
+		}
 	})
 }
 
