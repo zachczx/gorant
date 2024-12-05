@@ -1,3 +1,5 @@
+import tags from './tags';
+
 // Input cancel button
 
 (function showInputCancelButton() {
@@ -53,92 +55,4 @@ function BlockSpecialChars() {
 	}
 }
 
-// For UI supporting Tag's tag-style input
-
-//Window is used because document.addEventListener() is unreliable
-window.addEventListener('load', () => {
-	if (checkDomForTagsEls()) {
-		tagsUi();
-	}
-});
-
-document.addEventListener('htmx:afterSwap', () => {
-	if (checkDomForTagsEls()) {
-		tagsUi();
-	}
-});
-
-function checkDomForTagsEls() {
-	if (
-		document.getElementById('tags-input') &&
-		document.getElementById('tags-list') &&
-		document.getElementById('tags-data')
-	) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-function tagsUi() {
-	const tagsInput = document.getElementById('tags-input');
-	const tagsList = document.getElementById('tags-list');
-	let tagsData = document.getElementById('tags-data');
-	let margin = 0;
-
-	const classes = [
-		'user-tag',
-		'btn',
-		'bg-primary/50',
-		'text-neutral/70',
-		'border-0',
-		'hover:bg-primary/60',
-		'btn-sm',
-		'text-md',
-		'me-2',
-		'my-2',
-	];
-
-	tagsInput.addEventListener('keydown', (evt) => {
-		if (evt.key === 'Enter' || evt.key === ',' || evt.key === ' ' || evt.key === ';' || evt.key === '.') {
-			evt.preventDefault();
-			let tags = tagsInput.value.split(',');
-			for (let i = 0; i < tags.length; i++) {
-				tags[i] = tags[i].trim().toLowerCase();
-				if (tags[i].length > 0) {
-					let el = document.createElement('li');
-					el.id = 'user-tag-' + tags[i];
-					el.classList.add(...classes);
-					el.innerHTML = tags[i];
-					tagsList.appendChild(el);
-
-					if (tagsData.value.length === 0) {
-						tagsData.value = tags[i];
-					} else {
-						tagsData.value = tagsData.value + ',' + tags[i];
-					}
-				}
-			}
-			tagsInput.value = '';
-
-			if (tagsList.childElementCount > 0) {
-				margin = 'me-' + String(tagsList.childElementCount * 2);
-				tagsList.classList.add(margin);
-			}
-		}
-	});
-
-	tagsList.addEventListener('click', (evt) => {
-		if (evt.target.id.includes('user-tag-')) {
-			console.log('Clicked a tag');
-			tagsList.removeChild(evt.target);
-			if (!tagsData.value.includes(',')) {
-				tagsData.value = tagsData.value.replace(evt.target.innerText, '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(evt.target.innerText + ',')) {
-				tagsData.value = tagsData.value.replace(evt.target.innerText + ',', '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(',' + evt.target.innerText)) {
-				tagsData.value = tagsData.value.replace(',' + evt.target.innerText, '');
-			}
-		}
-	});
-}
+tags();

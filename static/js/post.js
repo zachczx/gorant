@@ -1,3 +1,5 @@
+import tags from './tags';
+
 // Post Description
 
 (function activateDescriptionForm() {
@@ -135,3 +137,5 @@ postTitleTruncated.addEventListener('click', (evt) => {
 		document.getElementById('filter-input').value = '';
 	});
 })();
+
+tags();
