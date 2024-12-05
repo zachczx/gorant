@@ -41,6 +41,7 @@ type PostTag struct {
 	PostsTagID int    `db:"posts_tags_id"`
 	PostID     string `db:"post_id"`
 	TagID      int    `db:"tag_id"`
+	Tag        string
 }
 
 type JoinPost struct {
@@ -144,6 +145,7 @@ func NewPost(p Post, tags []string) error {
 	var tag Tag
 	tagsStruct := []Tag{}
 	for _, v := range tags {
+		// Reusing TitleToID to sanitize input
 		tag.Tag, err = TitleToID(v)
 		if err != nil {
 			return err
@@ -160,6 +162,7 @@ func NewPost(p Post, tags []string) error {
 	}
 
 	for _, v := range tags {
+		// Copy postID and tag_id where the tag == tag value, and insert it into posts_tags
 		_, err = database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
 		if err != nil {
 			// this err needs to be returned because it's not normal
@@ -168,6 +171,135 @@ func NewPost(p Post, tags []string) error {
 	}
 
 	return nil
+}
+
+func GetTags(postID string) (JoinPost, error) {
+	var t string
+	var p JoinPost
+
+	rows, err := database.DB.Query(`SELECT tags.tag
+									FROM(SELECT posts_tags.post_id, posts_tags.tag_id
+										FROM posts_tags
+										WHERE posts_tags.post_id=$1) AS posts_tags
+										LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id`, postID)
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&t); err != nil {
+			return p, err
+		}
+
+		p.Tags = append(p.Tags, t)
+	}
+
+	return p, nil
+}
+
+func EditTags(postID string, tags []string) error {
+	var tag Tag
+	tagStruct := []Tag{}
+	var err error
+
+	for _, v := range tags {
+		// Reusing TitleToID to sanitize input
+		tag.Tag, err = TitleToID(v)
+		if err != nil {
+			return err
+		}
+		tagStruct = append(tagStruct, tag)
+	}
+
+	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagStruct)
+	if err != nil {
+		// Print error instead of returning, duplicate value error is alright
+		fmt.Println(err)
+	}
+
+	// Grab all the existing tags from post using postID
+	rows, err := database.DB.Query(`SELECT posts_tags.post_id, posts_tags.tag_id, tags.tag FROM posts_tags LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id WHERE post_id=$1`, postID)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	var pt PostTag
+	var postsTags []PostTag
+	for rows.Next() {
+		if err := rows.Scan(&pt.PostID, &pt.TagID, &pt.Tag); err != nil {
+			return err
+		}
+
+		postsTags = append(postsTags, pt)
+		fmt.Println("Tags in post now: ", pt.Tag)
+	}
+
+	// Loop through postTags to find tags that are not in current user input, then mark those for deletion.
+	var tagsToDeleteID []int
+	var exists bool
+	for _, v := range postsTags {
+		if exists = contains(tags, v.Tag); !exists {
+			tagsToDeleteID = append(tagsToDeleteID, v.TagID)
+		}
+	}
+
+	fmt.Println("Tags to Delete: ", tagsToDeleteID)
+
+	// Delete from posts_tags if tagsToDelete is not empty
+	if len(tagsToDeleteID) > 0 {
+		for _, v := range tagsToDeleteID {
+			_, err = database.DB.Exec(`DELETE FROM posts_tags WHERE tag_id=$1`, v)
+			if err != nil {
+				fmt.Println("Error in deleting")
+				return err
+			}
+		}
+	}
+
+	var tagsToInsert []string
+	for _, v := range tags {
+		if exists = containsPostTag(postsTags, v); !exists {
+			tagsToInsert = append(tagsToInsert, v)
+		}
+	}
+
+	fmt.Println("Tags to Insert: ", tagsToInsert)
+	fmt.Println("Number to insert: ", len(tagsToInsert))
+
+	// insert into posts_tags
+	if len(tagsToInsert) > 0 {
+		for _, v := range tagsToInsert {
+			_, err = database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Successfully saved: %s into %s\n", v, postID)
+		}
+	}
+
+	return nil
+}
+
+func contains(a []string, s string) bool {
+	for _, v := range a {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+func containsPostTag(a []PostTag, s string) bool {
+	for _, v := range a {
+		if v.Tag == s {
+			return true
+		}
+	}
+	return false
 }
 
 func ValidatePost(postTitle string) map[string](string) {

@@ -77,11 +77,8 @@ templ Post(currentUser users.User, message string, post posts.JoinPost, comments
 							</h1>
 						</button>
 						if len(post.Tags) > 0 {
-							<div class="flex items-center justify-center p-4">
-								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
-								for i := 0; i < len(post.Tags); i++ {
-									<span class="me-2 rounded-lg border border-neutral/70 px-2 text-sm text-neutral/70">{ post.Tags[i] }</span>
-								}
+							<div class="px-4 pb-4">
+								@ShowTags(post)
 							</div>
 						}
 						<div class="flex items-center justify-around border-b border-t border-b-neutral/5 border-t-neutral/5 bg-primary/10 p-2">
@@ -189,7 +186,7 @@ templ Post(currentUser users.User, message string, post posts.JoinPost, comments
 }
 
 templ SortButton(currentUser users.User, postID string, oob string) {
-	<details
+	<div
 		id="sort-dropdown"
 		class="dropdown-start dropdown active:bg-transparent"
 		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", postID))) }
@@ -201,9 +198,7 @@ templ SortButton(currentUser users.User, postID string, oob string) {
 			hx-swap-oob="true"
 		}
 	>
-		<summary
-			class="group btn btn-outline btn-sm flex items-center border-neutral/10 bg-white/70 text-neutral/70 hover:bg-primary/30 hover:text-primary-content focus:bg-primary/30 focus:text-primary-content active:bg-primary/30 active:text-primary-content"
-		>
+		<div tabindex="0" role="button" class="group btn btn-outline btn-sm flex items-center border-neutral/10 bg-white/70 text-neutral/70 hover:bg-primary/30 hover:text-primary-content focus:bg-primary/30 focus:text-primary-content active:bg-primary/30 active:text-primary-content">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
 				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
 			</svg>
@@ -219,8 +214,8 @@ templ SortButton(currentUser users.User, postID string, oob string) {
 				}
 			</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
-		</summary>
-		<ul class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
+		</div>
+		<ul tabindex="0" class="menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
 			<li
 				if currentUser.SortComments == "upvote;desc" {
 					class="flex rounded-md bg-primary/30 text-primary-content hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content"
@@ -278,7 +273,7 @@ templ SortButton(currentUser users.User, postID string, oob string) {
 				</label>
 			</li>
 		</ul>
-	</details>
+	</div>
 }
 
 templ PostForm(currentUser users.User, postID string, oobSwap string) {

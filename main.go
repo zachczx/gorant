@@ -257,6 +257,40 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})))
 
+	mux.Handle("GET /posts/{postID}/tags/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		post, err := posts.GetPost(postID, currentUser.UserID)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		TemplRender(w, r, templates.PartialEditTags(post))
+	})))
+
+	mux.Handle("POST /posts/{postID}/tags/save", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		t := r.FormValue("tags-data")
+		fmt.Println("Form data: ", t)
+
+		var tags []string
+		if t != "" {
+			tags = strings.Split(t, ",")
+		}
+
+		err := posts.EditTags(postID, tags)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		p, err := posts.GetTags(postID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		p.PostID = postID
+
+		TemplRender(w, r, templates.ShowTags(p))
+	})))
+
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
