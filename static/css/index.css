@@ -152,6 +152,13 @@
 	.drawer-handle:not(checked) ~ .drawer-button > :last-of-type {
 		display: flex;
 	}
+
+	/* Override .menu list item :active state */
+	/* .menu > li:active, 
+	.menu li > :not(ul, .menu-title, details, .btn):active {
+		background-color: transparent !important;
+		color: oklch(var(--bc) / 0.7) !important;
+	} */
 }
 
 @layer utilities {
