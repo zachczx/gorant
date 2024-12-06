@@ -72,6 +72,23 @@ func main() {
 		TemplRender(w, r, templates.Error(*currentUser, "Oops something went wrong."))
 	})
 
+	mux.HandleFunc("POST /filter", func(w http.ResponseWriter, r *http.Request) {
+		// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes
+		r.ParseForm()
+		m := r.Form["mood"]
+		// s := r.FormValue("sort")
+
+		fmt.Println("Mood: ", m)
+		// fmt.Println("Sort: ", s)
+
+		p, err := posts.ListPostsFilter(m)
+		if err != nil {
+			fmt.Println("Error fetching posts", err)
+		}
+
+		TemplRender(w, r, templates.ListPosts(p))
+	})
+
 	mux.Handle("GET /posts", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("validation") == "error" {
 			p, err := posts.ListPosts()
@@ -256,6 +273,17 @@ func main() {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})))
+
+	mux.Handle("GET /posts/{postID}/tags", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		p, err := posts.GetTags(postID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		p.PostID = postID
+
+		TemplRender(w, r, templates.ShowTags(p))
+	}))
 
 	mux.Handle("GET /posts/{postID}/tags/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")

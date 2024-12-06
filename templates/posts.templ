@@ -76,11 +76,13 @@ templ Post(currentUser users.User, message string, post posts.JoinPost, comments
 								{ post.PostTitle }
 							</h1>
 						</button>
-						if len(post.Tags) > 0 {
-							<div class="px-4 pb-4">
+						<div class="px-4 pb-4">
+							if len(post.Tags) > 0 {
 								@ShowTags(post)
-							</div>
-						}
+							} else {
+								@EmptyTags(post)
+							}
+						</div>
 						<div class="flex items-center justify-around border-b border-t border-b-neutral/5 border-t-neutral/5 bg-primary/10 p-2">
 							if currentUser.UserID  != "" {
 								<div class="flex items-center">

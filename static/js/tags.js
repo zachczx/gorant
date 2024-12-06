@@ -22,7 +22,8 @@ function checkDomForTagsEls() {
 		document.getElementById('tags-input') &&
 		document.getElementById('tags-list') &&
 		document.getElementById('tags-data') &&
-		document.getElementById('tags-save-button')
+		document.getElementById('tags-save-button') &&
+		document.getElementById('tags-container')
 	) {
 		return true;
 	} else {
@@ -35,8 +36,11 @@ function tagsUi() {
 	const tagsInput = document.getElementById('tags-input');
 	const tagsList = document.getElementById('tags-list');
 	const tagsSaveButton = document.getElementById('tags-save-button');
+	const tagsForm = document.getElementById('tags-container');
 	let tagsData = document.getElementById('tags-data');
 	let margin = 0;
+
+	tagsInput.focus();
 
 	// Classes to add for each tag
 	const classes = [
@@ -49,14 +53,12 @@ function tagsUi() {
 		'btn-sm',
 		'text-md',
 		'me-2',
-		'my-2',
+		'my-1',
 	];
 
 	// Fetch tags from hidden form value if there already are tags there
 	if (tagsData.value.length > 0) {
-		console.log(tagsData.value);
 		let tags = tagsData.value.split(',');
-		console.log(tags);
 		for (let i = 0; i < tags.length; i++) {
 			tags[i] = tags[i].trim().toLowerCase();
 			if (tags[i].length > 0) {
@@ -71,7 +73,7 @@ function tagsUi() {
 
 	tagsInput.addEventListener('keydown', (evt) => {
 		if (
-			evt.key === 'Enter' ||
+			(evt.key === 'Enter' && !evt.ctrlKey) ||
 			evt.key === ',' ||
 			evt.key === ' ' ||
 			evt.key === ';' ||
@@ -120,6 +122,8 @@ function tagsUi() {
 		}
 	});
 
+	keyboardShortcut(tagsInput, tagsSaveButton, tagsForm);
+
 	// This helps when user enters into input field, but doesn't press any of the triggers to add the value to the hidden field.
 	// This does a last check to add all remaining input in the field before posting it
 	//
@@ -130,10 +134,23 @@ function tagsUi() {
 			tagsData.value = tagsData.value + ',' + tagsInput.value;
 		}
 	});
+}
 
-	window.addEventListener('htmx:beforeSend', (evt) => {
+//Keyboard shortcuts for tags UI
+
+function keyboardShortcut(inputEl, buttonEl) {
+	//This is keydown, so it's faster than the keyup submit hx-trigger on the form
+	inputEl.addEventListener('keydown', (evt) => {
+		if (evt.ctrlKey && evt.key === 'Enter') {
+			console.log('Received signal, changing to spinner');
+			buttonEl.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+		}
+	});
+
+	document.addEventListener('htmx:afterSwap', (evt) => {
 		console.log(evt.detail.elt);
-		console.log(evt.detail.xhr);
-		console.log(evt.detail.requestConfig);
+		if (evt.detail.elt === inputEl) {
+			buttonEl.innerHTML = 'Add Comment';
+		}
 	});
 }
