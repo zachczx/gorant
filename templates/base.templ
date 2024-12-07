@@ -73,7 +73,7 @@ templ Base(title string, currentUser users.User) {
 					}
 				</div>
 			</header>
-			<div id="container" class="grid justify-items-center px-4 pt-10" preload>
+			<div id="container" class="grid justify-items-center content-start px-4 pt-10" preload>
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
@@ -114,7 +114,7 @@ templ About(currentUser users.User) {
 
 templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 	@Base("Grumplr", currentUser) {
-		<div class="grid w-full content-center justify-items-center">
+		<div class="grid w-full content-start justify-items-center">
 			<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
 				@Watermelon()
 			</h1>
