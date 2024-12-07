@@ -1,4 +1,5 @@
 import tags from './tags';
+import { keyboardShortcut } from './common';
 
 // Post Description
 
@@ -32,57 +33,6 @@ import tags from './tags';
 			postDescriptionStatic.classList.add('hidden');
 		});
 	}
-})();
-
-// Post Form
-
-(function keyboardShortcutListeners() {
-	//
-	document.addEventListener('keydown', (evt) => {
-		if (evt.target.id === 'comment-form-name-input' || evt.target.id === 'comment-form-message-input') {
-			if (evt.ctrlKey && evt.key === 'Enter') {
-				document.getElementById('comment-submit-button').innerHTML =
-					'<span class="loading loading-spinner loading-md"></span>';
-				setTimeout(() => {
-					document.getElementById('comment-form').requestSubmit();
-					document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
-				}, 1000);
-			}
-		}
-
-		if (evt.target.id === 'comment-submit-button') {
-			document.getElementById('comment-submit-button').innerHTML =
-				'<span class="loading loading-spinner loading-md"></span>';
-			setTimeout(() => {
-				document.getElementById('comment-form').requestSubmit();
-				document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
-			}, 1000);
-		}
-	});
-
-	document.addEventListener('click', (evt) => {
-		if (evt.target.id === 'comment-form-name-input' || evt.target.id === 'comment-form-message-input') {
-			if (evt.ctrlKey && evt.key === 'Enter') {
-				evt.preventDefault();
-				document.getElementById('comment-submit-button').innerHTML =
-					'<span class="loading loading-spinner loading-md"></span>';
-				setTimeout(() => {
-					document.getElementById('comment-form').requestSubmit();
-					document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
-				}, 1000);
-			}
-		}
-
-		if (evt.target.id === 'comment-submit-button') {
-			evt.preventDefault();
-			document.getElementById('comment-submit-button').innerHTML =
-				'<span class="loading loading-spinner loading-md"></span>';
-			setTimeout(() => {
-				document.getElementById('comment-form').requestSubmit();
-				document.getElementById('comment-submit-button').innerHTML = 'Add Comment';
-			}, 1000);
-		}
-	});
 })();
 
 // Post title
@@ -139,3 +89,12 @@ postTitleTruncated.addEventListener('click', (evt) => {
 })();
 
 tags();
+
+function initKeyBoardShortcutForPosts() {
+	const commentFormMessageInput = document.getElementById('comment-form-message-input');
+	const commentSubmitButton = document.getElementById('comment-submit-button');
+	keyboardShortcut(commentFormMessageInput, commentSubmitButton);
+}
+
+window.addEventListener('load', initKeyBoardShortcutForPosts);
+window.addEventListener('htmx:afterSwap', initKeyBoardShortcutForPosts);

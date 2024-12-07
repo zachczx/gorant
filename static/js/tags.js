@@ -1,3 +1,5 @@
+import { keyboardShortcut } from './common';
+
 // For UI supporting Tag's tag-style input
 
 //Window is used because document.addEventListener() is unreliable
@@ -122,6 +124,7 @@ function tagsUi() {
 		}
 	});
 
+	//Keyboard shortcuts for tags UI
 	keyboardShortcut(tagsInput, tagsSaveButton, tagsForm);
 
 	// This helps when user enters into input field, but doesn't press any of the triggers to add the value to the hidden field.
@@ -132,25 +135,6 @@ function tagsUi() {
 	tagsSaveButton.addEventListener('click', () => {
 		if (tagsInput.value.length > 0) {
 			tagsData.value = tagsData.value + ',' + tagsInput.value;
-		}
-	});
-}
-
-//Keyboard shortcuts for tags UI
-
-function keyboardShortcut(inputEl, buttonEl) {
-	//This is keydown, so it's faster than the keyup submit hx-trigger on the form
-	inputEl.addEventListener('keydown', (evt) => {
-		if (evt.ctrlKey && evt.key === 'Enter') {
-			console.log('Received signal, changing to spinner');
-			buttonEl.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
-		}
-	});
-
-	document.addEventListener('htmx:afterSwap', (evt) => {
-		console.log(evt.detail.elt);
-		if (evt.detail.elt === inputEl) {
-			buttonEl.innerHTML = 'Add Comment';
 		}
 	});
 }

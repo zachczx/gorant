@@ -289,6 +289,7 @@ templ PostForm(currentUser users.User, postID string, oobSwap string) {
 			}
 			hx-swap="outerHTML"
 			hx-target="#posts"
+			hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#comment-submit-button"
 			class="w-full space-y-2"
 		>
 			<h2 class="text-xl font-bold text-base-content/70">Add Comment</h2>
