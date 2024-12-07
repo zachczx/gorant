@@ -183,58 +183,64 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost) {
 			</div>
 			<div class="flex items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:filter-list me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z"></path></svg>
-				<span class="me-4">Filter By</span>
+				<span class="me-4">Filter by</span>
 				<form
 					id="filter-form"
-					class="flex items-center"
+					class="flex items-center space-x-2"
 					hx-target="#posts"
 					hx-swap="outerHTML"
 					hx-trigger="change"
 					hx-include="#filter-form"
 					hx-post={ string(templ.URL(fmt.Sprintf("/filter"))) }
 				>
+					<input id="mood-angry" type="checkbox" name="mood" class="hidden" value="angry"/>
 					<label
+						id="label-angry"
 						for="mood-angry"
 						class="mood cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						😡
 					</label>
-					<input id="mood-angry" type="checkbox" name="mood" class="hidden" value="angry"/>
+					<input id="mood-upset" type="checkbox" name="mood" class="hidden" value="upset"/>
 					<label
+						id="label-upset"
 						for="mood-upset"
 						class="mood cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						😫
 					</label>
-					<input id="mood-upset" type="checkbox" name="mood" class="hidden" value="upset"/>
+					<input id="mood-sad" type="checkbox" name="mood" class="hidden" value="sad"/>
 					<label
+						id="label-sad"
 						for="mood-sad"
 						class="cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						☹️
 					</label>
-					<input id="mood-sad" type="checkbox" name="mood" class="hidden" value="sad"/>
+					<input id="mood-neutral" type="checkbox" name="mood" class="hidden" value="neutral"/>
 					<label
+						id="label-neutral"
 						for="mood-neutral"
 						class="cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						😐
 					</label>
-					<input id="mood-neutral" type="checkbox" name="mood" class="hidden" value="neutral"/>
+					<input id="mood-happy" type="checkbox" name="mood" class="hidden" value="happy"/>
 					<label
+						id="label-happy"
 						for="mood-happy"
 						class="cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						🙂
 					</label>
-					<input id="mood-happy" type="checkbox" name="mood" class="hidden" value="happy"/>
+					<input id="mood-elated" type="checkbox" name="mood" class="hidden" value="elated"/>
 					<label
+						id="label-elated"
 						for="mood-elated"
 						class="cursor-pointer rounded-lg p-2 text-2xl hover:bg-primary/30 hover:text-primary-content"
 					>
 						😄
 					</label>
-					<input id="mood-elated" type="checkbox" name="mood" class="hidden" value="elated"/>
 					// <button class="btn btn-accent btn-sm">Filter</button>
 				</form>
 				// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
@@ -318,10 +324,11 @@ templ ListPosts(posts []posts.JoinPost) {
 				</a>
 			}
 		} else {
-			<div class="flex justify-center">@EmptyBox()
-</div>
+			<div class="flex justify-center">
+				@EmptyBox()
+			</div>
 			<h2 class="text-center text-2xl font-extrabold">Couldn't find a post</h2>
-			<div class="text-center">There's nothing here, try choosing another filter!</div>
+			<div class="text-center pb-8">There's nothing here, try choosing another filter!</div>
 		}
 	</div>
 }

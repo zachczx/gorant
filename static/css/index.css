@@ -159,6 +159,10 @@
 		background-color: transparent !important;
 		color: oklch(var(--bc) / 0.7) !important;
 	} */
+
+	input:checked + label {
+		@apply bg-primary/30 text-primary-content;
+	}
 }
 
 @layer utilities {
