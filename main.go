@@ -54,7 +54,13 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-		TemplRender(w, r, templates.StarterWelcome(*currentUser, p))
+
+		t, err := posts.ListTags()
+		if err != nil {
+			fmt.Println("Error fetching tags", err)
+		}
+		fmt.Println("Tags: ", t)
+		TemplRender(w, r, templates.StarterWelcome(*currentUser, p, t))
 	})))
 
 	mux.HandleFunc("POST /anonymous", func(w http.ResponseWriter, r *http.Request) {
@@ -76,9 +82,10 @@ func main() {
 		// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes
 		r.ParseForm()
 		m := r.Form["mood"]
+		t := r.Form["tags"]
 
 		// For when there's a reset of the form
-		if len(m) == 0 {
+		if len(m) == 0 && len(t) == 0 {
 			p, err := posts.ListPosts()
 			if err != nil {
 				fmt.Println("Error fetching posts", err)
@@ -89,9 +96,14 @@ func main() {
 		// s := r.FormValue("sort")
 
 		fmt.Println("Mood: ", m)
+		fmt.Println("Tags: ", t)
 		// fmt.Println("Sort: ", s)
 
-		p, err := posts.ListPostsFilter(m)
+		if len(m) == 0 {
+			m = []string{"angry", "upset", "sad", "neutral", "happy", "elated"}
+		}
+
+		p, err := posts.ListPostsFilter(m, t)
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -105,7 +117,12 @@ func main() {
 			if err != nil {
 				fmt.Println("Error fetching posts", err)
 			}
-			TemplRender(w, r, templates.StarterWelcomeError(*currentUser, p))
+
+			t, err := posts.ListTags()
+			if err != nil {
+				fmt.Println("Error fetching tags", err)
+			}
+			TemplRender(w, r, templates.StarterWelcomeError(*currentUser, p, t))
 			return
 		}
 	})))

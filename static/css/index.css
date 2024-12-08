@@ -160,8 +160,14 @@
 		color: oklch(var(--bc) / 0.7) !important;
 	} */
 
+	/* For filter mood bar on main page */
 	input:checked + label {
 		@apply bg-primary/30 text-primary-content;
+	}
+
+	/* For the filter tag bar on main page */
+	label > input:checked + span {
+		@apply bg-primary/50;
 	}
 }
 

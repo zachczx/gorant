@@ -127,7 +127,31 @@ func ListPosts() ([]JoinPost, error) {
 	return posts, nil
 }
 
-func ListPostsFilter(mood []string) ([]JoinPost, error) {
+func ListTags() ([]string, error) {
+	var tags []string
+	var tagID string
+	var tag string
+
+	rows, err := database.DB.Query(`SELECT posts_tags.tag_id, tags.tag 
+										FROM (SELECT DISTINCT posts_tags.tag_id FROM posts_tags) as posts_tags 
+										LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id`)
+	if err != nil {
+		return tags, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(&tagID, &tag); err != nil {
+			return tags, err
+		}
+
+		tags = append(tags, tag)
+	}
+
+	return tags, nil
+}
+
+func ListPostsFilter(mood []string, tags []string) ([]JoinPost, error) {
 	query, args, err := sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 									FROM (SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood FROM posts WHERE mood IN (?)) AS posts
 										LEFT JOIN users ON users.user_id=posts.user_id
@@ -137,10 +161,11 @@ func ListPostsFilter(mood []string) ([]JoinPost, error) {
 										LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
 												FROM posts_likes
 												GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+										INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 												FROM posts_tags
 														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood)
+												WHERE tags.tag IN (?)
+												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood, tags)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
