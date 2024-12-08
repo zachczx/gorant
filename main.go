@@ -76,6 +76,16 @@ func main() {
 		// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes
 		r.ParseForm()
 		m := r.Form["mood"]
+
+		// For when there's a reset of the form
+		if len(m) == 0 {
+			p, err := posts.ListPosts()
+			if err != nil {
+				fmt.Println("Error fetching posts", err)
+			}
+			TemplRender(w, r, templates.ListPosts(p))
+			return
+		}
 		// s := r.FormValue("sort")
 
 		fmt.Println("Mood: ", m)
@@ -579,7 +589,7 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
 	var p string = os.Getenv("LISTEN_ADDR")
-	wrappedMux := StatusLogger(ExcludeCompression(mux))
+	wrappedMux := StatusLogger(ExcludeCompression(SetCacheControl(mux)))
 	http.ListenAndServe(p, wrappedMux)
 }
 

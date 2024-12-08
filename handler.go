@@ -45,3 +45,27 @@ func ExcludeCompression(h http.Handler) http.Handler {
 		}
 	})
 }
+
+var cacheFiles = []string{"htmx-bundle.js", "InterVariable.woff2", "avatar-shiba.webp"}
+
+func contains(s string, a []string) bool {
+	for _, v := range a {
+		if strings.Contains(s, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func SetCacheControl(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if contains(r.URL.Path, cacheFiles) {
+			// Set cache headers
+			w.Header().Set("Cache-Control", "public, max-age=31536000")
+			w.Header().Set("Expires", time.Now().Add(time.Hour).Format(http.TimeFormat))
+			w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
