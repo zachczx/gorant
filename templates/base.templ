@@ -187,7 +187,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 				hx-target="#posts"
 				hx-swap="outerHTML"
 				hx-trigger="change, reset delay:0.01s"
-				hx-include="#filter-form"
+				hx-indicator="#loader"
 				hx-post={ string(templ.URL(fmt.Sprintf("/filter"))) }
 			>
 				<div class="grid content-center gap-2">
@@ -244,7 +244,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 					</div>
 					<div class="flex items-center space-x-2">
 						<div class=""><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:filter-list me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z"></path></svg></div>
-						<div class="flex flex-wrap items-center font-medium grow">
+						<div class="flex grow flex-wrap items-center font-medium">
 							if len(tags) > 0 {
 								for i := 0; i < len(tags); i++ {
 									<label>
@@ -272,6 +272,11 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 				// 	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
 				// </svg>Sort
 			</form>
+			<div id="loader" class="htmx-indicator-none">
+				<div class="text-center min-h-[20dvh] py-20">
+					<span class="loading loading-spinner text-accent"></span>
+				</div>
+			</div>
 			@ListPosts(posts)
 		</div>
 		<script src="/static/js/output/index.js"></script>
@@ -279,7 +284,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 }
 
 templ ListPosts(posts []posts.JoinPost) {
-	<div id="posts" class="grid gap-4 min-h-[20dvh] content-start">
+	<div id="posts" class="grid min-h-[20dvh] content-start gap-4">
 		if len(posts) >0 {
 			for i := 0; i < len(posts); i++ {
 				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/5 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary hover:bg-primary/10 hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">

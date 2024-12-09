@@ -84,6 +84,22 @@
 		opacity: 1;
 	}
 
+	/* Loading indicator with display none */
+	.htmx-indicator-none {
+		display: none;
+	}
+	.htmx-request .htmx-indicator-none {
+		display: inline;
+	}
+
+	.htmx-request ~ #posts.grid {
+		/* This works because Loader element is right above #posts */
+		display: none;
+	}
+	.htmx-request.htmx-indicator-none {
+		display: inline;
+	}
+
 	/* Settings Form avatar selection */
 
 	.avatar > input[type='radio']:checked + div {
