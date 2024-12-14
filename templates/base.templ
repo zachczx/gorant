@@ -19,7 +19,7 @@ templ Base(title string, currentUser users.User) {
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0">
+			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/20 p-0">
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="ps-2 text-3xl font-bold text-accent lg:ps-6">
 						Grumplr
@@ -115,9 +115,9 @@ templ About(currentUser users.User) {
 templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center">
-			<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
-				@Watermelon()
-			</h1>
+			// <h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold">
+			// 	@Watermelon()
+			// </h1>
 			<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-start justify-items-center lg:pt-0">
 				if currentUser.UserID != "" {
 					// Logged in
@@ -173,17 +173,17 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 		<div
 			id="content"
 			if len(posts) > 0 {
-				class="w-full max-w-[1000px] space-y-8 pt-8 lg:pt-16"
+				class="mt-8 w-full max-w-[1200px] space-y-8 rounded-2xl bg-white/70 border border-neutral/10 py-8 shadow-lg lg:mt-16"
 			} else {
 				class="hidden"
 			}
 		>
 			<div class="flex items-center">
-				<h2 class="grow text-3xl font-bold">Posts</h2>
+				<h2 class="grow px-8 text-3xl font-bold">Posts</h2>
 			</div>
 			<form
 				id="filter-mood-form"
-				class="text-sm text-accent/80"
+				class="px-8 py-4 text-sm text-accent/80 bg-primary/10 border-t border-t-neutral/10 border-b border-b-neutral/10"
 				hx-target="#posts"
 				hx-swap="outerHTML"
 				hx-trigger="change, reset delay:0.01s"
@@ -191,60 +191,68 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 				hx-post={ string(templ.URL(fmt.Sprintf("/filter"))) }
 			>
 				<div class="grid content-center gap-2">
-					<div class="flex items-center space-x-2">
-						<div class="flex items-center font-medium"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:filter-list me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z"></path></svg></div>
-						<input id="mood-angry" type="checkbox" name="mood" class="hidden" value="angry"/>
-						<label
-							id="label-angry"
-							for="mood-angry"
-							class="mood cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							😡
-						</label>
-						<input id="mood-upset" type="checkbox" name="mood" class="hidden" value="upset"/>
-						<label
-							id="label-upset"
-							for="mood-upset"
-							class="mood cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							😫
-						</label>
-						<input id="mood-sad" type="checkbox" name="mood" class="hidden" value="sad"/>
-						<label
-							id="label-sad"
-							for="mood-sad"
-							class="cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							☹️
-						</label>
-						<input id="mood-neutral" type="checkbox" name="mood" class="hidden" value="neutral"/>
-						<label
-							id="label-neutral"
-							for="mood-neutral"
-							class="cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							😐
-						</label>
-						<input id="mood-happy" type="checkbox" name="mood" class="hidden" value="happy"/>
-						<label
-							id="label-happy"
-							for="mood-happy"
-							class="cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							🙂
-						</label>
-						<input id="mood-elated" type="checkbox" name="mood" class="hidden" value="elated"/>
-						<label
-							id="label-elated"
-							for="mood-elated"
-							class="cursor-pointer rounded-lg p-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
-						>
-							😄
-						</label>
-					</div>
-					<div class="flex items-center space-x-2">
-						<div class=""><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:filter-list me-2" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z"></path></svg></div>
-						<div class="flex grow flex-wrap items-center font-medium">
+					<div class="text-sm font-medium">
+						<div class="flex items-center">
+							<div class="flex grow items-center">
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mage:filter me-2" viewBox="0 0 24 24">
+									<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="1.5" d="M21.25 12H8.895m-4.361 0H2.75m18.5 6.607h-5.748m-4.361 0H2.75m18.5-13.214h-3.105m-4.361 0H2.75m13.214 2.18a2.18 2.18 0 1 0 0-4.36a2.18 2.18 0 0 0 0 4.36Zm-9.25 6.607a2.18 2.18 0 1 0 0-4.36a2.18 2.18 0 0 0 0 4.36Zm6.607 6.608a2.18 2.18 0 1 0 0-4.361a2.18 2.18 0 0 0 0 4.36Z"></path>
+								</svg>Filter By:
+							</div>
+							<button id="reset-filter" type="reset" class="flex items-center ps-4 font-medium">
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:refresh me-2" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.7 2.65-2.85 4.325T12 20"></path>
+								</svg>Clear All
+							</button>
+						</div>
+						<div class="flex items-center rounded-xl pt-2">
+							<input id="mood-angry" type="checkbox" name="mood" class="hidden" value="angry"/>
+							<label
+								id="label-angry"
+								for="mood-angry"
+								class="mood cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								😡
+							</label>
+							<input id="mood-upset" type="checkbox" name="mood" class="hidden" value="upset"/>
+							<label
+								id="label-upset"
+								for="mood-upset"
+								class="mood cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								😫
+							</label>
+							<input id="mood-sad" type="checkbox" name="mood" class="hidden" value="sad"/>
+							<label
+								id="label-sad"
+								for="mood-sad"
+								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								☹️
+							</label>
+							<input id="mood-neutral" type="checkbox" name="mood" class="hidden" value="neutral"/>
+							<label
+								id="label-neutral"
+								for="mood-neutral"
+								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								😐
+							</label>
+							<input id="mood-happy" type="checkbox" name="mood" class="hidden" value="happy"/>
+							<label
+								id="label-happy"
+								for="mood-happy"
+								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								🙂
+							</label>
+							<input id="mood-elated" type="checkbox" name="mood" class="hidden" value="elated"/>
+							<label
+								id="label-elated"
+								for="mood-elated"
+								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+							>
+								😄
+							</label>
 							if len(tags) > 0 {
 								for i := 0; i < len(tags); i++ {
 									<label>
@@ -258,14 +266,6 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 								No tags found
 							}
 						</div>
-						<button id="reset-filter" type="reset" class="flex items-center ps-4 text-sm font-medium">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:refresh me-2" viewBox="0 0 24 24">
-								<path fill="currentColor" d="M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.7 2.65-2.85 4.325T12 20"></path>
-							</svg>Clear All
-						</button>
-					</div>
-					<div class="flex items-center pt-2">
-						// <span class="me-4">Filters</span>
 					</div>
 				</div>
 				// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 				// </svg>Sort
 			</form>
 			<div id="loader" class="htmx-indicator-none">
-				<div class="text-center min-h-[20dvh] py-20">
+				<div class="min-h-[20dvh] py-20 text-center">
 					<span class="loading loading-spinner text-accent"></span>
 				</div>
 			</div>
@@ -284,10 +284,10 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 }
 
 templ ListPosts(posts []posts.JoinPost) {
-	<div id="posts" class="grid min-h-[20dvh] content-start gap-4">
+	<div id="posts" class="grid min-h-[20dvh] content-start gap-4 px-8">
 		if len(posts) >0 {
 			for i := 0; i < len(posts); i++ {
-				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/5 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary hover:bg-primary/10 hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
+				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary hover:bg-primary/10 hover:ring-2 hover:ring-accent/50 hover:ring-offset-2">
 					<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-3xl lg:min-w-14 lg:text-5xl">
 						<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 							if posts[i].Mood  == "elated" {
