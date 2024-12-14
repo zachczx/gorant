@@ -19,7 +19,7 @@ templ Base(title string, currentUser users.User) {
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/20 p-0">
+			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0">
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="ps-2 text-3xl font-bold text-accent lg:ps-6">
 						Grumplr
@@ -209,7 +209,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-angry"
 								for="mood-angry"
-								class="mood cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="mood cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								😡
 							</label>
@@ -217,7 +217,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-upset"
 								for="mood-upset"
-								class="mood cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="mood cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								😫
 							</label>
@@ -225,7 +225,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-sad"
 								for="mood-sad"
-								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								☹️
 							</label>
@@ -233,7 +233,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-neutral"
 								for="mood-neutral"
-								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								😐
 							</label>
@@ -241,7 +241,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-happy"
 								for="mood-happy"
-								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								🙂
 							</label>
@@ -249,7 +249,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-elated"
 								for="mood-elated"
-								class="cursor-pointer rounded-lg px-1 text-2xl hover:bg-primary/30 hover:text-primary-content"
+								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
 							>
 								😄
 							</label>
@@ -257,7 +257,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 								for i := 0; i < len(tags); i++ {
 									<label>
 										<input type="checkbox" name="tags" class="hidden" value={ tags[i] }/>
-										<span class="btn btn-xs me-2 border border-accent/50 bg-primary/5 text-accent/70 hover:border-accent/50 hover:bg-primary/60">
+										<span class="btn btn-xs me-2 border border-neutral/30 bg-primary/5 text-neutral/70 hover:border-accent/50 hover:bg-primary/60">
 											{ tags[i] }
 										</span>
 									</label>
