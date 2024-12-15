@@ -173,7 +173,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 		<div
 			id="content"
 			if len(posts) > 0 {
-				class="mt-8 w-full max-w-[1200px] space-y-8 rounded-2xl bg-white/70 border border-neutral/10 py-8 shadow-lg lg:mt-16"
+				class="mt-8 w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg lg:mt-16"
 			} else {
 				class="hidden"
 			}
@@ -183,7 +183,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 			</div>
 			<form
 				id="filter-mood-form"
-				class="px-8 py-4 text-sm text-accent/80 bg-primary/10 border-t border-t-neutral/10 border-b border-b-neutral/10"
+				class="border-b border-t border-b-neutral/10 border-t-neutral/10 bg-primary/10 px-8 py-4 text-sm text-accent/80"
 				hx-target="#posts"
 				hx-swap="outerHTML"
 				hx-trigger="change, reset delay:0.01s"
@@ -209,7 +209,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-angry"
 								for="mood-angry"
-								class="mood cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="mood me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								😡
 							</label>
@@ -217,7 +217,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-upset"
 								for="mood-upset"
-								class="mood cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="mood me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								😫
 							</label>
@@ -225,7 +225,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-sad"
 								for="mood-sad"
-								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								☹️
 							</label>
@@ -233,7 +233,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-neutral"
 								for="mood-neutral"
-								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								😐
 							</label>
@@ -241,7 +241,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-happy"
 								for="mood-happy"
-								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								🙂
 							</label>
@@ -249,7 +249,7 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 							<label
 								id="label-elated"
 								for="mood-elated"
-								class="cursor-pointer rounded-lg px-1 text-2xl me-1 saturate-[0.25] hover:bg-primary/30 hover:saturate-100 hover:text-primary-content"
+								class="me-1 cursor-pointer rounded-lg text-2xl saturate-[0.25] hover:bg-primary/30 hover:text-primary-content hover:saturate-100"
 							>
 								😄
 							</label>
@@ -268,9 +268,6 @@ templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []stri
 						</div>
 					</div>
 				</div>
-				// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
-				// 	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
-				// </svg>Sort
 			</form>
 			<div id="loader" class="htmx-indicator-none">
 				<div class="min-h-[20dvh] py-20 text-center">
@@ -494,21 +491,6 @@ templ CreatePostDrawer() {
 	</div>
 }
 
-templ EmptyTags(p posts.JoinPost) {
-	<div
-		id="tags-container"
-		class="group flex cursor-pointer items-center justify-center"
-		hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/edit", p.PostID))) }
-		hx-target="#tags-container"
-		hx-swap="outerHTML"
-	>
-		<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
-		<button class="btn btn-xs rounded-lg border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">
-			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>Add Tags
-		</button>
-	</div>
-}
-
 templ ShowTags(p posts.JoinPost) {
 	<div
 		id="tags-container"
@@ -517,13 +499,19 @@ templ ShowTags(p posts.JoinPost) {
 		hx-target="#tags-container"
 		hx-swap="outerHTML"
 	>
-		<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
-		for i := 0; i < len(p.Tags); i++ {
-			<span class="text-md btn btn-sm me-2 border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">{ p.Tags[i] }</span>
+		if len(p.Tags) == 0 {
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-neutral/70" viewBox="0 0 24 24">
+				<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
+			</svg>
+			<button class="btn btn-xs rounded-lg border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>Add Tags
+			</button>
+		} else {
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
+			for i := 0; i < len(p.Tags); i++ {
+				<span class="text-md btn btn-sm me-2 border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">{ p.Tags[i] }</span>
+			}
 		}
-		// <button class="btn btn-accent btn-sm opacity-0 group-hover:opacity-100">
-		// 	<svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>
-		// </button>
 	</div>
 }
 
