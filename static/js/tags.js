@@ -124,17 +124,31 @@ function tagsUi() {
 		}
 	});
 
-	//Keyboard shortcuts for tags UI
-	keyboardShortcut(tagsInput, tagsSaveButton, tagsForm);
-
 	// This helps when user enters into input field, but doesn't press any of the triggers to add the value to the hidden field.
 	// This does a last check to add all remaining input in the field before posting it
 	//
 	// Note: Seems like just the click event precedes the request, so this doesn't require evt.preventDefault()
 	// Note: However, I added a delay of 100ms to hx-trigger just to be safe
-	tagsSaveButton.addEventListener('click', () => {
-		if (tagsInput.value.length > 0) {
-			tagsData.value = tagsData.value + ',' + tagsInput.value;
+	window.addEventListener('htmx:configRequest', (evt) => {
+		// htmx:configRequest triggers after htmx collected params - https://htmx.org/events/#htmx:configRequest
+		// htmx:beforeRequest does not change params.
+		// Alternative to listening to configRequest is to add eventListeners directly to the button or listen for keypresses ctrl+enter, which is tedious
+		if (evt.detail.elt === tagsForm) {
+			if (tagsInput.value.length > 0) {
+				if (tagsData.value.length > 0) {
+					tagsData.value = tagsData.value + ',' + tagsInput.value;
+					evt.detail.parameters['tags-data'] = tagsData.value;
+					console.log('Existing tagsData found, ', tagsData.value);
+				} else {
+					tagsData.value = tagsInput.value;
+					evt.detail.parameters['tags-data'] = tagsData.value;
+					console.log('No existing tagsData, ', tagsData.value);
+				}
+			}
 		}
+		console.log('tags data', evt.detail.parameters['tags-data']);
 	});
+
+	//Keyboard shortcuts for tags UI
+	keyboardShortcut(tagsInput, tagsSaveButton, tagsForm);
 }
