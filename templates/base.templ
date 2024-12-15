@@ -106,12 +106,6 @@ templ Footer() {
 	</dialog>
 }
 
-templ About(currentUser users.User) {
-	@Base("About", currentUser) {
-		<h1>About</h1>
-	}
-}
-
 templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center">

@@ -185,6 +185,11 @@
 	label > input:checked + span {
 		@apply border-primary/50 bg-primary/50;
 	}
+
+	/* Post form validation */
+	#comment-form-message-input textarea:user-invalid {
+		border: 10px solid red !important;
+	}
 }
 
 @layer utilities {

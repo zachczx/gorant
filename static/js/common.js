@@ -17,4 +17,11 @@ export function keyboardShortcut(inputEl, buttonEl) {
 			buttonEl.innerHTML = 'Add Comment';
 		}
 	});
+
+	window.addEventListener('htmx:validation:failed', () => {
+		console.log('Changing back to text button');
+		setTimeout(() => {
+			buttonEl.innerHTML = 'Add Comment';
+		}, 1);
+	});
 }

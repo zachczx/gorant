@@ -198,7 +198,7 @@ func main() {
 			return
 		}
 
-		TemplRender(w, r, templates.Post(*currentUser, "Posts", post, comments, postID, "", currentUser.SortComments))
+		TemplRender(w, r, templates.Post(*currentUser, "Posts", post, comments, "", currentUser.SortComments))
 	})))
 
 	mux.Handle("POST /posts/{postID}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -226,7 +226,7 @@ func main() {
 			return
 		}
 
-		TemplRender(w, r, templates.PartialPostNewSorted(*currentUser, comments, postID, ""))
+		TemplRender(w, r, templates.PartialPostNewSorted(*currentUser, comments, ""))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -246,7 +246,7 @@ func main() {
 				TemplRender(w, r, templates.Error(*currentUser, "Error!"))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(*currentUser, comments, postID))
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(*currentUser, comments))
 			return
 		}
 
@@ -271,7 +271,7 @@ func main() {
 				TemplRender(w, r, templates.Error(*currentUser, "Oops, something went wrong."))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewError(*currentUser, comments, postID, v))
+			TemplRender(w, r, templates.PartialPostNewError(*currentUser, comments, v))
 			return
 		}
 
@@ -287,7 +287,7 @@ func main() {
 			return
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(*currentUser, comments, postID, insertedID))
+			TemplRender(w, r, templates.PartialPostNewSuccess(*currentUser, comments, insertedID))
 		}
 	})))
 
@@ -392,7 +392,7 @@ func main() {
 			fmt.Println("Error fetching posts", err)
 		}
 
-		TemplRender(w, r, templates.PartialPostVote(*currentUser, comments, postID, commentID))
+		TemplRender(w, r, templates.PartialPostVote(*currentUser, comments, commentID))
 	})))
 
 	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -473,7 +473,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-		TemplRender(w, r, templates.PartialPostDelete(*currentUser, comments, postID))
+		TemplRender(w, r, templates.PartialPostDelete(*currentUser, comments))
 	})))
 
 	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -491,7 +491,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching post info", err)
 		}
-		TemplRender(w, r, templates.PartialEditDescriptionResponse(*currentUser, postID, post))
+		TemplRender(w, r, templates.PartialEditDescriptionResponse(*currentUser, post))
 	})))
 
 	mux.Handle("POST /posts/{postID}/like", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -514,10 +514,6 @@ func main() {
 			TemplRender(w, r, templates.PartialLikePost(postID, "0"))
 		}
 	})))
-
-	mux.HandleFunc("GET /about", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.About(*currentUser))
-	})
 
 	mux.HandleFunc("GET /admin/reset", func(w http.ResponseWriter, r *http.Request) {
 		if os.Getenv("DEV_ENV") == "TRUE" {
