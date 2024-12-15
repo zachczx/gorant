@@ -298,69 +298,64 @@ func GetTags(postID string) (JoinPost, error) {
 
 func EditTags(postID string, tags []string) error {
 	var tag Tag
-	tagStruct := []Tag{}
+	validTags := []Tag{}
 	var err error
 
 	for _, v := range tags {
-		// Reusing TitleToID to sanitize input
-		tag.Tag, err = TitleToID(v)
-		if err != nil {
-			return err
+		if pass := ValidateTags(v); pass {
+			tag.Tag = v
+			validTags = append(validTags, tag)
 		}
-		tagStruct = append(tagStruct, tag)
 	}
+	fmt.Println("Valid tags: ", validTags)
+	fmt.Println("Number of valid tags: ", len(validTags))
 
-	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagStruct)
-	if err != nil {
+	// Even if len(validTags) == 0, I can't end the func now, because I'll need to delete all the posts.
+	// We can stop when needing to insert tags.
+
+	if err = InsertTags(validTags); err != nil {
 		// Print error instead of returning, duplicate value error is alright
 		fmt.Println(err)
 	}
 
-	// Grab all the existing tags from post using postID
-	rows, err := database.DB.Query(`SELECT posts_tags.post_id, posts_tags.tag_id, tags.tag FROM posts_tags LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id WHERE post_id=$1`, postID)
+	postsTags, err := GetPostIDTagIDTag(postID)
 	if err != nil {
 		return err
 	}
 
-	defer rows.Close()
+	if err := DeleteUnwantedTags(tags, postsTags); err != nil {
+		fmt.Println(err)
+	}
 
-	var pt PostTag
-	var postsTags []PostTag
-	for rows.Next() {
-		if err := rows.Scan(&pt.PostID, &pt.TagID, &pt.Tag); err != nil {
+	// Now I can end the func if len(validTags) == 0, since we've already deleted what we needed
+	if len(validTags) == 0 {
+		fmt.Println("Ending func since no valid tags were found!")
+		return nil
+	}
+
+	if err := InsertPostTags(postID, validTags, postsTags); err != nil {
+		fmt.Println(err)
+	}
+
+	return nil
+}
+
+func InsertTags(validTags []Tag) error {
+	if len(validTags) > 0 {
+		_, err := database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, validTags)
+		if err != nil {
 			return err
 		}
-
-		postsTags = append(postsTags, pt)
-		fmt.Println("Tags in post now: ", pt.Tag)
 	}
+	return nil
+}
 
-	// Loop through postTags to find tags that are not in current user input, then mark those for deletion.
-	var tagsToDeleteID []int
-	var exists bool
-	for _, v := range postsTags {
-		if exists = contains(tags, v.Tag); !exists {
-			tagsToDeleteID = append(tagsToDeleteID, v.TagID)
-		}
-	}
-
-	fmt.Println("Tags to Delete: ", tagsToDeleteID)
-
-	// Delete from posts_tags if tagsToDelete is not empty
-	if len(tagsToDeleteID) > 0 {
-		for _, v := range tagsToDeleteID {
-			_, err = database.DB.Exec(`DELETE FROM posts_tags WHERE tag_id=$1`, v)
-			if err != nil {
-				fmt.Println("Error in deleting")
-				return err
-			}
-		}
-	}
-
+func InsertPostTags(postID string, validTags []Tag, postsTags []PostTag) error {
 	var tagsToInsert []string
-	for _, v := range tags {
-		if exists = containsPostTag(postsTags, v); !exists {
-			tagsToInsert = append(tagsToInsert, v)
+
+	for _, v := range validTags {
+		if exists := containsPostTag(postsTags, v.Tag); !exists {
+			tagsToInsert = append(tagsToInsert, v.Tag)
 		}
 	}
 
@@ -370,11 +365,104 @@ func EditTags(postID string, tags []string) error {
 	// insert into posts_tags
 	if len(tagsToInsert) > 0 {
 		for _, v := range tagsToInsert {
-			_, err = database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
+			_, err := database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Successfully saved: %s into %s\n", v, postID)
+			fmt.Printf("Successfully saved: \"%s\" into \"%s\"\n", v, postID)
+		}
+	}
+	return nil
+}
+
+func GetPostIDTagIDTag(postID string) ([]PostTag, error) {
+	var pt PostTag
+	var postsTags []PostTag
+	// Grab all the existing tags from post using postID
+	rows, err := database.DB.Query(`SELECT posts_tags.post_id, posts_tags.tag_id, tags.tag FROM posts_tags LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id WHERE post_id=$1`, postID)
+	if err != nil {
+		return postsTags, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(&pt.PostID, &pt.TagID, &pt.Tag); err != nil {
+			return postsTags, err
+		}
+
+		postsTags = append(postsTags, pt)
+		fmt.Println("Tags in post now: ", pt.Tag)
+	}
+
+	return postsTags, nil
+}
+
+var disallowed = [33]string{
+	".",
+	" ",
+	"_",
+	"!",
+	".",
+	"$",
+	"/",
+	"\\",
+	"|",
+	"(",
+	")",
+	"[",
+	"]",
+	"=",
+	"`",
+	"{",
+	"}",
+	"<",
+	">",
+	"?",
+	"@",
+	"#",
+	"%",
+	"^",
+	"&",
+	"*",
+	"—",
+	":",
+	"'",
+	";",
+	"\"",
+	"+",
+	",",
+}
+
+func ValidateTags(tag string) (passed bool) {
+	for _, v := range disallowed {
+		if strings.Contains(tag, v) {
+			return false
+		}
+	}
+	return true
+}
+
+func DeleteUnwantedTags(inputTags []string, postsTags []PostTag) error {
+	// Loop through postTags to find tags that are not in current user input, then mark those for deletion.
+	var tagsToDeleteID []int
+	var exists bool
+	for _, v := range postsTags {
+		if exists = contains(inputTags, v.Tag); !exists {
+			tagsToDeleteID = append(tagsToDeleteID, v.TagID)
+		}
+	}
+
+	fmt.Println("Tags to Delete: ", tagsToDeleteID)
+
+	// Delete from posts_tags if tagsToDelete is not empty
+	if len(tagsToDeleteID) > 0 {
+		for _, v := range tagsToDeleteID {
+			_, err := database.DB.Exec(`DELETE FROM posts_tags WHERE tag_id=$1`, v)
+			if err != nil {
+				fmt.Println("Error in deleting")
+				return err
+			}
 		}
 	}
 
@@ -568,6 +656,7 @@ func TitleToID(title string) (string, error) {
 	title = strings.Join(ss, " ")
 	r := strings.NewReplacer(
 		" ", "-",
+		".", "",
 		"_", "-",
 		"!", "",
 		".", "",
