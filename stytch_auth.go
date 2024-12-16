@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"gorant/database"
 	"gorant/templates"
@@ -32,7 +34,7 @@ func NewAuthService(projectId, secret string) *AuthService {
 
 	return &AuthService{
 		client: client,
-		store:  gorillaSessions.NewCookieStore([]byte("your-secret-key")),
+		store:  gorillaSessions.NewCookieStore([]byte(os.Getenv("STYTCH_SECRET"))),
 	}
 }
 
@@ -46,6 +48,7 @@ func (s *AuthService) CheckAuthentication(currentUser *users.User, h http.Handle
 				fmt.Println(err)
 			}
 		}
+
 		h.ServeHTTP(w, r)
 	})
 }
@@ -61,6 +64,8 @@ func (s *AuthService) getAuthenticatedUser(w http.ResponseWriter, r *http.Reques
 		return nil
 	}
 
+	start := time.Now()
+
 	resp, err := s.client.Sessions.Authenticate(
 		context.Background(),
 		&sessions.AuthenticateParams{
@@ -73,6 +78,9 @@ func (s *AuthService) getAuthenticatedUser(w http.ResponseWriter, r *http.Reques
 	}
 	session.Values["token"] = resp.SessionToken
 	session.Save(r, w)
+
+	end := time.Since(start)
+	fmt.Println("Time taken for auth: ", end)
 
 	return &resp.User
 }
