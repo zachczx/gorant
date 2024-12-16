@@ -18,7 +18,7 @@ function calculateCharsRemaining() {
 
 calculateCharsRemaining();
 
-document.addEventListener('htmx:afterSwap', () => {
+window.addEventListener('htmx:afterSwap', () => {
 	calculateCharsRemaining();
 });
 

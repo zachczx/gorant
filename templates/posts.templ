@@ -410,8 +410,8 @@ templ PostForm(currentUser users.User, postID string, oobSwap string) {
 			<h2 class="text-xl font-bold text-base-content/70">Add Comment</h2>
 			<label class="form-control">
 				<div id="form-message-label" class="label flex text-base-content/70">
-					<div class="text-sm grow ">Message</div>
-					<div class="text-sm italic"><span id="form-message-chars-remaining"></span> characters left</div>
+					<div class="grow text-sm">Message</div>
+					<div class="text-sm italic"><span id="form-message-chars-remaining"></span>/2000</div>
 				</div>
 				<textarea
 					name="message"
@@ -424,7 +424,7 @@ templ PostForm(currentUser users.User, postID string, oobSwap string) {
 					required
 				></textarea>
 			</label>
-			<div id="comment-form-error-message" class="text-error text-sm"></div>
+			<div id="comment-form-error-message" class="text-sm text-error"></div>
 			<button id="comment-submit-button" class="btn btn-accent w-full rounded-lg text-lg">Add Comment</button>
 		</form>
 	} else {

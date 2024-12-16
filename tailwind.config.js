@@ -82,7 +82,7 @@ module.exports = {
 				},
 				'highlight-border': {
 					'5%, 95%': {
-						border: '1px solid #ea580c',
+						border: '1px solid rgba(234,88,12, 0.3)',
 					},
 					'0, 100%': {
 						border: '1px solid rgba(38, 41, 49, 0.3)',
@@ -92,7 +92,7 @@ module.exports = {
 					'0%': {
 						backgroundColor: '#feede4',
 					},
-					'100%': { backgroundColor: 'rgba(190, 242, 100, 0.1)' },
+					'100%': { backgroundColor: 'rgba(255,255,255, 0.7)' }, //rgba(190, 242, 100, 0.1)
 				},
 				'highlight-comment-side': {
 					'0%': {
