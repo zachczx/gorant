@@ -1,4 +1,4 @@
-package main
+package stytch
 
 import (
 	"context"
@@ -13,12 +13,18 @@ import (
 	"gorant/templates"
 	"gorant/users"
 
+	"github.com/a-h/templ"
 	gorillaSessions "github.com/gorilla/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks"
 	emailML "github.com/stytchauth/stytch-go/v15/stytch/consumer/magiclinks/email"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/sessions"
 	"github.com/stytchauth/stytch-go/v15/stytch/consumer/stytchapi"
 	stytchUsers "github.com/stytchauth/stytch-go/v15/stytch/consumer/users"
+)
+
+var (
+	ctx       context.Context
+	emptyUser users.User
 )
 
 type AuthService struct {
@@ -110,7 +116,7 @@ func (s *AuthService) sendMagicLinkHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	TemplRender(w, r, templates.LoginSubmitted(emptyUser))
+	TemplRender(w, r, LoginSubmitted(emptyUser))
 }
 
 func (s *AuthService) authenticateHandler(currentUser *users.User) http.Handler {
@@ -183,4 +189,8 @@ func (s *AuthService) logout(currentUser *users.User, h http.Handler) http.Handl
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+func TemplRender(w http.ResponseWriter, r *http.Request, c templ.Component) {
+	c.Render(r.Context(), w)
 }

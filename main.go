@@ -40,16 +40,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	service := NewAuthService(
-		os.Getenv("STYTCH_PROJECT_ID"),
-		os.Getenv("STYTCH_SECRET"),
-	)
-
+	// Init Keycloak client
+	k := newKeycloak()
 	currentUser := &users.User{SortComments: "upvote;desc"}
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /{$}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Current user: ", currentUser.UserID)
+
+	// Not using this because everything loads so fast, it's just a flash before it changes, which is uglier.
+	// And worse, I incur 2 authentication checks instead of 1.
+	// It's more troublesome to have to split out Create Bar and NavProfileBadge, both of which needs current user data, just to load them via HTMX separately.
+	mux.Handle("GET /navbar-profile-badge", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.NavProfileBadge(currentUser))
+	})))
+
+	mux.Handle("GET /{$}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Current user: ", currentUser)
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
@@ -111,7 +116,7 @@ func main() {
 		TemplRender(w, r, templates.ListPosts(p))
 	})
 
-	mux.Handle("GET /posts", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("validation") == "error" {
 			p, err := posts.ListPosts()
 			if err != nil {
@@ -127,7 +132,7 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts/new", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/new", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("post-title")
 		m := r.FormValue("mood")
 		tags := r.FormValue("tags-data")
@@ -180,7 +185,7 @@ func main() {
 		w.Header().Set("HX-Redirect", "/posts/"+ID)
 	})))
 
-	mux.Handle("GET /posts/{postID}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		post, err := posts.GetPost(postID, currentUser.UserID)
 		if err != nil {
@@ -201,7 +206,7 @@ func main() {
 		TemplRender(w, r, templates.Post(*currentUser, "Posts", post, comments, "", currentUser.SortComments))
 	})))
 
-	mux.Handle("POST /posts/{postID}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		filter := r.FormValue("f")
 		sort := r.FormValue("sort")
@@ -234,7 +239,7 @@ func main() {
 		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{postID}/new", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/new", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 
 		if currentUser.UserID == "" {
@@ -291,7 +296,7 @@ func main() {
 		}
 	})))
 
-	mux.Handle("POST /posts/{postID}/delete", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/delete", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		if err := posts.DeletePost(postID, currentUser.UserID); err != nil {
 			fmt.Println(err)
@@ -312,7 +317,7 @@ func main() {
 		TemplRender(w, r, templates.ShowTags(p))
 	}))
 
-	mux.Handle("GET /posts/{postID}/tags/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}/tags/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		post, err := posts.GetPost(postID, currentUser.UserID)
 		if err != nil {
@@ -322,7 +327,7 @@ func main() {
 		TemplRender(w, r, templates.PartialEditTags(post))
 	})))
 
-	mux.Handle("POST /posts/{postID}/tags/save", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/tags/save", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		t := r.FormValue("tags-data")
 		fmt.Println("Form data: ", t)
@@ -346,7 +351,7 @@ func main() {
 		TemplRender(w, r, templates.ShowTags(p))
 	})))
 
-	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		newMood := r.PathValue("newMood")
 
@@ -372,7 +377,7 @@ func main() {
 		TemplRender(w, r, templates.PartialMoodMapper(*currentUser, postID, post.UserID, post.Mood))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 		if ctx.Value("currentUser") == "" {
@@ -395,7 +400,7 @@ func main() {
 		TemplRender(w, r, templates.PartialPostVote(*currentUser, comments, commentID))
 	})))
 
-	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -413,7 +418,7 @@ func main() {
 		TemplRender(w, r, templates.PartialCommentEdit(c))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -437,7 +442,7 @@ func main() {
 		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
 	})))
 
-	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit/cancel", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit/cancel", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -454,7 +459,7 @@ func main() {
 		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
 	})))
 
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
 
@@ -476,7 +481,7 @@ func main() {
 		TemplRender(w, r, templates.PartialPostDelete(*currentUser, comments))
 	})))
 
-	mux.Handle("POST /posts/{postID}/description/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/description/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		description := r.FormValue("post-description-input")
 
@@ -494,7 +499,7 @@ func main() {
 		TemplRender(w, r, templates.PartialEditDescriptionResponse(*currentUser, post))
 	})))
 
-	mux.Handle("POST /posts/{postID}/like", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /posts/{postID}/like", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if currentUser.UserID == "" {
 			w.WriteHeader(http.StatusForbidden)
 			TemplRender(w, r, templates.Toast("error", "You need to login before liking a post."))
@@ -532,7 +537,7 @@ func main() {
 		}
 	})
 
-	mux.Handle("GET /settings", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /settings", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
 		err := currentUser.GetSettings(currentUser.UserID)
 		if err != nil {
@@ -549,7 +554,7 @@ func main() {
 		TemplRender(w, r, templates.Settings(*currentUser))
 	})))
 
-	mux.Handle("POST /settings/edit", service.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /settings/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f := users.Settings{
 			PreferredName: r.FormValue("preferred-name"),
 			ContactMe:     r.FormValue("contact-me"),
@@ -558,11 +563,13 @@ func main() {
 		}
 
 		if err := users.Validate(f); err != nil {
+			fmt.Println(err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			TemplRender(w, r, templates.Toast("error", "Sorry, an error occurred while saving!"))
 			return
 		}
 
+		fmt.Println(currentUser.UserID)
 		if err := users.SaveSettings(currentUser.UserID, f); err != nil {
 			fmt.Println("Error saving: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -581,25 +588,43 @@ func main() {
 	// Auth handles
 	//--------------------------------------
 	mux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
-		ref := r.URL.Query().Get("r")
+		// ref := r.URL.Query().Get("r")
 
-		switch ref {
-		case "new":
-			TemplRender(w, r, templates.Login(*currentUser, "error", "You need to login before you can create a new post"))
-			return
-		}
-		TemplRender(w, r, templates.Login(*currentUser, "", ""))
+		// switch ref {
+		// case "new":
+		// 	TemplRender(w, r, templates.Login(*currentUser, "error", "You need to login before you can create a new post"))
+		// 	return
+		// }
+		// TemplRender(w, r, templates.Login(*currentUser, "", ""))
+		TemplRender(w, r, templates.KeycloakLogin(emptyUser))
 	})
 
-	mux.HandleFunc("POST /login/sendlink", service.sendMagicLinkHandler)
+	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
-	mux.Handle("GET /authenticate", service.authenticateHandler(currentUser))
+	/////////////////////////////////
+	// Gocloak
+	////////////////////////////////
 
-	mux.Handle("GET /logout", service.logout(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.LoggedOut(*currentUser))
+	mux.Handle("GET /status", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Successfully authenticated!\r\n\r\n"))
+
+		info := fmt.Sprintf("Username: %v\r\n\r\n", currentUser.UserID)
+		w.Write([]byte(info))
 	})))
 
-	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
+	mux.Handle("POST /authenticate", k.keycloakLoginHandler(currentUser))
+
+	mux.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.KeycloakRegister(emptyUser))
+	})
+
+	mux.Handle("POST /registration", k.keycloakRegisterHandler(currentUser))
+
+	mux.Handle("GET /logout", k.keycloakLogout(currentUser))
+
+	/////////////////////////////////
+	// Gocloak
+	////////////////////////////////
 
 	var p string = os.Getenv("LISTEN_ADDR")
 	wrappedMux := StatusLogger(ExcludeCompression(SetCacheControl(mux)))

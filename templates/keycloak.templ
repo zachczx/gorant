@@ -1,0 +1,111 @@
+package templates
+
+import "gorant/users"
+
+templ KeycloakRegister(emptyUser users.User) {
+	@Base("Register", emptyUser) {
+		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+			<div class="h-full space-y-4">
+				<div id="settings-message"></div>
+				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
+					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Register</h1>
+					<form
+						method="post"
+						class="grid gap-4"
+						hx-post="/registration"
+						hx-target="#settings-message"
+						hx-swap="outerHTML"
+						hx-target-error="#toast"
+						id="settings-form"
+					>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Email</span>
+							</div>
+							<input type="email" name="username" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+						</label>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Password</span>
+							</div>
+							<input type="password" name="password" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+						</label>
+						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Register</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Have an account? Login.</a></div>
+					</form>
+				</div>
+			</div>
+		</main>
+		// <script src="/static/js/output/settings.js"></script>
+	}
+}
+
+templ KeycloakLogin(emptyUser users.User) {
+	@Base("Login", emptyUser) {
+		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+			<div class="h-full w-full space-y-4">
+				<div id="settings-message"></div>
+				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
+					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Login</h1>
+					<form
+						method="post"
+						class="grid gap-4"
+						hx-post="/authenticate"
+						hx-target="#settings-message"
+						hx-swap="outerHTML"
+						hx-target-error="#toast"
+						id="settings-form"
+					>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Email</span>
+							</div>
+							<input type="email" name="username" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+						</label>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Password</span>
+							</div>
+							<input type="password" name="password" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+						</label>
+						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Login</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/register">Need an account? Register.</a></div>
+					</form>
+				</div>
+			</div>
+		</main>
+		<script src="/static/js/output/settings.js"></script>
+	}
+}
+
+templ LoggedOut(currentUser users.User) {
+	@Base("Grumplr - Logged Out", currentUser) {
+		<div class="w-full max-w-xl content-center">
+			<div class="space-y-12 rounded-lg bg-white/70 p-12 shadow-lg">
+				<h1 class="flex flex-wrap items-center text-4xl font-bold"><svg xmlns="http://www.w3.org/2000/svg" class="me-4 inline" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg> Logged Out!</h1>
+				<div class="space-y-4">
+					<p>
+						<a href="/">Redirecting you to the main page in</a>... <span id="countdown" class="text-lg font-bold"></span>
+					</p>
+				</div>
+				<div class="text-center"><span class="loading loading-spinner loading-lg text-accent"></span></div>
+			</div>
+		</div>
+	}
+	<script>
+		(function() {
+			const countdownEl = document.getElementById("countdown")
+			let timer = 8
+			countdownEl.innerText = timer
+			
+			setInterval(() => {
+				timer -= 1
+				if (timer >= 0) {
+					countdownEl.innerText = timer
+				} else if (timer < 0) {
+					window.location.href = "/";
+				}
+			},1000)
+		})()
+	</script>
+}

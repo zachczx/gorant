@@ -1,4 +1,4 @@
-package templates
+package stytch
 
 import "gorant/users"
 
@@ -80,7 +80,7 @@ templ LoginSubmitted(currentUser users.User) {
 	</script>
 }
 
-templ LoggedOut(currentUser users.User) {
+templ StytchLoggedOut(currentUser users.User) {
 	@Base("Grumplr - Logged Out", currentUser) {
 		<div class="w-full max-w-xl content-center">
 			<div class="space-y-12 rounded-lg bg-lime-300/20 p-12 shadow-lg">

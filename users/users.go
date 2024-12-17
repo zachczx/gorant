@@ -32,7 +32,7 @@ type Settings struct {
 func (u *User) GetSettings(username string) error {
 	if err := database.DB.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("Weird, no rows found!")
+			fmt.Println("Weird, no user settings found!")
 			return err
 		}
 	}
@@ -42,7 +42,7 @@ func (u *User) GetSettings(username string) error {
 	return nil
 }
 
-const regex string = "^[0-9A-Za-z \\-\\_\\+\\(\\)\\[\\]\\|]+$"
+const regex string = `^[0-9A-Za-z -_+()[]|@\.]+$`
 
 func Validate(s Settings) map[string](string) {
 	v := govalidator.New()
