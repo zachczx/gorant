@@ -27,6 +27,11 @@ My personal Go webapp starter kit.
 1. Docker
 2. Makefile
 
+## To Do
+
+1. Forgot/reset password 
+2. Real time posts with SSE
+
 ## Notes for Choice of Auth
 
 1. Stytch introduced about 250ms on localhost owing to service.CheckAuthentication()
