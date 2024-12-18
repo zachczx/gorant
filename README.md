@@ -29,7 +29,7 @@ My personal Go webapp starter kit.
 
 ## To Do
 
-1. Forgot/reset password 
+1. Forgot/reset password
 2. Real time posts with SSE
 
 ## Notes for Choice of Auth

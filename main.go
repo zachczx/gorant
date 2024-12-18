@@ -65,7 +65,7 @@ func main() {
 			fmt.Println("Error fetching tags", err)
 		}
 		fmt.Println("Tags: ", t)
-		TemplRender(w, r, templates.StarterWelcome(*currentUser, p, t))
+		TemplRender(w, r, templates.StarterWelcome(currentUser, p, t))
 	})))
 
 	mux.HandleFunc("POST /anonymous", func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func main() {
 	})
 
 	mux.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.Error(*currentUser, "Oops something went wrong."))
+		TemplRender(w, r, templates.Error(currentUser, "Oops something went wrong."))
 	})
 
 	mux.HandleFunc("POST /filter", func(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +127,7 @@ func main() {
 			if err != nil {
 				fmt.Println("Error fetching tags", err)
 			}
-			TemplRender(w, r, templates.StarterWelcomeError(*currentUser, p, t))
+			TemplRender(w, r, templates.StarterWelcomeError(currentUser, p, t))
 			return
 		}
 	})))
@@ -190,7 +190,7 @@ func main() {
 		post, err := posts.GetPost(postID, currentUser.UserID)
 		if err != nil {
 			fmt.Println(err)
-			TemplRender(w, r, templates.Error(*currentUser, "Error!"))
+			TemplRender(w, r, templates.Error(currentUser, "Error!"))
 			return
 		}
 
@@ -199,11 +199,11 @@ func main() {
 		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
-			TemplRender(w, r, templates.Error(*currentUser, "Error!"))
+			TemplRender(w, r, templates.Error(currentUser, "Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.Post(*currentUser, "Posts", post, comments, "", currentUser.SortComments))
+		TemplRender(w, r, templates.Post(currentUser, "Posts", post, comments, "", currentUser.SortComments))
 	})))
 
 	mux.Handle("POST /posts/{postID}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -227,11 +227,11 @@ func main() {
 		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
-			TemplRender(w, r, templates.Error(*currentUser, "Error!"))
+			TemplRender(w, r, templates.Error(currentUser, "Error!"))
 			return
 		}
 
-		TemplRender(w, r, templates.PartialPostNewSorted(*currentUser, comments, ""))
+		TemplRender(w, r, templates.PartialPostNewSorted(currentUser, comments, ""))
 	})))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
@@ -248,16 +248,16 @@ func main() {
 			comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
 			if err != nil {
 				fmt.Println(err)
-				TemplRender(w, r, templates.Error(*currentUser, "Error!"))
+				TemplRender(w, r, templates.Error(currentUser, "Error!"))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(*currentUser, comments))
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(currentUser, comments))
 			return
 		}
 
 		if exists, _ := posts.VerifyPostID(postID); !exists {
 			fmt.Println("Error verifying post exists")
-			TemplRender(w, r, templates.Error(*currentUser, "Error! Post doesn't exist!"))
+			TemplRender(w, r, templates.Error(currentUser, "Error! Post doesn't exist!"))
 			return
 		}
 
@@ -273,10 +273,10 @@ func main() {
 			comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
 			if err != nil {
 				fmt.Println("Error fetching posts")
-				TemplRender(w, r, templates.Error(*currentUser, "Oops, something went wrong."))
+				TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
 				return
 			}
-			TemplRender(w, r, templates.PartialPostNewError(*currentUser, comments, v))
+			TemplRender(w, r, templates.PartialPostNewError(currentUser, comments, v))
 			return
 		}
 
@@ -288,11 +288,11 @@ func main() {
 
 		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
 		if err != nil {
-			TemplRender(w, r, templates.Error(*currentUser, "Oops, something went wrong."))
+			TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
 			return
 		}
 		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(*currentUser, comments, insertedID))
+			TemplRender(w, r, templates.PartialPostNewSuccess(currentUser, comments, insertedID))
 		}
 	})))
 
@@ -374,7 +374,7 @@ func main() {
 			fmt.Println("Issue with getting post info: ", err)
 		}
 
-		TemplRender(w, r, templates.PartialMoodMapper(*currentUser, postID, post.UserID, post.Mood))
+		TemplRender(w, r, templates.PartialMoodMapper(currentUser, postID, post.UserID, post.Mood))
 	})))
 
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -397,7 +397,7 @@ func main() {
 			fmt.Println("Error fetching posts", err)
 		}
 
-		TemplRender(w, r, templates.PartialPostVote(*currentUser, comments, commentID))
+		TemplRender(w, r, templates.PartialPostVote(currentUser, comments, commentID))
 	})))
 
 	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -478,7 +478,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-		TemplRender(w, r, templates.PartialPostDelete(*currentUser, comments))
+		TemplRender(w, r, templates.PartialPostDelete(currentUser, comments))
 	})))
 
 	mux.Handle("POST /posts/{postID}/description/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -496,7 +496,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error fetching post info", err)
 		}
-		TemplRender(w, r, templates.PartialEditDescriptionResponse(*currentUser, post))
+		TemplRender(w, r, templates.PartialEditDescriptionResponse(currentUser, post))
 	})))
 
 	mux.Handle("POST /posts/{postID}/like", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -548,10 +548,10 @@ func main() {
 		switch ref {
 		case "firstlogin":
 			fmt.Println("in switch")
-			TemplRender(w, r, templates.SettingsFirstLogin(*currentUser))
+			TemplRender(w, r, templates.SettingsFirstLogin(currentUser))
 			return
 		}
-		TemplRender(w, r, templates.Settings(*currentUser))
+		TemplRender(w, r, templates.Settings(currentUser))
 	})))
 
 	mux.Handle("POST /settings/edit", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -592,10 +592,10 @@ func main() {
 
 		// switch ref {
 		// case "new":
-		// 	TemplRender(w, r, templates.Login(*currentUser, "error", "You need to login before you can create a new post"))
+		// 	TemplRender(w, r, templates.Login(currentUser, "error", "You need to login before you can create a new post"))
 		// 	return
 		// }
-		// TemplRender(w, r, templates.Login(*currentUser, "", ""))
+		// TemplRender(w, r, templates.Login(currentUser, "", ""))
 		TemplRender(w, r, templates.KeycloakLogin(emptyUser))
 	})
 

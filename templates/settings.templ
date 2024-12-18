@@ -2,7 +2,7 @@ package templates
 
 import "gorant/users"
 
-templ Settings(currentUser users.User) {
+templ Settings(currentUser *users.User) {
 	@Base("User Settings", currentUser) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="space-y-4">
@@ -150,7 +150,7 @@ templ Settings(currentUser users.User) {
 	}
 }
 
-templ SettingsFirstLogin(currentUser users.User) {
+templ SettingsFirstLogin(currentUser *users.User) {
 	@Settings(currentUser) {
 		<div id="first-login-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
 			<h2 class="flex flex-wrap items-center px-2">

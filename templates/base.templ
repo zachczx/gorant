@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ Base(title string, currentUser users.User) {
+templ Base(title string, currentUser *users.User) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -26,7 +26,7 @@ templ Base(title string, currentUser users.User) {
 					</a>
 				</div>
 				<div class="navbar-center hidden lg:flex"></div>
-				@NavProfileBadge(&currentUser)
+				@NavProfileBadge(currentUser)
 				// <div id="navbar-profile-badge" class="navbar-end lg:pe-6" hx-get="/navbar-profile-badge" hx-swap="outerHTML" hx-trigger="load">
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
 				// </div>
@@ -113,28 +113,28 @@ templ Footer() {
 	</dialog>
 }
 
-templ StarterWelcome(currentUser users.User, posts []posts.JoinPost, tags []string) {
+templ StarterWelcome(currentUser *users.User, posts []posts.JoinPost, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div
 			if len(posts) > 0 {
-				class="grid h-full w-full justify-items-center content-start"
+				class="grid h-full w-full content-start justify-items-center"
 			} else {
-				class="grid h-full w-full justify-items-center content-center"
+				class="grid h-full w-full content-center justify-items-center"
 			}
 		>
 			<div class="grid w-full content-start justify-items-center">
-				<div class="min-h-[7rem] h-full py-8">
-					<h1 class="text-5xl xl:text-7xl font-extrabold text-accent">Grumplr...</h1>
+				<div class="h-full min-h-[7rem] py-8">
+					<h1 class="text-5xl font-extrabold text-accent xl:text-7xl">Grumplr...</h1>
 					<div class="flex items-end">
-						<span class="font-bold text-3xl"><b>grumpy</b></span>[adjective]
+						<span class="text-3xl font-bold"><b>grumpy</b></span>[adjective]
 						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:circle hidden" viewBox="0 0 24 24">
 							<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
 						</svg>
-						<span class="ms-4 font-bold text-3xl"><b>grumbler</b></span>[noun]
+						<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
 					</div>
 				</div>
 				// if len(posts) == 0 {
-				// 	<h1 id="logo" class="mb-4 flex items-center text-5xl xl:text-9xl font-extrabold">
+				// 	<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold xl:text-9xl">
 				// 		@Watermelon()
 				// 	</h1>
 				// 	}
@@ -589,7 +589,7 @@ templ PartialEditTags(post posts.JoinPost) {
 	</form>
 }
 
-templ StarterWelcomeError(currentUser users.User, posts []posts.JoinPost, tags []string) {
+templ StarterWelcomeError(currentUser *users.User, posts []posts.JoinPost, tags []string) {
 	@StarterWelcome(currentUser, posts, tags) {
 		No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.
 	}
@@ -599,7 +599,7 @@ templ CreatePostError(message string) {
 	<div class="flex items-center text-error"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2 inline" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>{ message }</div>
 }
 
-templ Error(currentUser users.User, message string) {
+templ Error(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>

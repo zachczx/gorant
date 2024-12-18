@@ -3,7 +3,7 @@ package templates
 import "gorant/users"
 
 templ KeycloakRegister(emptyUser users.User) {
-	@Base("Register", emptyUser) {
+	@Base("Register", &emptyUser) {
 		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full space-y-4">
 				<div id="settings-message"></div>
@@ -41,7 +41,7 @@ templ KeycloakRegister(emptyUser users.User) {
 }
 
 templ KeycloakLogin(emptyUser users.User) {
-	@Base("Login", emptyUser) {
+	@Base("Login", &emptyUser) {
 		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
 				<div id="settings-message"></div>
@@ -78,7 +78,7 @@ templ KeycloakLogin(emptyUser users.User) {
 	}
 }
 
-templ LoggedOut(currentUser users.User) {
+templ LoggedOut(currentUser *users.User) {
 	@Base("Grumplr - Logged Out", currentUser) {
 		<div class="w-full max-w-xl content-center">
 			<div class="space-y-12 rounded-lg bg-white/70 p-12 shadow-lg">

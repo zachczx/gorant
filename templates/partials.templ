@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ PartialPostNewError(currentUser users.User, comments []posts.JoinComment, messages map[string]string) {
+templ PartialPostNewError(currentUser *users.User, comments []posts.JoinComment, messages map[string]string) {
 	@PartialPostNew(currentUser, comments, "")
 	if messages["content"] != "" {
 		<div id="form-message-error" class="mt-1 flex items-center rounded-lg text-sm text-error" hx-swap-oob="true">
@@ -21,29 +21,29 @@ templ PartialPostNewError(currentUser users.User, comments []posts.JoinComment, 
 	}
 }
 
-templ PartialPostNewSorted(currentUser users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostNewSorted(currentUser *users.User, comments []posts.JoinComment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight)
 	@SortButton(currentUser, comments[0].PostID, "true")
 }
 
-templ PartialPostNewSuccess(currentUser users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostNewSuccess(currentUser *users.User, comments []posts.JoinComment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight) {
 		@Toast("success", "Comment added!")
 	}
 	@PostForm(currentUser, comments[0].PostID, "true")
 }
 
-templ PartialPostVote(currentUser users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostVote(currentUser *users.User, comments []posts.JoinComment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight)
 }
 
-templ PartialPostNewErrorLogin(currentUser users.User, comments []posts.JoinComment) {
+templ PartialPostNewErrorLogin(currentUser *users.User, comments []posts.JoinComment) {
 	@PartialPostNew(currentUser, comments, "") {
 		@Toast("error", "You need to be logged in to add a new comment!")
 	}
 }
 
-templ PartialPostDelete(currentUser users.User, comments []posts.JoinComment) {
+templ PartialPostDelete(currentUser *users.User, comments []posts.JoinComment) {
 	@PartialPostNew(currentUser, comments, "")
 }
 
@@ -54,7 +54,7 @@ templ PartialPostErrorMessage(message string) {
 	</div>
 }
 
-templ PartialEditDescriptionResponse(currentUser users.User, post posts.JoinPost) {
+templ PartialEditDescriptionResponse(currentUser *users.User, post posts.JoinPost) {
 	<div class="group flex items-center" id="post-description">
 		if post.UserID == currentUser.UserID {
 			<button id="post-description-static" class="flex flex-wrap items-center">

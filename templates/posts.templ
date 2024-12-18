@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ Post(currentUser users.User, message string, post posts.JoinPost, comments []posts.JoinComment, highlight string, sortComments string) {
+templ Post(currentUser *users.User, message string, post posts.JoinPost, comments []posts.JoinComment, highlight string, sortComments string) {
 	@Base("Grumplr - Post", currentUser) {
 		<main class="grid w-full content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
@@ -183,7 +183,7 @@ templ Post(currentUser users.User, message string, post posts.JoinPost, comments
 	}
 }
 
-templ PartialPostNew(currentUser users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostNew(currentUser *users.User, comments []posts.JoinComment, highlight string) {
 	<article id="posts" class="w-full space-y-2" hx-ext="response-targets">
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
@@ -302,7 +302,7 @@ templ PartialPostNew(currentUser users.User, comments []posts.JoinComment, highl
 	</article>
 }
 
-templ SortButton(currentUser users.User, postID string, oob string) {
+templ SortButton(currentUser *users.User, postID string, oob string) {
 	<div
 		id="sort-dropdown"
 		class="dropdown-start dropdown active:bg-transparent"
@@ -393,7 +393,7 @@ templ SortButton(currentUser users.User, postID string, oob string) {
 	</div>
 }
 
-templ PostForm(currentUser users.User, postID string, oobSwap string) {
+templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 	if currentUser.UserID  != "" {
 		<form
 			method="post"
@@ -440,7 +440,7 @@ templ PostForm(currentUser users.User, postID string, oobSwap string) {
 	}
 }
 
-templ MoodMapper(currentUser users.User, postID string, postUserID string, mood string) {
+templ MoodMapper(currentUser *users.User, postID string, postUserID string, mood string) {
 	if postUserID == currentUser.UserID {
 		<div id="mood" class="dropdown-start dropdown dropdown-bottom">
 			<div tabindex="0" role="button" class="flex items-center p-0 text-2xl">
@@ -553,7 +553,7 @@ templ MoodMapper(currentUser users.User, postID string, postUserID string, mood 
 	}
 }
 
-templ PartialMoodMapper(currentUser users.User, postID string, postUserID string, mood string) {
+templ PartialMoodMapper(currentUser *users.User, postID string, postUserID string, mood string) {
 	@MoodMapper(currentUser, postID, postUserID, mood)
 	@MoodBar(mood, "true")
 }
