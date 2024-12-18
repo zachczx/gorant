@@ -160,21 +160,21 @@ func (k *keycloak) keycloakLoginHandler(currentUser *users.User) http.Handler {
 func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookieStart := time.Now()
-		fmt.Println(currentUser.UserID)
+
 		session, err := k.store.Get(r, "grumplr_kc_session")
 		// Err cannot be nil here since we're verifying token
 		if err != nil || session == nil {
-			currentUser.UserID = ""
+			*currentUser = users.User{}
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
 		}
+
+		cookieSince := time.Since(cookieStart)
 
 		token, ok := session.Values["token"].(string)
 		if token == "" || !ok {
 			currentUser.UserID = ""
 			fmt.Println("No token found!")
-
-			cookieSince := time.Since(cookieStart)
-			fmt.Println("Cookie took: ", cookieSince)
-
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -183,23 +183,17 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 		if cookieUsername == "" || !ok {
 			fmt.Println("No username cookie found!")
 		}
-		cookieSince := time.Since(cookieStart)
-		fmt.Println("Cookie took: ", cookieSince)
+		currentUser.UserID = cookieUsername
 
 		authStart := time.Now()
 		result, err := k.gocloak.RetrospectToken(ctx, token, k.config.clientID, k.config.clientSecret, k.config.realm)
-		if err != nil {
+		if err != nil || !*result.Active {
 			fmt.Println("Token inspection failed!")
-			currentUser.UserID = ""
-			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			*currentUser = users.User{}
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		if !*result.Active {
-			fmt.Println("Token not active!")
-			currentUser.UserID = ""
-		}
 		authDuration := time.Since(authStart)
-		fmt.Println("Auth took: ", authDuration)
 
 		settingsStart := time.Now()
 
@@ -215,7 +209,11 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 		}
 		//////////////////////
 		settingsDuration := time.Since(settingsStart)
+		fmt.Println("========================")
+		fmt.Println("Cookie took:   ", cookieSince)
+		fmt.Println("Auth took:     ", authDuration)
 		fmt.Println("Settings took: ", settingsDuration)
+		fmt.Println("========================")
 
 		next.ServeHTTP(w, r)
 	})
@@ -241,7 +239,7 @@ func (k *keycloak) keycloakLogout(currentUser *users.User) http.Handler {
 
 		fmt.Println("Successfully logged out!")
 
-		TemplRender(w, r, templates.LoggedOut(*currentUser))
+		TemplRender(w, r, templates.LoggedOut(currentUser))
 	})
 }
 
