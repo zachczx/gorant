@@ -32,6 +32,11 @@ dev/prettier:
 dev/biome:
 	npx @biomejs/biome check --write ./static/js/
 
+dev/keycloak:
+# run keycloak in a docker container
+# docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.0.7 start-dev
+	docker start 5b9d991aadc6087b4042a806626abe0be69a46efeca8381ec6617c79911dcf3f
+
 # used only when needed
 dev/eslint:
 	npx eslint
