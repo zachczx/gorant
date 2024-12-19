@@ -76,7 +76,7 @@ func Insert(c Comment) (string, error) {
 	return insertedID, nil
 }
 
-func GetComments(postID string, currentUser string) ([]JoinComment, error) {
+func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 	var comments []JoinComment
 
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
@@ -250,7 +250,7 @@ func ConvertDate(date string) (string, error) {
 	return s, err
 }
 
-func FilterSortComments(postID string, currentUser string, sort string, filter string) ([]JoinComment, error) {
+func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]JoinComment, error) {
 	var comments []JoinComment
 	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
 

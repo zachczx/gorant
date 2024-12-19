@@ -195,7 +195,7 @@ func main() {
 
 		var filter string
 
-		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, filter)
+		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error(currentUser, "Error!"))
@@ -223,7 +223,7 @@ func main() {
 			currentUser.SortComments = s
 		}
 
-		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, filter)
+		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error(currentUser, "Error!"))
@@ -244,7 +244,7 @@ func main() {
 		if currentUser.UserID == "" {
 			fmt.Println("Not authenticated")
 			var comments []posts.JoinComment
-			comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
+			comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
 			if err != nil {
 				fmt.Println(err)
 				TemplRender(w, r, templates.Error(currentUser, "Error!"))
@@ -269,7 +269,7 @@ func main() {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
+			comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
@@ -285,7 +285,7 @@ func main() {
 			fmt.Println("Error inserting: ", err)
 		}
 
-		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
 		if err != nil {
 			TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
 			return
@@ -391,7 +391,7 @@ func main() {
 		}
 
 		var comments []posts.JoinComment
-		comments, err = posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
+		comments, err = posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -473,7 +473,7 @@ func main() {
 			return
 		}
 
-		comments, err := posts.FilterSortComments(postID, currentUser.UserID, currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -568,7 +568,6 @@ func main() {
 			return
 		}
 
-		fmt.Println(currentUser.UserID)
 		if err := users.SaveSettings(currentUser.UserID, f); err != nil {
 			fmt.Println("Error saving: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -579,7 +578,6 @@ func main() {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
-		fmt.Println(currentUser)
 
 		session, err := k.store.Get(r, "grumplr_kc_session")
 		if err != nil {

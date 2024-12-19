@@ -65,9 +65,56 @@ type JoinPost struct {
 	Tags                  []string
 }
 
+type ZPost struct {
+	PostID    string `db:"post_id"`
+	PostTitle string `db:"post_title"`
+
+	// Author and PreferredName
+	UserID        string `db:"user_id"`
+	PreferredName string
+	Description   string `db:"description"`
+	Protected     int    `db:"protected"`
+	CreatedAt     CreatedAt
+	Mood          string `db:"mood"`
+	Tags          Tags
+	PostStats     ZPostStats
+}
+
+type CreatedAt struct {
+	CreatedAtString    string `db:"created_at"`
+	CreatedAtProcessed string
+}
+
+type Tags struct {
+	TagsNullString sql.NullString `db:"tags"`
+	Tags           []string
+}
+
+type ZPostStats struct {
+	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
+	CommentsCountString   string
+	LikesCount            sql.NullInt64 `db:"likes_cnt"`
+	LikesCountString      string
+	CurrentUserLike       sql.NullInt64 `db:"score"`
+	CurrentUserLikeString string
+}
+
+func StopSquigglyLines() {
+	// PPP := ZPost{Tags: zTags{Tags: []string{"111", "222"}}}
+	// fmt.Println(PPP.Tags.Tags)
+}
+
+type ListService interface {
+	ListPosts() ([]JoinPost, error)
+	ListTags() ([]string, error)
+	ListPostsFilter(mood []string, tags []string) ([]JoinPost, error)
+	ListComments(postID string, currentUser string) ([]JoinComment, error)
+	ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]JoinComment, error)
+}
+
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
-func ListPosts() ([]JoinPost, error) {
+func ListPosts() ([]ZPost, error) {
 	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 									FROM posts
 										LEFT JOIN users ON users.user_id=posts.user_id
@@ -88,35 +135,35 @@ func ListPosts() ([]JoinPost, error) {
 
 	defer rows.Close()
 
-	var posts []JoinPost
+	var posts []ZPost
 
 	for rows.Next() {
-		var p JoinPost
+		var p ZPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount, &p.LikesCount, &p.TagsNullString); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
 
-		if p.CommentsCount.Valid {
-			p.CommentsCountString = strconv.FormatInt(p.CommentsCount.Int64, 10)
+		if p.PostStats.CommentsCount.Valid {
+			p.PostStats.CommentsCountString = strconv.FormatInt(p.PostStats.CommentsCount.Int64, 10)
 		} else {
-			p.CommentsCountString = "0"
+			p.PostStats.CommentsCountString = "0"
 		}
 
-		if p.LikesCount.Valid {
-			p.LikesCountString = strconv.FormatInt(p.LikesCount.Int64, 10)
+		if p.PostStats.LikesCount.Valid {
+			p.PostStats.LikesCountString = strconv.FormatInt(p.PostStats.LikesCount.Int64, 10)
 		} else {
-			p.LikesCountString = "0"
+			p.PostStats.LikesCountString = "0"
 		}
 
-		if p.TagsNullString.Valid {
-			p.Tags = strings.Split(p.TagsNullString.String, ",")
+		if p.Tags.TagsNullString.Valid {
+			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {
-			p.Tags = []string{}
+			p.Tags.Tags = []string{}
 		}
 
-		p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
+		p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -152,7 +199,7 @@ func ListTags() ([]string, error) {
 	return tags, nil
 }
 
-func ListPostsFilter(mood []string, tags []string) ([]JoinPost, error) {
+func ListPostsFilter(mood []string, tags []string) ([]ZPost, error) {
 	query, args, err := sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
@@ -184,35 +231,35 @@ func ListPostsFilter(mood []string, tags []string) ([]JoinPost, error) {
 
 	defer rows.Close()
 
-	var posts []JoinPost
+	var posts []ZPost
 
 	for rows.Next() {
-		var p JoinPost
+		var p ZPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.PreferredName, &p.CommentsCount, &p.LikesCount, &p.TagsNullString); err != nil {
+		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
 
-		if p.CommentsCount.Valid {
-			p.CommentsCountString = strconv.FormatInt(p.CommentsCount.Int64, 10)
+		if p.PostStats.CommentsCount.Valid {
+			p.PostStats.CommentsCountString = strconv.FormatInt(p.PostStats.CommentsCount.Int64, 10)
 		} else {
-			p.CommentsCountString = "0"
+			p.PostStats.CommentsCountString = "0"
 		}
 
-		if p.LikesCount.Valid {
-			p.LikesCountString = strconv.FormatInt(p.LikesCount.Int64, 10)
+		if p.PostStats.LikesCount.Valid {
+			p.PostStats.LikesCountString = strconv.FormatInt(p.PostStats.LikesCount.Int64, 10)
 		} else {
-			p.LikesCountString = "0"
+			p.PostStats.LikesCountString = "0"
 		}
 
-		if p.TagsNullString.Valid {
-			p.Tags = strings.Split(p.TagsNullString.String, ",")
+		if p.Tags.TagsNullString.Valid {
+			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {
-			p.Tags = []string{}
+			p.Tags.Tags = []string{}
 		}
 
-		p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
+		p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
 		if err != nil {
 			fmt.Println(err)
 		}
