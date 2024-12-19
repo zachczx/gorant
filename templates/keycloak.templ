@@ -4,8 +4,8 @@ import "gorant/users"
 
 templ KeycloakRegister(emptyUser users.User) {
 	@Base("Register", &emptyUser) {
-		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
-			<div class="h-full space-y-4">
+		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+			<div class="h-full w-full space-y-4">
 				<div id="settings-message"></div>
 				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Register</h1>
@@ -28,21 +28,31 @@ templ KeycloakRegister(emptyUser users.User) {
 							<div class="label">
 								<span class="label-text font-medium">Password</span>
 							</div>
-							<input type="password" name="password" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+							<div class="input input-bordered flex w-full items-center bg-white/70">
+								<input id="password-input" type="password" name="password" value="" maxlength="50" minlength="1" class="grow"/>
+								<button type="button" id="show-password-button" class="text-neutral/70" data-status="hidden">
+									<svg id="icon-show" xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:visibility-outline" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M12 16q1.875 0 3.188-1.312T16.5 11.5t-1.312-3.187T12 7T8.813 8.313T7.5 11.5t1.313 3.188T12 16m0-1.8q-1.125 0-1.912-.788T9.3 11.5t.788-1.912T12 8.8t1.913.788t.787 1.912t-.787 1.913T12 14.2m0 4.8q-3.65 0-6.65-2.037T1 11.5q1.35-3.425 4.35-5.462T12 4t6.65 2.038T23 11.5q-1.35 3.425-4.35 5.463T12 19m0-2q2.825 0 5.188-1.487T20.8 11.5q-1.25-2.525-3.613-4.012T12 6T6.813 7.488T3.2 11.5q1.25 2.525 3.613 4.013T12 17"></path>
+									</svg>
+									<svg id="icon-hide" xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:visibility-off-outline hidden" viewBox="0 0 24 24">
+										<path fill="currentColor" d="m16.1 13.3l-1.45-1.45q.225-1.175-.675-2.2t-2.325-.8L10.2 7.4q.425-.2.863-.3T12 7q1.875 0 3.188 1.313T16.5 11.5q0 .5-.1.938t-.3.862m3.2 3.15l-1.45-1.4q.95-.725 1.688-1.587T20.8 11.5q-1.25-2.525-3.588-4.012T12 6q-.725 0-1.425.1T9.2 6.4L7.65 4.85q1.025-.425 2.1-.638T12 4q3.775 0 6.725 2.087T23 11.5q-.575 1.475-1.513 2.738T19.3 16.45m.5 6.15l-4.2-4.15q-.875.275-1.762.413T12 19q-3.775 0-6.725-2.087T1 11.5q.525-1.325 1.325-2.463T4.15 7L1.4 4.2l1.4-1.4l18.4 18.4zM5.55 8.4q-.725.65-1.325 1.425T3.2 11.5q1.25 2.525 3.588 4.013T12 17q.5 0 .975-.062t.975-.138l-.9-.95q-.275.075-.525.113T12 16q-1.875 0-3.188-1.312T7.5 11.5q0-.275.038-.525t.112-.525zm4.2 4.2"></path>
+									</svg>
+								</button>
+							</div>
 						</label>
 						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Register</button>
-						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Have an account? Login.</a></div>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Or login to an account?</a></div>
 					</form>
 				</div>
 			</div>
 		</main>
-		// <script src="/static/js/output/settings.js"></script>
+		<script src="/static/js/output/register-login.js"></script>
 	}
 }
 
 templ KeycloakLogin(emptyUser users.User) {
 	@Base("Login", &emptyUser) {
-		<main class="grid w-full max-w-[600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
 				<div id="settings-message"></div>
 				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
@@ -66,15 +76,57 @@ templ KeycloakLogin(emptyUser users.User) {
 							<div class="label">
 								<span class="label-text font-medium">Password</span>
 							</div>
-							<input type="password" name="password" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+							<div class="input input-bordered flex w-full items-center bg-white/70">
+								<input id="password-input" type="password" name="password" value="" maxlength="50" minlength="1" class="grow"/>
+								<button type="button" id="show-password-button" class="text-neutral/70" data-status="hidden">
+									<svg id="icon-show" xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:visibility-outline" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M12 16q1.875 0 3.188-1.312T16.5 11.5t-1.312-3.187T12 7T8.813 8.313T7.5 11.5t1.313 3.188T12 16m0-1.8q-1.125 0-1.912-.788T9.3 11.5t.788-1.912T12 8.8t1.913.788t.787 1.912t-.787 1.913T12 14.2m0 4.8q-3.65 0-6.65-2.037T1 11.5q1.35-3.425 4.35-5.462T12 4t6.65 2.038T23 11.5q-1.35 3.425-4.35 5.463T12 19m0-2q2.825 0 5.188-1.487T20.8 11.5q-1.25-2.525-3.613-4.012T12 6T6.813 7.488T3.2 11.5q1.25 2.525 3.613 4.013T12 17"></path>
+									</svg>
+									<svg id="icon-hide" xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:visibility-off-outline hidden" viewBox="0 0 24 24">
+										<path fill="currentColor" d="m16.1 13.3l-1.45-1.45q.225-1.175-.675-2.2t-2.325-.8L10.2 7.4q.425-.2.863-.3T12 7q1.875 0 3.188 1.313T16.5 11.5q0 .5-.1.938t-.3.862m3.2 3.15l-1.45-1.4q.95-.725 1.688-1.587T20.8 11.5q-1.25-2.525-3.588-4.012T12 6q-.725 0-1.425.1T9.2 6.4L7.65 4.85q1.025-.425 2.1-.638T12 4q3.775 0 6.725 2.087T23 11.5q-.575 1.475-1.513 2.738T19.3 16.45m.5 6.15l-4.2-4.15q-.875.275-1.762.413T12 19q-3.775 0-6.725-2.087T1 11.5q.525-1.325 1.325-2.463T4.15 7L1.4 4.2l1.4-1.4l18.4 18.4zM5.55 8.4q-.725.65-1.325 1.425T3.2 11.5q1.25 2.525 3.588 4.013T12 17q.5 0 .975-.062t.975-.138l-.9-.95q-.275.075-.525.113T12 16q-1.875 0-3.188-1.312T7.5 11.5q0-.275.038-.525t.112-.525zm4.2 4.2"></path>
+									</svg>
+								</button>
+							</div>
 						</label>
+						<div class="flex justify-end"><a href="/reset-password" class="pt-1 text-sm text-accent underline">Forgot password?</a></div>
 						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Login</button>
-						<div class="text-center text-sm underline hover:text-accent"><a href="/register">Need an account? Register.</a></div>
+						<div class="text-center text-sm text-accent underline hover:text-accent"><a href="/register">Or register an account?</a></div>
 					</form>
 				</div>
 			</div>
 		</main>
-		<script src="/static/js/output/settings.js"></script>
+		<script src="/static/js/output/register-login.js"></script>
+	}
+}
+
+templ KeycloakResetPassword(emptyUser users.User) {
+	@Base("Reset Password", &emptyUser) {
+		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+			<div class="h-full w-full space-y-4">
+				<div id="settings-message"></div>
+				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
+					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Forgot Password</h1>
+					<form
+						method="post"
+						class="grid gap-4"
+						hx-post="/reset-verification"
+						hx-target="#settings-message"
+						hx-swap="outerHTML"
+						hx-target-error="#toast"
+						id="reset-form"
+					>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text font-medium">Email</span>
+							</div>
+							<input type="email" name="username" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/70"/>
+						</label>
+						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Send Password Reset</button>
+						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Back to Login</a></div>
+					</form>
+				</div>
+			</div>
+		</main>
 	}
 }
 

@@ -54,7 +54,6 @@ func main() {
 	})))
 
 	mux.Handle("GET /{$}", k.keycloakCheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Current user: ", currentUser)
 		p, err := posts.ListPosts()
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
@@ -580,6 +579,20 @@ func main() {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
+		fmt.Println(currentUser)
+
+		session, err := k.store.Get(r, "grumplr_kc_session")
+		if err != nil {
+			fmt.Println("Failed to access grumplr_kc_session", err)
+		}
+		session.Values["PreferredName"] = currentUser.PreferredName
+		session.Values["Avatar"] = currentUser.Avatar
+		session.Values["AvatarPath"] = currentUser.AvatarPath
+		session.Values["SortComments"] = currentUser.SortComments
+		err = session.Save(r, w)
+		if err != nil {
+			fmt.Println("Failed to delete grumplr_kc_session", err)
+		}
 
 		TemplRender(w, r, templates.PartialSettingsEditSuccess(*currentUser))
 	})))
@@ -617,6 +630,12 @@ func main() {
 	mux.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.KeycloakRegister(emptyUser))
 	})
+
+	mux.HandleFunc("GET /reset-password", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.KeycloakResetPassword(emptyUser))
+	})
+
+	mux.Handle("POST /reset-verification", k.keycloakResetHandler())
 
 	mux.Handle("POST /registration", k.keycloakRegisterHandler(currentUser))
 

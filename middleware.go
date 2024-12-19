@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-swiss/compress"
+	"github.com/pterm/pterm"
 )
 
 type StatusRecorder struct {
@@ -28,7 +30,52 @@ func StatusLogger(next http.Handler) http.Handler {
 		since := time.Since(start)
 
 		if !strings.Contains(r.URL.Path, "/static/") {
-			log.Printf(">>>>[%v %v] -- [%v] -- [%v] -- [%v] -- [%v]\r\n\r\n", rec.status, r.Method, r.URL, since, r.Proto, w.Header().Get("Content-Encoding"))
+			var status string
+			var method string
+			var url string
+			var duration string
+			var protocol string
+
+			switch rec.status {
+			case 200:
+				status = pterm.Green(strconv.Itoa(rec.status))
+			default:
+				status = pterm.Red(strconv.Itoa(rec.status))
+			}
+
+			switch r.Method {
+			case "GET":
+				method = pterm.Green(r.Method)
+			case "POST":
+				method = pterm.Blue(r.Method)
+			default:
+				method = r.Method
+			}
+
+			switch r.URL.String() {
+			case "":
+				url = pterm.Red(r.URL)
+			default:
+				url = r.URL.String()
+			}
+
+			switch {
+			case since < time.Millisecond*100:
+				duration = pterm.Green(since)
+			default:
+				duration = pterm.Red(since)
+			}
+
+			switch w.Header().Get("Content-Encoding") {
+			case "br":
+				protocol = pterm.LightWhite(w.Header().Get("Content-Encoding"))
+			default:
+				protocol = pterm.Red(w.Header().Get("Content-Encoding"))
+			}
+			fmt.Println(" ")
+			pterm.DefaultSection.Println("Request!")
+			pterm.Printf("[%v]-[%v]-[%v]-[%v]-[%v]\r\n\r\n", status, method, protocol, duration, url)
+			fmt.Println("###################")
 		}
 	})
 }

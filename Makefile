@@ -23,7 +23,7 @@ dev/air:
 	air -c .air.toml
 
 dev/esbuild:
-	npx esbuild ./static/js/index.js ./static/js/post.js ./static/js/post-partial.js ./static/js/settings.js ./static/js/htmx-bundle.js --bundle --outdir=./static/js/output --minify --watch
+	npx esbuild ./static/js/index.js ./static/js/post.js ./static/js/post-partial.js ./static/js/settings.js ./static/js/register-login.js ./static/js/htmx-bundle.js --bundle --outdir=./static/js/output --minify --watch
 
 dev/prettier:
 	npx prettier . --write ./static/js
@@ -33,17 +33,19 @@ dev/biome:
 	npx @biomejs/biome check --write ./static/js/
 
 dev/keycloak:
-# run keycloak in a docker container
-# docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.0.7 start-dev
-	docker start 5b9d991aadc6087b4042a806626abe0be69a46efeca8381ec6617c79911dcf3f
+# run keycloak and maildev in containers
+#	docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.0.7 start-dev
+#	docker start 5b9d991aadc6087b4042a806626abe0be69a46efeca8381ec6617c79911dcf3f && \
+#	docker pull maildev/maildev && docker run -p 1080:1080 -p 1025:1025 maildev/maildev
+# maildev smtp server @ http://localhost:1025/ and gui @ http://localhost:1080/
+	docker compose -f ./docker-compose-mail.yaml build && docker compose -f ./docker-compose-mail.yaml up
 
 # used only when needed
 dev/eslint:
 	npx eslint
 
-dev: 
-	make -j5 dev/templ dev/prettier dev/esbuild dev/tailwind dev/air
-
 # prettier screws up the minification if last
-# 
 # esbuild needs to be before tailwind to generate the proper classes, e.g. keeps generating spinner instead of dots even with correct classes
+dev: 
+	make -j6 dev/keycloak dev/templ dev/prettier dev/esbuild dev/tailwind dev/air 
+

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"gorant/database"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/Nerzal/gocloak/v13"
 	gorillaSessions "github.com/gorilla/sessions"
+	"github.com/pterm/pterm"
 )
 
 type keycloakConfig struct {
@@ -27,6 +29,8 @@ type keycloak struct {
 	config  keycloakConfig
 	store   *gorillaSessions.CookieStore
 }
+
+var regex *regexp.Regexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 func newKeycloak() *keycloak {
 	return &keycloak{
@@ -44,6 +48,12 @@ func (k *keycloak) keycloakRegisterHandler(currentUser *users.User) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
+
+		if !regex.MatchString(username) {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Please provide a valid email address."))
+			return
+		}
 
 		// Get a token for an admin account to create the new account
 		// To avoid inserting it carelessly where I don't intend to, I chose not to add the username/password in the keycloak struct.
@@ -123,6 +133,12 @@ func (k *keycloak) keycloakLoginHandler(currentUser *users.User) http.Handler {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
+		if !regex.MatchString(username) {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Please provide a valid email address."))
+			return
+		}
+
 		jwt, err := k.gocloak.Login(ctx, k.config.clientID, k.config.clientSecret, k.config.realm, username, password)
 		if err != nil {
 			fmt.Println(err)
@@ -157,6 +173,57 @@ func (k *keycloak) keycloakLoginHandler(currentUser *users.User) http.Handler {
 	})
 }
 
+func (k *keycloak) keycloakResetHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username := r.FormValue("username")
+
+		if !regex.MatchString(username) {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Please provide a valid email address."))
+			return
+		}
+
+		// Get a token for an admin account to create the new account
+		adminToken, err := k.gocloak.LoginAdmin(ctx, os.Getenv("GOCLOAK_ADMIN_USER"), os.Getenv("GOCLOAK_ADMIN_PASSWORD"), k.config.realm)
+		if err != nil {
+			fmt.Println("Error getting admin token!")
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
+		}
+
+		params := gocloak.GetUsersParams{Username: &username}
+
+		info, err := k.gocloak.GetUsers(ctx, adminToken.AccessToken, k.config.realm, params)
+		if err != nil {
+			fmt.Println("Error querying user!")
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
+		}
+
+		var keycloakUUID string
+		if len(info) > 0 {
+			keycloakUUID = *info[0].ID
+		}
+		fmt.Println(keycloakUUID)
+
+		actions := []string{"UPDATE_PASSWORD"}
+
+		paramsExecute := gocloak.ExecuteActionsEmail{UserID: &keycloakUUID, ClientID: gocloak.StringP(k.config.clientID), Actions: &actions}
+
+		err = k.gocloak.ExecuteActionsEmail(ctx, adminToken.AccessToken, k.config.realm, paramsExecute)
+		if err != nil {
+			fmt.Println("Error triggering actions email!")
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+			return
+		}
+
+		fmt.Println("Successfully triggered reset email!")
+	})
+}
+
 func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookieStart := time.Now()
@@ -165,7 +232,7 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 		// Err cannot be nil here since we're verifying token
 		if err != nil || session == nil {
 			*currentUser = users.User{}
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			// http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
@@ -190,7 +257,7 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 		if err != nil || !*result.Active {
 			fmt.Println("Token inspection failed!")
 			*currentUser = users.User{}
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			next.ServeHTTP(w, r)
 			return
 		}
 		authDuration := time.Since(authStart)
@@ -207,13 +274,73 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		//////////////////////
+
+		// Format benchmarks
 		settingsDuration := time.Since(settingsStart)
-		fmt.Println("========================")
-		fmt.Println("Cookie took:   ", cookieSince)
-		fmt.Println("Auth took:     ", authDuration)
-		fmt.Println("Settings took: ", settingsDuration)
-		fmt.Println("========================")
+		if os.Getenv("DEV_ENV") == "TRUE" {
+
+			bulletListItems := []pterm.BulletListItem{
+				{
+					Level:       0,
+					Text:        "Speed",
+					TextStyle:   pterm.NewStyle(pterm.FgBlue),
+					BulletStyle: pterm.NewStyle(pterm.FgRed),
+					Bullet:      " ",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("Cookie: %v", cookieSince),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("Auth: %v", authDuration),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("Settings: %v", settingsDuration),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+				{
+					Level:       0,
+					Text:        "Cookie",
+					TextStyle:   pterm.NewStyle(pterm.FgBlue),
+					BulletStyle: pterm.NewStyle(pterm.FgRed),
+					Bullet:      " ",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("UserID: %v", currentUser.UserID),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("PreferredName: %v", currentUser.PreferredName),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+				{
+					Level:       1,
+					Text:        fmt.Sprintf("SortComments: %v", currentUser.SortComments),
+					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+					Bullet:      ">",
+				},
+			}
+			fmt.Println("###################")
+			pterm.DefaultSection.Println("Benchmarks!")
+			pterm.DefaultBulletList.WithItems(bulletListItems).Render()
+		}
 
 		next.ServeHTTP(w, r)
 	})
@@ -276,6 +403,7 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 		fmt.Println("No PreferredName cookie found!")
 		refetch = true
 	}
+
 	currentUser.Avatar, ok = session.Values["Avatar"].(string)
 	if currentUser.Avatar == "" || !ok {
 		fmt.Println("No Avatar cookie found!")
