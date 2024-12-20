@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,17 +15,17 @@ import (
 	"github.com/rezakhademix/govalidator/v2"
 )
 
-type Post struct {
-	PostID             string `db:"post_id"`
-	PostTitle          string `db:"post_title"`
-	UserID             string `db:"user_id"`
-	Description        string `db:"description"`
-	Protected          int    `db:"protected"`
-	CreatedAt          string `db:"created_at"`
-	Mood               string `db:"mood"`
-	CreatedAtProcessed string
-	Tags               string `db:"tags"`
-}
+// type Post struct {
+// 	PostID             string `db:"post_id"`
+// 	PostTitle          string `db:"post_title"`
+// 	UserID             string `db:"user_id"`
+// 	Description        string `db:"description"`
+// 	Protected          int    `db:"protected"`
+// 	CreatedAt          string `db:"created_at"`
+// 	Mood               string `db:"mood"`
+// 	CreatedAtProcessed string
+// 	Tags               string `db:"tags"`
+// }
 
 type PostLike struct {
 	ID     int    `db:"like_id"`
@@ -132,17 +133,9 @@ func ListPosts() (PostCollection, error) {
 			return nil, err
 		}
 
-		if p.PostStats.CommentsCount.Valid {
-			p.PostStats.CommentsCountString = strconv.FormatInt(p.PostStats.CommentsCount.Int64, 10)
-		} else {
-			p.PostStats.CommentsCountString = "0"
-		}
+		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
 
-		if p.PostStats.LikesCount.Valid {
-			p.PostStats.LikesCountString = strconv.FormatInt(p.PostStats.LikesCount.Int64, 10)
-		} else {
-			p.PostStats.LikesCountString = "0"
-		}
+		p.PostStats.LikesCountString = NullIntToString(p.PostStats.LikesCount)
 
 		if p.Tags.TagsNullString.Valid {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
@@ -228,17 +221,9 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 			return nil, err
 		}
 
-		if p.PostStats.CommentsCount.Valid {
-			p.PostStats.CommentsCountString = strconv.FormatInt(p.PostStats.CommentsCount.Int64, 10)
-		} else {
-			p.PostStats.CommentsCountString = "0"
-		}
+		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
 
-		if p.PostStats.LikesCount.Valid {
-			p.PostStats.LikesCountString = strconv.FormatInt(p.PostStats.LikesCount.Int64, 10)
-		} else {
-			p.PostStats.LikesCountString = "0"
-		}
+		p.PostStats.LikesCountString = NullIntToString(p.PostStats.LikesCount)
 
 		if p.Tags.TagsNullString.Valid {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
@@ -272,22 +257,8 @@ func NewPost(p ZPost, tags []string) error {
 		return nil
 	}
 
-	// Prepare tag struct for namedexec
-	var tag Tag
-	tagsStruct := []Tag{}
-	for _, v := range tags {
-		// Reusing TitleToID to sanitize input
-		tag.Tag, err = TitleToID(v)
-		if err != nil {
-			return err
-		}
-
-		tagsStruct = append(tagsStruct, tag)
-	}
-
-	// insert tags into tags table
-	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, tagsStruct)
-	if err != nil {
+	// Insert individual tags into tags table
+	if _, err = InsertTags(tags); err != nil {
 		// Print error instead of returning, duplicate value error is alright
 		fmt.Println(err)
 	}
@@ -331,23 +302,12 @@ func GetTags(postID string) (ZPost, error) {
 }
 
 func EditTags(postID string, tags []string) error {
-	var tag Tag
-	validTags := []Tag{}
 	var err error
-
-	for _, v := range tags {
-		if pass := ValidateTags(v); pass {
-			tag.Tag = v
-			validTags = append(validTags, tag)
-		}
-	}
-	fmt.Println("Valid tags: ", validTags)
-	fmt.Println("Number of valid tags: ", len(validTags))
 
 	// Even if len(validTags) == 0, I can't end the func now, because I'll need to delete all the posts.
 	// We can stop when needing to insert tags.
-
-	if err = InsertTags(validTags); err != nil {
+	validTags, err := InsertTags(tags)
+	if err != nil {
 		// Print error instead of returning, duplicate value error is alright
 		fmt.Println(err)
 	}
@@ -374,14 +334,34 @@ func EditTags(postID string, tags []string) error {
 	return nil
 }
 
-func InsertTags(validTags []Tag) error {
-	if len(validTags) > 0 {
-		_, err := database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, validTags)
-		if err != nil {
-			return err
-		}
+func InsertTags(tags []string) ([]Tag, error) {
+	var validTags []Tag
+	if len(tags) == 0 {
+		fmt.Println("No valid tags found!")
+		return validTags, errors.New("no valid tag found")
 	}
-	return nil
+
+	var err error
+
+	var tag Tag
+	for _, v := range tags {
+		// Reusing TitleToID to sanitize input
+		tag.Tag, err = TitleToID(v)
+		if err != nil {
+			return validTags, err
+		}
+		validTags = append(validTags, tag)
+	}
+
+	fmt.Println("Valid tags: ", validTags)
+	fmt.Println("Number of valid tags: ", len(validTags))
+
+	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, validTags)
+	if err != nil {
+		return validTags, err
+	}
+
+	return validTags, nil
 }
 
 func InsertPostTags(postID string, validTags []Tag, postsTags []JunctionPostTag) error {
@@ -393,8 +373,7 @@ func InsertPostTags(postID string, validTags []Tag, postsTags []JunctionPostTag)
 		}
 	}
 
-	fmt.Println("Tags to Insert: ", tagsToInsert)
-	fmt.Println("Number to insert: ", len(tagsToInsert))
+	fmt.Println("Insert into PostTags: ", len(tagsToInsert), " - ", tagsToInsert)
 
 	// insert into posts_tags
 	if len(tagsToInsert) > 0 {
@@ -468,13 +447,18 @@ var disallowed = [33]string{
 	",",
 }
 
-func ValidateTags(tag string) (passed bool) {
-	for _, v := range disallowed {
-		if strings.Contains(tag, v) {
-			return false
-		}
+var validTagCharacters string = `^[A-Za-z0-9-]+$`
+
+func ValidateTags(tag string) (passed bool, err error) {
+	regex, err := regexp.Compile(validTagCharacters)
+	if err != nil {
+		return false, err
 	}
-	return true
+
+	if !regex.MatchString(tag) {
+		return false, nil
+	}
+	return true, nil
 }
 
 func DeleteUnwantedTags(inputTags []string, postsTags []JunctionPostTag) error {
@@ -728,4 +712,14 @@ func TitleToID(title string) (string, error) {
 	fmt.Println(ID)
 
 	return ID, nil
+}
+
+func NullIntToString(n sql.NullInt64) string {
+	var s string
+	if n.Valid {
+		s = strconv.FormatInt(n.Int64, 10)
+	} else {
+		s = "0"
+	}
+	return s
 }
