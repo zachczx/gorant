@@ -68,7 +68,7 @@ templ PartialEditDescriptionResponse(currentUser *users.User, post posts.ZPost) 
 			<form
 				id="post-description-form"
 				class="join mt-2 hidden w-full"
-				hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", post.PostID))) }
+				hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/description/edit", post.ID))) }
 				hx-target="#post-description"
 				hx-swap="outerHTML"
 				hx-target-error="#toast"

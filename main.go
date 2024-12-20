@@ -149,11 +149,11 @@ func main() {
 		}
 		// TODO need to validate mood as well
 
-		p := posts.Post{
-			PostID:    ID,
-			PostTitle: title,
-			UserID:    currentUser.UserID,
-			Mood:      m,
+		p := posts.ZPost{
+			ID:     ID,
+			Title:  title,
+			UserID: currentUser.UserID,
+			Mood:   m,
 		}
 
 		var t []string
@@ -166,8 +166,7 @@ func main() {
 		}
 
 		if r.FormValue("anonymous-mode") == "true" {
-			err := posts.NewPost(p, t)
-			if err != nil {
+			if err := posts.NewPost(p, t); err != nil {
 				fmt.Println(err)
 				w.Header().Set("HX-Redirect", "/error")
 				return
@@ -311,7 +310,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		p.PostID = postID
+		p.ID = postID
 
 		TemplRender(w, r, templates.ShowTags(p))
 	}))
@@ -345,7 +344,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		p.PostID = postID
+		p.ID = postID
 
 		TemplRender(w, r, templates.ShowTags(p))
 	})))

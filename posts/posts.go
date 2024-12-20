@@ -33,12 +33,7 @@ type PostLike struct {
 	Score  string `db:"score"`
 }
 
-type Tag struct {
-	TagID int    `db:"tag_id"`
-	Tag   string `db:"tag"`
-}
-
-type PostTag struct {
+type JunctionPostTag struct {
 	PostsTagID int    `db:"posts_tags_id"`
 	PostID     string `db:"post_id"`
 	TagID      int    `db:"tag_id"`
@@ -66,12 +61,10 @@ type JoinPost struct {
 }
 
 type ZPost struct {
-	PostID    string `db:"post_id"`
-	PostTitle string `db:"post_title"`
-
-	// Author and PreferredName
+	ID            string `db:"post_id"`
+	Title         string `db:"post_title"`
 	UserID        string `db:"user_id"`
-	PreferredName string
+	PreferredName string // PreferredName of Author
 	Description   string `db:"description"`
 	Protected     int    `db:"protected"`
 	CreatedAt     CreatedAt
@@ -90,6 +83,11 @@ type Tags struct {
 	Tags           []string
 }
 
+type Tag struct {
+	TagID int    `db:"tag_id"`
+	Tag   string `db:"tag"`
+}
+
 type ZPostStats struct {
 	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
 	CommentsCountString   string
@@ -99,14 +97,11 @@ type ZPostStats struct {
 	CurrentUserLikeString string
 }
 
-func StopSquigglyLines() {
-	// PPP := ZPost{Tags: zTags{Tags: []string{"111", "222"}}}
-	// fmt.Println(PPP.Tags.Tags)
-}
+type PostCollection []ZPost
 
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
-func ListPosts() ([]ZPost, error) {
+func ListPosts() (PostCollection, error) {
 	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 									FROM posts
 										LEFT JOIN users ON users.user_id=posts.user_id
@@ -127,12 +122,12 @@ func ListPosts() ([]ZPost, error) {
 
 	defer rows.Close()
 
-	var posts []ZPost
+	var posts PostCollection
 
 	for rows.Next() {
 		var p ZPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -191,7 +186,7 @@ func ListTags() ([]string, error) {
 	return tags, nil
 }
 
-func ListPostsFilter(mood []string, tags []string) ([]ZPost, error) {
+func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	query, args, err := sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
@@ -223,12 +218,12 @@ func ListPostsFilter(mood []string, tags []string) ([]ZPost, error) {
 
 	defer rows.Close()
 
-	var posts []ZPost
+	var posts PostCollection
 
 	for rows.Next() {
 		var p ZPost
 
-		if err := rows.Scan(&p.PostID, &p.UserID, &p.PostTitle, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -262,12 +257,12 @@ func ListPostsFilter(mood []string, tags []string) ([]ZPost, error) {
 	return posts, nil
 }
 
-func NewPost(p Post, tags []string) error {
+func NewPost(p ZPost, tags []string) error {
 	t := time.Now().Format(time.RFC3339)
 
 	var postID string
 	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
-						RETURNING post_id`, p.PostID, p.PostTitle, p.UserID, t, p.Mood).Scan(&postID)
+						RETURNING post_id`, p.ID, p.Title, p.UserID, t, p.Mood).Scan(&postID)
 	if err != nil {
 		return err
 	}
@@ -389,11 +384,11 @@ func InsertTags(validTags []Tag) error {
 	return nil
 }
 
-func InsertPostTags(postID string, validTags []Tag, postsTags []PostTag) error {
+func InsertPostTags(postID string, validTags []Tag, postsTags []JunctionPostTag) error {
 	var tagsToInsert []string
 
 	for _, v := range validTags {
-		if exists := containsPostTag(postsTags, v.Tag); !exists {
+		if exists := containsJunctionPostTag(postsTags, v.Tag); !exists {
 			tagsToInsert = append(tagsToInsert, v.Tag)
 		}
 	}
@@ -414,9 +409,9 @@ func InsertPostTags(postID string, validTags []Tag, postsTags []PostTag) error {
 	return nil
 }
 
-func GetPostIDTagIDTag(postID string) ([]PostTag, error) {
-	var pt PostTag
-	var postsTags []PostTag
+func GetPostIDTagIDTag(postID string) ([]JunctionPostTag, error) {
+	var pt JunctionPostTag
+	var postsTags []JunctionPostTag
 	// Grab all the existing tags from post using postID
 	rows, err := database.DB.Query(`SELECT posts_tags.post_id, posts_tags.tag_id, tags.tag FROM posts_tags LEFT JOIN tags ON posts_tags.tag_id = tags.tag_id WHERE post_id=$1`, postID)
 	if err != nil {
@@ -482,7 +477,7 @@ func ValidateTags(tag string) (passed bool) {
 	return true
 }
 
-func DeleteUnwantedTags(inputTags []string, postsTags []PostTag) error {
+func DeleteUnwantedTags(inputTags []string, postsTags []JunctionPostTag) error {
 	// Loop through postTags to find tags that are not in current user input, then mark those for deletion.
 	var tagsToDeleteID []int
 	var exists bool
@@ -517,7 +512,7 @@ func contains(a []string, s string) bool {
 	return false
 }
 
-func containsPostTag(a []PostTag, s string) bool {
+func containsJunctionPostTag(a []JunctionPostTag, s string) bool {
 	for _, v := range a {
 		if v.Tag == s {
 			return true
@@ -575,7 +570,7 @@ func GetPost(postID string, currentUser string) (ZPost, error) {
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PostStats.CurrentUserLike, &p.Tags.TagsNullString); err != nil {
+		if err := row.Scan(&p.ID, &p.Title, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PostStats.CurrentUserLike, &p.Tags.TagsNullString); err != nil {
 			return p, err
 		}
 

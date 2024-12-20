@@ -23,8 +23,8 @@ templ Base(title string, currentUser *users.User) {
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
 						<div class="me-1 scale-x-[-1]">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" class="ph:chat-circle-slash-duotone text-accent/80" viewBox="0 0 256 256">
-								<g fill="currentColor"><path d="M224 128a96 96 0 0 1-144.07 83.11l-37.39 12.47a8 8 0 0 1-10.12-10.12l12.47-37.39A96 96 0 1 1 224 128" opacity=".2"></path><path d="M53.92 34.62a8 8 0 1 0-11.84 10.76l10.25 11.28a104.06 104.06 0 0 0-16.15 120.22l-11.35 34.05a16 16 0 0 0 20.24 20.24l34.05-11.35a104 104 0 0 0 112.7-9.73l10.26 11.29a8 8 0 1 0 11.84-10.76ZM128 216a87.87 87.87 0 0 1-44.06-11.81a8 8 0 0 0-6.54-.66L40 216l12.47-37.4a8 8 0 0 0-.66-6.54A88 88 0 0 1 63.14 68.54L181 198.23A87.77 87.77 0 0 1 128 216m104-88a104.15 104.15 0 0 1-12.38 49.25a8 8 0 0 1-14.09-7.58A88 88 0 0 0 93.88 46.86a8 8 0 0 1-6.21-14.75A104.06 104.06 0 0 1 232 128"></path></g>
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ph:chat-circle-slash-duotone rotate-[20deg] text-black/80" viewBox="0 0 256 256">
+								<g fill="currentColor"><path d="M224 128a96 96 0 0 1-144.07 83.11l-37.39 12.47a8 8 0 0 1-10.12-10.12l12.47-37.39A96 96 0 1 1 224 128" opacity=".8" class="fill-lime-300"></path><path d="M53.92 34.62a8 8 0 1 0-11.84 10.76l10.25 11.28a104.06 104.06 0 0 0-16.15 120.22l-11.35 34.05a16 16 0 0 0 20.24 20.24l34.05-11.35a104 104 0 0 0 112.7-9.73l10.26 11.29a8 8 0 1 0 11.84-10.76ZM128 216a87.87 87.87 0 0 1-44.06-11.81a8 8 0 0 0-6.54-.66L40 216l12.47-37.4a8 8 0 0 0-.66-6.54A88 88 0 0 1 63.14 68.54L181 198.23A87.77 87.77 0 0 1 128 216m104-88a104.15 104.15 0 0 1-12.38 49.25a8 8 0 0 1-14.09-7.58A88 88 0 0 0 93.88 46.86a8 8 0 0 1-6.21-14.75A104.06 104.06 0 0 1 232 128"></path></g>
 							</svg>
 						</div>Grumplr
 					</a>
@@ -118,7 +118,7 @@ templ Footer() {
 	</dialog>
 }
 
-templ StarterWelcome(currentUser *users.User, posts []posts.ZPost, tags []string) {
+templ StarterWelcome(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div
 			if len(posts) > 0 {
@@ -304,11 +304,11 @@ templ StarterWelcome(currentUser *users.User, posts []posts.ZPost, tags []string
 	}
 }
 
-templ ListPosts(posts []posts.ZPost) {
+templ ListPosts(posts posts.PostCollection) {
 	<div id="posts" class="grid min-h-[20dvh] content-start gap-4 px-8">
 		if len(posts) >0 {
 			for i := 0; i < len(posts); i++ {
-				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].PostID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
+				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
 					<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-3xl lg:min-w-14 lg:text-5xl">
 						<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 							if posts[i].Mood  == "elated" {
@@ -328,7 +328,7 @@ templ ListPosts(posts []posts.ZPost) {
 					</div>
 					<div class="grow pe-4 ps-6">
 						<h3 class="line-clamp-1 text-xl font-medium leading-loose">
-							{ posts[i].PostTitle }
+							{ posts[i].Title }
 						</h3>
 						<div class="text-sm text-base-content/60">by { posts[i].PreferredName }</div>
 						<div class="flex items-center">
@@ -519,7 +519,7 @@ templ ShowTags(p posts.ZPost) {
 	<div
 		id="tags-container"
 		class="group flex cursor-pointer items-center justify-center"
-		hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/edit", p.PostID))) }
+		hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/edit", p.ID))) }
 		hx-target="#tags-container"
 		hx-swap="outerHTML"
 	>
@@ -560,7 +560,7 @@ templ PartialEditTags(post posts.ZPost) {
 	<form
 		id="tags-container"
 		class="w-full"
-		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/save", post.PostID))) }
+		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/save", post.ID))) }
 		hx-target="#tags-container"
 		hx-swap="outerHTML"
 		hx-trigger="keyup[ctrlKey&&key=='Enter'], click from:#tags-save-button"
@@ -583,7 +583,7 @@ templ PartialEditTags(post posts.ZPost) {
 				class="btn btn-accent btn-sm min-w-24 rounded-lg"
 			>Save</button>
 			<a
-				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags", post.PostID))) }
+				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags", post.ID))) }
 				hx-target="#tags-container"
 				hx-swap="outerHTML"
 				class="btn btn-sm min-w-16 rounded-lg border-0 bg-transparent text-accent shadow-none hover:bg-transparent"
