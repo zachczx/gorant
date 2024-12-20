@@ -104,14 +104,6 @@ func StopSquigglyLines() {
 	// fmt.Println(PPP.Tags.Tags)
 }
 
-type ListService interface {
-	ListPosts() ([]JoinPost, error)
-	ListTags() ([]string, error)
-	ListPostsFilter(mood []string, tags []string) ([]JoinPost, error)
-	ListComments(postID string, currentUser string) ([]JoinComment, error)
-	ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]JoinComment, error)
-}
-
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
 func ListPosts() ([]ZPost, error) {
