@@ -317,9 +317,9 @@ func NewPost(p Post, tags []string) error {
 	return nil
 }
 
-func GetTags(postID string) (JoinPost, error) {
+func GetTags(postID string) (ZPost, error) {
 	var t string
-	var p JoinPost
+	var p ZPost
 
 	rows, err := database.DB.Query(`SELECT tags.tag
 									FROM(SELECT posts_tags.post_id, posts_tags.tag_id
@@ -337,7 +337,7 @@ func GetTags(postID string) (JoinPost, error) {
 			return p, err
 		}
 
-		p.Tags = append(p.Tags, t)
+		p.Tags.Tags = append(p.Tags.Tags, t)
 	}
 
 	return p, nil
@@ -566,8 +566,8 @@ func VerifyPostID(title string) (bool, string) {
 	return res.Next(), ID
 }
 
-func GetPost(postID string, currentUser string) (JoinPost, error) {
-	var p JoinPost
+func GetPost(postID string, currentUser string) (ZPost, error) {
+	var p ZPost
 	row, err := database.DB.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score, STRING_AGG(posts_tags.tag, ',') AS tags
 									FROM posts
 										LEFT JOIN (SELECT * FROM posts_likes) AS posts_likes ON posts.post_id = posts_likes.post_id
@@ -583,24 +583,24 @@ func GetPost(postID string, currentUser string) (JoinPost, error) {
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt, &p.Mood, &p.CurrentUserLike, &p.TagsNullString); err != nil {
+		if err := row.Scan(&p.PostID, &p.PostTitle, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PostStats.CurrentUserLike, &p.Tags.TagsNullString); err != nil {
 			return p, err
 		}
 
-		if p.TagsNullString.Valid {
-			p.Tags = strings.Split(p.TagsNullString.String, ",")
+		if p.Tags.TagsNullString.Valid {
+			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {
-			p.Tags = []string{}
+			p.Tags.Tags = []string{}
 		}
 
-		if p.CurrentUserLike.Valid {
-			p.CurrentUserLikeString = strconv.FormatInt(p.CurrentUserLike.Int64, 10)
+		if p.PostStats.CurrentUserLike.Valid {
+			p.PostStats.CurrentUserLikeString = strconv.FormatInt(p.PostStats.CurrentUserLike.Int64, 10)
 		} else {
-			p.CurrentUserLikeString = "0"
+			p.PostStats.CurrentUserLikeString = "0"
 		}
 	}
 
-	p.CreatedAtProcessed, err = ConvertDate(p.CreatedAt)
+	p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
 	if err != nil {
 		return p, err
 	}

@@ -44,7 +44,7 @@ func newKeycloak() *keycloak {
 	}
 }
 
-func (k *keycloak) keycloakRegisterHandler(currentUser *users.User) http.Handler {
+func (k *keycloak) RegisterHandler(currentUser *users.User) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
@@ -126,7 +126,7 @@ func (k *keycloak) keycloakRegisterHandler(currentUser *users.User) http.Handler
 	})
 }
 
-func (k *keycloak) keycloakLoginHandler(currentUser *users.User) http.Handler {
+func (k *keycloak) LoginHandler(currentUser *users.User) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Break up login handler from handler and login logic
 		// TODO: reuse login logic in registration
@@ -173,7 +173,7 @@ func (k *keycloak) keycloakLoginHandler(currentUser *users.User) http.Handler {
 	})
 }
 
-func (k *keycloak) keycloakResetHandler() http.Handler {
+func (k *keycloak) ResetHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 
@@ -224,7 +224,7 @@ func (k *keycloak) keycloakResetHandler() http.Handler {
 	})
 }
 
-func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next http.Handler) http.Handler {
+func (k *keycloak) CheckAuthentication(currentUser *users.User, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookieStart := time.Now()
 
@@ -346,7 +346,7 @@ func (k *keycloak) keycloakCheckAuthentication(currentUser *users.User, next htt
 	})
 }
 
-func (k *keycloak) keycloakLogout(currentUser *users.User) http.Handler {
+func (k *keycloak) Logout(currentUser *users.User) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// invalidate token
 		// clear session store

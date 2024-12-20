@@ -21,8 +21,8 @@ templ Base(title string, currentUser *users.User) {
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0">
 				<div class="navbar-start" preload="mouseover">
-					<a href="/" class="ps-2 text-3xl font-bold text-accent lg:ps-6 flex">
-						<div class="scale-x-[-1] me-1">
+					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
+						<div class="me-1 scale-x-[-1]">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" class="ph:chat-circle-slash-duotone text-accent/80" viewBox="0 0 256 256">
 								<g fill="currentColor"><path d="M224 128a96 96 0 0 1-144.07 83.11l-37.39 12.47a8 8 0 0 1-10.12-10.12l12.47-37.39A96 96 0 1 1 224 128" opacity=".2"></path><path d="M53.92 34.62a8 8 0 1 0-11.84 10.76l10.25 11.28a104.06 104.06 0 0 0-16.15 120.22l-11.35 34.05a16 16 0 0 0 20.24 20.24l34.05-11.35a104 104 0 0 0 112.7-9.73l10.26 11.29a8 8 0 1 0 11.84-10.76ZM128 216a87.87 87.87 0 0 1-44.06-11.81a8 8 0 0 0-6.54-.66L40 216l12.47-37.4a8 8 0 0 0-.66-6.54A88 88 0 0 1 63.14 68.54L181 198.23A87.77 87.77 0 0 1 128 216m104-88a104.15 104.15 0 0 1-12.38 49.25a8 8 0 0 1-14.09-7.58A88 88 0 0 0 93.88 46.86a8 8 0 0 1-6.21-14.75A104.06 104.06 0 0 1 232 128"></path></g>
 							</svg>
@@ -515,7 +515,7 @@ templ CreatePostDrawer() {
 	</div>
 }
 
-templ ShowTags(p posts.JoinPost) {
+templ ShowTags(p posts.ZPost) {
 	<div
 		id="tags-container"
 		class="group flex cursor-pointer items-center justify-center"
@@ -523,7 +523,7 @@ templ ShowTags(p posts.JoinPost) {
 		hx-target="#tags-container"
 		hx-swap="outerHTML"
 	>
-		if len(p.Tags) == 0 {
+		if len(p.Tags.Tags) == 0 {
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-neutral/70" viewBox="0 0 24 24">
 				<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
 			</svg>
@@ -532,8 +532,8 @@ templ ShowTags(p posts.JoinPost) {
 			</button>
 		} else {
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
-			for i := 0; i < len(p.Tags); i++ {
-				<span class="text-md btn btn-sm me-2 border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">{ p.Tags[i] }</span>
+			for i := 0; i < len(p.Tags.Tags); i++ {
+				<span class="text-md btn btn-sm me-2 border-0 bg-primary/50 text-accent/70 hover:bg-primary/60">{ p.Tags.Tags[i] }</span>
 			}
 		}
 	</div>
@@ -556,7 +556,7 @@ templ EditTags() {
 	</div>
 }
 
-templ PartialEditTags(post posts.JoinPost) {
+templ PartialEditTags(post posts.ZPost) {
 	<form
 		id="tags-container"
 		class="w-full"
@@ -575,7 +575,7 @@ templ PartialEditTags(post posts.JoinPost) {
 				<input id="tags-input" type="text" name="tags-input" placeholder="Key in your tags" class="mb-2 block" autocomplete="off"/>
 				<ul id="tags-list" class="flex flex-wrap items-center"></ul>
 			</div>
-			<input id="tags-data" type="hidden" name="tags-data" value={ post.TagsNullString.String }/>
+			<input id="tags-data" type="hidden" name="tags-data" value={ post.Tags.TagsNullString.String }/>
 		</label>
 		<div class="mt-2 flex items-center">
 			<button

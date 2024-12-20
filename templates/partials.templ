@@ -54,7 +54,7 @@ templ PartialPostErrorMessage(message string) {
 	</div>
 }
 
-templ PartialEditDescriptionResponse(currentUser *users.User, post posts.JoinPost) {
+templ PartialEditDescriptionResponse(currentUser *users.User, post posts.ZPost) {
 	<div class="group flex items-center" id="post-description">
 		if post.UserID == currentUser.UserID {
 			<button id="post-description-static" class="flex flex-wrap items-center">
