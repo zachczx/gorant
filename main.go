@@ -260,10 +260,9 @@ func main() {
 		}
 
 		c := posts.Comment{
-			UserID:    currentUser.UserID,
-			Content:   r.FormValue("message"),
-			CreatedAt: time.Now().Format(time.RFC3339),
-			PostID:    postID,
+			UserID:  currentUser.UserID,
+			Content: r.FormValue("message"),
+			PostID:  postID,
 		}
 
 		if v := posts.Validate(c); v != nil {
@@ -527,9 +526,9 @@ func main() {
 				return
 			}
 
-			t := time.Now().Format(time.RFC3339)
+			s := time.Now().Format(time.RFC3339)
 
-			TemplRender(w, r, templates.Reset("", t))
+			TemplRender(w, r, templates.Reset("", s))
 		} else {
 			w.Write([]byte("Not allowed!"))
 		}

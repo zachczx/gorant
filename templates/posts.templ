@@ -242,7 +242,7 @@ templ PartialPostNew(currentUser *users.User, comments []posts.JoinComment, high
 								</div>
 								<div>
 									<div class="text-xl font-bold">{ comments[i].PreferredName }</div>
-									<div class="text-xs text-base-content/60">{ comments[i].CreatedAtProcessed }</div>
+									<div class="text-xs text-base-content/60">{ comments[i].CreatedAt.Process() }</div>
 								</div>
 							</div>
 							<div class="flex items-center text-base">

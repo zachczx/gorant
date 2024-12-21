@@ -62,7 +62,7 @@ func Reset() error {
 
 	// Posts
 
-	_, err = DB.Exec(`CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, post_title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TEXT, mood VARCHAR(15) DEFAULT 'neutral');`)
+	_, err = DB.Exec(`CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, post_title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TIMESTAMPTZ, mood VARCHAR(15) DEFAULT 'neutral');`)
 	if err != nil {
 		fmt.Println("Error creating table: posts")
 		return err
@@ -71,7 +71,7 @@ func Reset() error {
 
 	// Comments
 
-	_, err = DB.Exec("CREATE TABLE comments (comment_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TEXT, post_id VARCHAR(255), FOREIGN KEY(post_id) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE);")
+	_, err = DB.Exec(`CREATE TABLE comments (comment_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255), FOREIGN KEY(post_id) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE);`)
 	if err != nil {
 		fmt.Println("Error creating table: comments")
 		return err

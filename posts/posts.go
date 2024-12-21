@@ -15,18 +15,6 @@ import (
 	"github.com/rezakhademix/govalidator/v2"
 )
 
-// type Post struct {
-// 	PostID             string `db:"post_id"`
-// 	PostTitle          string `db:"post_title"`
-// 	UserID             string `db:"user_id"`
-// 	Description        string `db:"description"`
-// 	Protected          int    `db:"protected"`
-// 	CreatedAt          string `db:"created_at"`
-// 	Mood               string `db:"mood"`
-// 	CreatedAtProcessed string
-// 	Tags               string `db:"tags"`
-// }
-
 type PostLike struct {
 	ID     int    `db:"like_id"`
 	UserID string `db:"user_id"`
@@ -62,21 +50,96 @@ type JoinPost struct {
 }
 
 type ZPost struct {
-	ID            string `db:"post_id"`
-	Title         string `db:"post_title"`
-	UserID        string `db:"user_id"`
+	ID     string `db:"post_id"`
+	Title  string `db:"post_title"`
+	UserID string `db:"user_id"`
+
+	Description string `db:"description"`
+	Protected   int    `db:"protected"`
+	CreatedAt   NewCreatedAt
+	Mood        string `db:"mood"`
+	Tags        Tags
+	PostStats   ZPostStats
+
 	PreferredName string // PreferredName of Author
-	Description   string `db:"description"`
-	Protected     int    `db:"protected"`
-	CreatedAt     CreatedAt
-	Mood          string `db:"mood"`
-	Tags          Tags
-	PostStats     ZPostStats
 }
 
-type CreatedAt struct {
-	CreatedAtString    string `db:"created_at"`
-	CreatedAtProcessed string
+// type CreatedAt struct {
+// 	CreatedAtString    string `db:"created_at"`
+// 	CreatedAtProcessed string
+// }
+
+type NewCreatedAt struct {
+	Time time.Time
+}
+
+/* func (c *NewCreatedAt) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	fmt.Println(reflect.TypeOf(value))
+	switch val := value.(type) {
+	case time.Time:
+		fmt.Println("It's a time.Time")
+		c.Time = val
+	case []byte:
+		// If the DB returns a string-like value, parse it:
+		t, err := time.Parse(time.RFC3339, string(val))
+		if err != nil {
+			return fmt.Errorf("failed to parse created_at: %w", err)
+		}
+		c.Time = t
+	case string:
+		fmt.Println("It's a string")
+		t, err := time.Parse(time.RFC3339, val)
+		if err != nil {
+			return fmt.Errorf("failed to parse created_at string: %w", err)
+		}
+		c.Time = t
+	default:
+		return fmt.Errorf("cannot convert %T to time.Time", value)
+	}
+
+	return nil
+} */
+
+func (c *NewCreatedAt) Process() string {
+	var s string
+	var suffix string
+
+	n := time.Now()
+	diff := n.Sub(c.Time).Hours()
+	switch {
+	case diff < 1:
+		if n.Sub(c.Time).Minutes() < 2 {
+			suffix = " minute ago"
+		} else {
+			suffix = " minutes ago"
+		}
+		// Mins
+		s = strconv.Itoa(int(n.Sub(c.Time).Minutes())) + suffix
+	case diff >= 1 && diff <= 23.99:
+		if diff < 2 {
+			suffix = " hour ago"
+		} else {
+			suffix = " hours ago"
+		}
+		// Hours
+		s = strconv.Itoa(int(diff)) + suffix
+	case diff > 23.99:
+		if diff < 48 {
+			suffix = " day ago"
+		} else {
+			suffix = " days ago"
+		}
+		// Days
+		s = strconv.Itoa(int(n.Sub(c.Time).Hours()/24)) + suffix
+	default:
+		fmt.Println("Something went wrong")
+	}
+
+	return s
 }
 
 type Tags struct {
@@ -128,7 +191,7 @@ func ListPosts() (PostCollection, error) {
 	for rows.Next() {
 		var p ZPost
 
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -141,11 +204,6 @@ func ListPosts() (PostCollection, error) {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {
 			p.Tags.Tags = []string{}
-		}
-
-		p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
-		if err != nil {
-			fmt.Println(err)
 		}
 
 		posts = append(posts, p)
@@ -216,7 +274,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	for rows.Next() {
 		var p ZPost
 
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
 			return nil, err
 		}
@@ -231,11 +289,6 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 			p.Tags.Tags = []string{}
 		}
 
-		p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
-		if err != nil {
-			fmt.Println(err)
-		}
-
 		posts = append(posts, p)
 	}
 
@@ -243,11 +296,9 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 }
 
 func NewPost(p ZPost, tags []string) error {
-	t := time.Now().Format(time.RFC3339)
-
 	var postID string
-	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, $4, $5) 
-						RETURNING post_id`, p.ID, p.Title, p.UserID, t, p.Mood).Scan(&postID)
+	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, NOW(), $4) 
+						RETURNING post_id`, p.ID, p.Title, p.UserID, p.Mood).Scan(&postID)
 	if err != nil {
 		return err
 	}
@@ -345,8 +396,8 @@ func InsertTags(tags []string) ([]Tag, error) {
 
 	var tag Tag
 	for _, v := range tags {
-		// Reusing TitleToID to sanitize input
-		tag.Tag, err = TitleToID(v)
+		// Reusing SanitizeTitleToID to sanitize input
+		tag.Tag, err = SanitizeTitleToID(v)
 		if err != nil {
 			return validTags, err
 		}
@@ -521,7 +572,7 @@ func VerifyPostID(title string) (bool, string) {
 	var ID string
 
 	// Generate ID to test
-	ID, err := TitleToID(title)
+	ID, err := SanitizeTitleToID(title)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -554,7 +605,7 @@ func GetPost(postID string, currentUser string) (ZPost, error) {
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&p.ID, &p.Title, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt.CreatedAtString, &p.Mood, &p.PostStats.CurrentUserLike, &p.Tags.TagsNullString); err != nil {
+		if err := row.Scan(&p.ID, &p.Title, &p.UserID, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PostStats.CurrentUserLike, &p.Tags.TagsNullString); err != nil {
 			return p, err
 		}
 
@@ -569,11 +620,6 @@ func GetPost(postID string, currentUser string) (ZPost, error) {
 		} else {
 			p.PostStats.CurrentUserLikeString = "0"
 		}
-	}
-
-	p.CreatedAt.CreatedAtProcessed, err = ConvertDate(p.CreatedAt.CreatedAtString)
-	if err != nil {
-		return p, err
 	}
 
 	return p, nil
@@ -669,7 +715,7 @@ func ValidateMood(mood string) error {
 	return nil
 }
 
-func TitleToID(title string) (string, error) {
+func SanitizeTitleToID(title string) (string, error) {
 	ss := strings.Fields(title)
 	title = strings.Join(ss, " ")
 	r := strings.NewReplacer(

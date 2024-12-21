@@ -17,8 +17,9 @@ type Comment struct {
 	CommentID string `db:"comment_id"`
 	UserID    string `db:"user_id"`
 	Content   string `db:"content"`
-	CreatedAt string `db:"created_at"`
-	PostID    string `db:"post_id"`
+	// CreatedAt string `db:"created_at"`
+	CreatedAt NewCreatedAt `db:"created_at"`
+	PostID    string       `db:"post_id"`
 }
 
 type CommentVote struct {
@@ -29,12 +30,12 @@ type CommentVote struct {
 }
 
 type JoinComment struct {
-	CommentID       string `db:"comment_id"`
-	UserID          string `db:"user_id"`
-	Content         string `db:"content"`
-	CreatedAt       string `db:"created_at"`
-	PostID          string `db:"post_id"`
-	PostDescription string `db:"description"`
+	CommentID       string       `db:"comment_id"`
+	UserID          string       `db:"user_id"`
+	Content         string       `db:"content"`
+	CreatedAt       NewCreatedAt `db:"created_at"`
+	PostID          string       `db:"post_id"`
+	PostDescription string       `db:"description"`
 	Initials        string
 	PreferredName   string `db:"preferred_name"`
 	Avatar          string `db:"avatar"`
@@ -57,20 +58,11 @@ func Insert(c Comment) (string, error) {
 	var insertedID string
 
 	var lastInsertID int
-	err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.CreatedAt, c.PostID).Scan(&lastInsertID)
+	err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&lastInsertID)
 	if err != nil {
 		return insertedID, err
 	}
 
-	// r, err := database.DB.NamedExec(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES (:user_id, :content, :created_at, :post_id)`, &c)
-	// if err != nil {
-	// 	fmt.Println("Error inserting values: ", err)
-	// 	return insertedID, err
-	// }
-	// ID, err := r.LastInsertId()
-	// if err != nil {
-	// 	return insertedID, err
-	// }
 	insertedID = strconv.Itoa(lastInsertID)
 	fmt.Println("Successfully inserted!")
 	return insertedID, nil
@@ -101,7 +93,7 @@ func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -126,11 +118,6 @@ func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 			c.CurrentUserVoted = "false"
 		}
 
-		c.CreatedAtProcessed, err = ConvertDate(c.CreatedAt)
-		if err != nil {
-			fmt.Println(err)
-		}
-
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
 		comments = append(comments, c)
@@ -142,7 +129,7 @@ func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 func GetComment(commentID string, currentUser string) (Comment, error) {
 	var c Comment
 
-	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID)
+	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID)
 	if err != nil {
 		return c, err
 	}
@@ -300,7 +287,7 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	for rows.Next() {
 		var c JoinComment
 
-		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -323,11 +310,6 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
 		} else {
 			c.CurrentUserVoted = "false"
-		}
-
-		c.CreatedAtProcessed, err = ConvertDate(c.CreatedAt)
-		if err != nil {
-			fmt.Println(err)
 		}
 
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
