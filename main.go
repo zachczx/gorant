@@ -78,94 +78,14 @@ func main() {
 
 	mux.Handle("GET /posts/{postID}", k.AltCheckAuthentication()(k.viewPostHandler()))
 
-	mux.Handle("POST /posts/{postID}", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		filter := r.FormValue("f")
-		sort := r.FormValue("sort")
-
-		fmt.Println("Form value sort: ", r.FormValue("sort"))
-		fmt.Println("Filter value: ", filter)
-
-		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
-		if sort != "" {
-			s, err := users.SaveSortComments(currentUser.UserID, sort)
-			if err != nil {
-				fmt.Println(err)
-			}
-
-			currentUser.SortComments = s
-		}
-
-		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, filter)
-		if err != nil {
-			fmt.Println(err)
-			TemplRender(w, r, templates.Error(currentUser, "Error!"))
-			return
-		}
-
-		TemplRender(w, r, templates.PartialPostNewSorted(currentUser, comments, ""))
-	})))
+	mux.Handle("POST /posts/{postID}", k.AltCheckAuthentication()(k.filterSortPostHandler()))
 
 	mux.HandleFunc("GET /posts/{postID}/new", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("GET not allowed on this route.")
 		http.Redirect(w, r, "/posts/{postID}", http.StatusSeeOther)
 	})
 
-	mux.Handle("POST /posts/{postID}/new", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-
-		if currentUser.UserID == "" {
-			fmt.Println("Not authenticated")
-			var comments []posts.Comment
-			comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
-			if err != nil {
-				fmt.Println(err)
-				TemplRender(w, r, templates.Error(currentUser, "Error!"))
-				return
-			}
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(currentUser, comments))
-			return
-		}
-
-		if exists, _ := posts.VerifyPostID(postID); !exists {
-			fmt.Println("Error verifying post exists")
-			TemplRender(w, r, templates.Error(currentUser, "Error! Post doesn't exist!"))
-			return
-		}
-
-		c := posts.Comment{
-			UserID:  currentUser.UserID,
-			Content: r.FormValue("message"),
-			PostID:  postID,
-		}
-
-		if v := posts.Validate(c); v != nil {
-			fmt.Println("Error: ", v)
-			comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
-			if err != nil {
-				fmt.Println("Error fetching posts")
-				TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
-				return
-			}
-			TemplRender(w, r, templates.PartialPostNewError(currentUser, comments, v))
-			return
-		}
-
-		var insertedID string
-		insertedID, err := posts.Insert(c)
-		if err != nil {
-			fmt.Println("Error inserting: ", err)
-		}
-
-		comments, err := posts.ListCommentsFilterSort(postID, currentUser.UserID, currentUser.SortComments, "")
-		if err != nil {
-			TemplRender(w, r, templates.Error(currentUser, "Oops, something went wrong."))
-			return
-		}
-		if hd := r.Header.Get("Hx-Request"); hd != "" {
-			TemplRender(w, r, templates.PartialPostNewSuccess(currentUser, comments, insertedID))
-		}
-	})))
+	mux.Handle("POST /posts/{postID}/new", k.AltCheckAuthentication()(k.newCommentHandler()))
 
 	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
@@ -177,26 +97,9 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})))
 
-	mux.Handle("GET /posts/{postID}/tags", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		p, err := posts.GetTags(postID)
-		if err != nil {
-			fmt.Println(err)
-		}
-		p.ID = postID
+	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
 
-		TemplRender(w, r, templates.ShowTags(p))
-	}))
-
-	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		post, err := posts.GetPost(postID, currentUser.UserID)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		TemplRender(w, r, templates.PartialEditTags(post))
-	})))
+	mux.Handle("GET /posts/{postID}/tags/edit", k.AltCheckAuthentication()(k.editTagsHandler()))
 
 	mux.Handle("POST /posts/{postID}/tags/save", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")

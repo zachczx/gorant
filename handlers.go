@@ -7,6 +7,7 @@ import (
 
 	"gorant/posts"
 	"gorant/templates"
+	"gorant/users"
 )
 
 func (k *keycloak) landingHandler() http.Handler {
@@ -142,5 +143,116 @@ func (k *keycloak) viewPostHandler() http.Handler {
 		}
 
 		TemplRender(w, r, templates.Post(k.currentUser, "Posts", post, comments, "", k.currentUser.SortComments))
+	})
+}
+
+func (k *keycloak) filterSortPostHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		filter := r.FormValue("f")
+		sort := r.FormValue("sort")
+
+		fmt.Println("Form value sort: ", r.FormValue("sort"))
+		fmt.Println("Filter value: ", filter)
+
+		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
+		if sort != "" {
+			s, err := users.SaveSortComments(k.currentUser.UserID, sort)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			k.currentUser.SortComments = s
+		}
+
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
+		if err != nil {
+			fmt.Println(err)
+			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
+			return
+		}
+
+		TemplRender(w, r, templates.PartialPostNewSorted(k.currentUser, comments, ""))
+	})
+}
+
+func (k *keycloak) newCommentHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+
+		if k.currentUser.UserID == "" {
+			fmt.Println("Not authenticated")
+			var comments []posts.Comment
+			comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+			if err != nil {
+				fmt.Println(err)
+				TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
+				return
+			}
+			TemplRender(w, r, templates.PartialPostNewErrorLogin(k.currentUser, comments))
+			return
+		}
+
+		if exists, _ := posts.VerifyPostID(postID); !exists {
+			fmt.Println("Error verifying post exists")
+			TemplRender(w, r, templates.Error(k.currentUser, "Error! Post doesn't exist!"))
+			return
+		}
+
+		c := posts.Comment{
+			UserID:  k.currentUser.UserID,
+			Content: r.FormValue("message"),
+			PostID:  postID,
+		}
+
+		if v := posts.Validate(c); v != nil {
+			fmt.Println("Error: ", v)
+			comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+			if err != nil {
+				fmt.Println("Error fetching posts")
+				TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
+				return
+			}
+			TemplRender(w, r, templates.PartialPostNewError(k.currentUser, comments, v))
+			return
+		}
+
+		var insertedID string
+		insertedID, err := posts.Insert(c)
+		if err != nil {
+			fmt.Println("Error inserting: ", err)
+		}
+
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		if err != nil {
+			TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
+			return
+		}
+		if hd := r.Header.Get("Hx-Request"); hd != "" {
+			TemplRender(w, r, templates.PartialPostNewSuccess(k.currentUser, comments, insertedID))
+		}
+	})
+}
+
+func getTagsHandler(w http.ResponseWriter, r *http.Request) {
+	postID := r.PathValue("postID")
+	p, err := posts.GetTags(postID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	p.ID = postID
+
+	TemplRender(w, r, templates.ShowTags(p))
+}
+
+func (k *keycloak) editTagsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		post, err := posts.GetPost(postID, k.currentUser.UserID)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		TemplRender(w, r, templates.PartialEditTags(post))
 	})
 }
