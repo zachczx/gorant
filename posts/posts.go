@@ -104,6 +104,31 @@ type NewCreatedAt struct {
 	return nil
 } */
 
+type Tags struct {
+	TagsNullString sql.NullString `db:"tags"`
+	Tags           []string
+}
+
+type Tag struct {
+	TagID int    `db:"tag_id"`
+	Tag   string `db:"tag"`
+}
+
+type ZPostStats struct {
+	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
+	CommentsCountString   string
+	LikesCount            sql.NullInt64 `db:"likes_cnt"`
+	LikesCountString      string
+	CurrentUserLike       sql.NullInt64 `db:"score"`
+	CurrentUserLikeString string
+}
+
+type PostCollection []ZPost
+
+var allowedMoods = [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angry"}
+
+const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
+
 func (c *NewCreatedAt) Process() string {
 	var s string
 	var suffix string
@@ -141,29 +166,6 @@ func (c *NewCreatedAt) Process() string {
 
 	return s
 }
-
-type Tags struct {
-	TagsNullString sql.NullString `db:"tags"`
-	Tags           []string
-}
-
-type Tag struct {
-	TagID int    `db:"tag_id"`
-	Tag   string `db:"tag"`
-}
-
-type ZPostStats struct {
-	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
-	CommentsCountString   string
-	LikesCount            sql.NullInt64 `db:"likes_cnt"`
-	LikesCountString      string
-	CurrentUserLike       sql.NullInt64 `db:"score"`
-	CurrentUserLikeString string
-}
-
-type PostCollection []ZPost
-
-const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
 func ListPosts() (PostCollection, error) {
 	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
@@ -238,7 +240,59 @@ func ListTags() ([]string, error) {
 }
 
 func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
-	query, args, err := sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+	var query string
+	var args []interface{}
+	var err error
+
+	// For when there's a reset of the form
+	if len(mood) == 0 && len(tags) == 0 {
+		p, err := ListPosts()
+		if err != nil {
+			fmt.Println("Error fetching posts", err)
+		}
+		return p, nil
+	}
+
+	// IN clause fails if the tags slice fed to the INNER JOIN is empty, so if it's empty, grab all the possible moods
+	if len(mood) != 0 && len(tags) == 0 {
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
+									FROM posts
+									WHERE mood IN (?)) AS posts
+									INNER JOIN(SELECT DISTINCT posts_tags.post_id
+											from posts_tags
+													INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id
+									LEFT JOIN users ON users.user_id=posts.user_id
+									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+											FROM comments
+											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+											FROM posts_likes
+											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
+									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+											FROM posts_tags
+													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood)
+	} else if len(mood) == 0 && len(tags) != 0 {
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
+									FROM posts AS posts
+									INNER JOIN(SELECT DISTINCT posts_tags.post_id
+											from posts_tags
+													INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags WHERE tags.tag IN (?)) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id
+									LEFT JOIN users ON users.user_id=posts.user_id
+									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+											FROM comments
+											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+											FROM posts_likes
+											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
+									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+											FROM posts_tags
+													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, tags)
+	} else {
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
 									WHERE mood IN (?)) AS posts
@@ -256,11 +310,13 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood, tags)
+	}
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
 		return nil, err
 	}
 	query = database.DB.Rebind(query)
+	fmt.Println("Query: ", query)
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		fmt.Println("Error executing query: ", err)
@@ -462,7 +518,7 @@ func GetPostIDTagIDTag(postID string) ([]JunctionPostTag, error) {
 	return postsTags, nil
 }
 
-var disallowed = [33]string{
+/* var disallowed = [33]string{
 	".",
 	" ",
 	"_",
@@ -496,7 +552,7 @@ var disallowed = [33]string{
 	"\"",
 	"+",
 	",",
-}
+} */
 
 var validTagCharacters string = `^[A-Za-z0-9-]+$`
 
@@ -696,8 +752,6 @@ func EditMood(postID string, mood string) error {
 }
 
 func ValidateMood(mood string) error {
-	allowedMoods := [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angry"}
-
 	res := false
 	for _, v := range allowedMoods {
 		v = strings.ToUpper(v)

@@ -25,9 +25,10 @@ type keycloakConfig struct {
 }
 
 type keycloak struct {
-	gocloak gocloak.GoCloak
-	config  keycloakConfig
-	store   *gorillaSessions.CookieStore
+	gocloak     gocloak.GoCloak
+	config      keycloakConfig
+	store       *gorillaSessions.CookieStore
+	currentUser *users.User
 }
 
 var regex *regexp.Regexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
@@ -40,7 +41,8 @@ func newKeycloak() *keycloak {
 			clientSecret: os.Getenv("GOCLOAK_CLIENT_SECRET"),
 			realm:        os.Getenv("GOCLOAK_REALM"),
 		},
-		store: gorillaSessions.NewCookieStore([]byte(os.Getenv("GORILLA_SESSION_KEY"))),
+		store:       gorillaSessions.NewCookieStore([]byte(os.Getenv("GORILLA_SESSION_KEY"))),
+		currentUser: &users.User{SortComments: "upvote;desc"},
 	}
 }
 
@@ -341,9 +343,131 @@ func (k *keycloak) CheckAuthentication(currentUser *users.User, next http.Handle
 			pterm.DefaultSection.Println("Benchmarks!")
 			pterm.DefaultBulletList.WithItems(bulletListItems).Render()
 		}
-
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (k *keycloak) AltCheckAuthentication() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cookieStart := time.Now()
+
+			session, err := k.store.Get(r, "grumplr_kc_session")
+			// Err cannot be nil here since we're verifying token
+			if err != nil || session == nil {
+				*k.currentUser = users.User{}
+				// http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			}
+
+			cookieSince := time.Since(cookieStart)
+
+			token, ok := session.Values["token"].(string)
+			if token == "" || !ok {
+				k.currentUser.UserID = ""
+				fmt.Println("No token found!")
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			cookieUsername, ok := session.Values["username"].(string)
+			if cookieUsername == "" || !ok {
+				fmt.Println("No username cookie found!")
+			}
+			k.currentUser.UserID = cookieUsername
+
+			authStart := time.Now()
+			result, err := k.gocloak.RetrospectToken(ctx, token, k.config.clientID, k.config.clientSecret, k.config.realm)
+			if err != nil || !*result.Active {
+				fmt.Println("Token inspection failed!")
+				*k.currentUser = users.User{}
+				next.ServeHTTP(w, r)
+				return
+			}
+			authDuration := time.Since(authStart)
+
+			settingsStart := time.Now()
+
+			// Load user settings from cookie or DB.
+			// If loaded from DB, then store in cookie to be saved.
+			if err := SetSettingsCookie(k.currentUser, session, cookieUsername); err != nil {
+				fmt.Println(err)
+			}
+
+			if err := session.Save(r, w); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			// Format benchmarks
+			settingsDuration := time.Since(settingsStart)
+			if os.Getenv("DEV_ENV") == "TRUE" {
+
+				bulletListItems := []pterm.BulletListItem{
+					{
+						Level:       0,
+						Text:        "Speed",
+						TextStyle:   pterm.NewStyle(pterm.FgBlue),
+						BulletStyle: pterm.NewStyle(pterm.FgRed),
+						Bullet:      " ",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("Cookie: %v", cookieSince),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("Auth: %v", authDuration),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("Settings: %v", settingsDuration),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+					{
+						Level:       0,
+						Text:        "Cookie",
+						TextStyle:   pterm.NewStyle(pterm.FgBlue),
+						BulletStyle: pterm.NewStyle(pterm.FgRed),
+						Bullet:      " ",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("UserID: %v", k.currentUser.UserID),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("PreferredName: %v", k.currentUser.PreferredName),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+					{
+						Level:       1,
+						Text:        fmt.Sprintf("SortComments: %v", k.currentUser.SortComments),
+						TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
+						BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
+						Bullet:      ">",
+					},
+				}
+				fmt.Println("###################")
+				pterm.DefaultSection.Println("Benchmarks!")
+				pterm.DefaultBulletList.WithItems(bulletListItems).Render()
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func (k *keycloak) Logout(currentUser *users.User) http.Handler {

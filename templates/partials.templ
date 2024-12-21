@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ PartialPostNewError(currentUser *users.User, comments []posts.JoinComment, messages map[string]string) {
+templ PartialPostNewError(currentUser *users.User, comments []posts.Comment, messages map[string]string) {
 	@PartialPostNew(currentUser, comments, "")
 	if messages["content"] != "" {
 		<div id="form-message-error" class="mt-1 flex items-center rounded-lg text-sm text-error" hx-swap-oob="true">
@@ -21,29 +21,29 @@ templ PartialPostNewError(currentUser *users.User, comments []posts.JoinComment,
 	}
 }
 
-templ PartialPostNewSorted(currentUser *users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostNewSorted(currentUser *users.User, comments []posts.Comment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight)
 	@SortButton(currentUser, comments[0].PostID, "true")
 }
 
-templ PartialPostNewSuccess(currentUser *users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostNewSuccess(currentUser *users.User, comments []posts.Comment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight) {
 		@Toast("success", "Comment added!")
 	}
 	@PostForm(currentUser, comments[0].PostID, "true")
 }
 
-templ PartialPostVote(currentUser *users.User, comments []posts.JoinComment, highlight string) {
+templ PartialPostVote(currentUser *users.User, comments []posts.Comment, highlight string) {
 	@PartialPostNew(currentUser, comments, highlight)
 }
 
-templ PartialPostNewErrorLogin(currentUser *users.User, comments []posts.JoinComment) {
+templ PartialPostNewErrorLogin(currentUser *users.User, comments []posts.Comment) {
 	@PartialPostNew(currentUser, comments, "") {
 		@Toast("error", "You need to be logged in to add a new comment!")
 	}
 }
 
-templ PartialPostDelete(currentUser *users.User, comments []posts.JoinComment) {
+templ PartialPostDelete(currentUser *users.User, comments []posts.Comment) {
 	@PartialPostNew(currentUser, comments, "")
 }
 
@@ -197,10 +197,10 @@ templ PartialSettingsEditSuccess(s users.User) {
 
 templ PartialCommentEdit(c posts.Comment) {
 	<form
-		id={ "post-" + c.CommentID + "-content" }
+		id={ "post-" + c.ID + "-content" }
 		class="py-4"
-		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.CommentID))) }
-		hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.CommentID))) }
+		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.ID))) }
+		hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID))) }
 		hx-swap="outerHTML"
 	>
 		<textarea name="edit-content" class="textarea textarea-bordered h-36 w-full grow text-base" minlength="1" maxlength="2000" required>{ c.Content }</textarea>
@@ -209,8 +209,8 @@ templ PartialCommentEdit(c posts.Comment) {
 			<button
 				type="button"
 				class="btn btn-outline btn-accent btn-sm min-w-24 rounded-lg"
-				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit/cancel", c.PostID, c.CommentID))) }
-				hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.CommentID))) }
+				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit/cancel", c.PostID, c.ID))) }
+				hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID))) }
 				hx-swap="outerHTML"
 			>Cancel</button>
 		</div>
@@ -218,5 +218,5 @@ templ PartialCommentEdit(c posts.Comment) {
 }
 
 templ PartialCommentEditSuccess(c posts.Comment) {
-	<div id={ "post-" + c.CommentID + "-content" } class="whitespace-pre-line py-4 text-base">{ c.Content }</div>
+	<div id={ "post-" + c.ID + "-content" } class="whitespace-pre-line py-4 text-base">{ c.Content }</div>
 }

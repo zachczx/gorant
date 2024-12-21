@@ -14,12 +14,18 @@ import (
 )
 
 type Comment struct {
-	CommentID string `db:"comment_id"`
-	UserID    string `db:"user_id"`
-	Content   string `db:"content"`
-	// CreatedAt string `db:"created_at"`
-	CreatedAt NewCreatedAt `db:"created_at"`
-	PostID    string       `db:"post_id"`
+	ID            string       `db:"comment_id"`
+	UserID        string       `db:"user_id"`
+	Content       string       `db:"content"`
+	CreatedAt     NewCreatedAt `db:"created_at"`
+	PostID        string       `db:"post_id"`
+	Initials      string
+	PreferredName string `db:"preferred_name"`
+	Avatar        string `db:"avatar"`
+	CommentStats  CommentStats
+	// Processed
+	CreatedAtProcessed string
+	AvatarPath         string
 }
 
 type CommentVote struct {
@@ -29,29 +35,15 @@ type CommentVote struct {
 	Score     int `db:"score"`
 }
 
-type JoinComment struct {
-	CommentID       string       `db:"comment_id"`
-	UserID          string       `db:"user_id"`
-	Content         string       `db:"content"`
-	CreatedAt       NewCreatedAt `db:"created_at"`
-	PostID          string       `db:"post_id"`
-	PostDescription string       `db:"description"`
-	Initials        string
-	PreferredName   string `db:"preferred_name"`
-	Avatar          string `db:"avatar"`
-
-	// Processed
-	CreatedAtProcessed string
-	AvatarPath         string
-
-	// Null handling for counts from DB, since counts are calculated from the query
-	Score            sql.NullInt64 `db:"score"`
-	ScoreString      string
+// Null handling for counts from DB, since counts are calculated from the query
+type CommentStats struct {
 	Count            sql.NullInt64 `db:"cnt"`
 	CountString      string
 	IDsVoted         sql.NullString `db:"cnt"`
 	IDsVotedString   string         // String separated by "," with the user_ids grouped
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
+	// Score            sql.NullInt64 `db:"score"`
+	// ScoreString      string
 }
 
 func Insert(c Comment) (string, error) {
@@ -68,8 +60,8 @@ func Insert(c Comment) (string, error) {
 	return insertedID, nil
 }
 
-func ListComments(postID string, currentUser string) ([]JoinComment, error) {
-	var comments []JoinComment
+func ListComments(postID string, currentUser string) ([]Comment, error) {
+	var comments []Comment
 
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
@@ -91,31 +83,21 @@ func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var c JoinComment
+		var c Comment
 
-		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
 
-		if c.Score.Valid {
-			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
-		} else {
-			c.ScoreString = ""
-		}
+		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
 
-		if c.Count.Valid {
-			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
+		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
+			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
 		} else {
-			c.CountString = ""
-		}
-
-		if c.IDsVoted.Valid && currentUser != "" {
-			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
-		} else {
-			c.CurrentUserVoted = "false"
+			c.CommentStats.CurrentUserVoted = "false"
 		}
 
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
@@ -129,7 +111,7 @@ func ListComments(postID string, currentUser string) ([]JoinComment, error) {
 func GetComment(commentID string, currentUser string) (Comment, error) {
 	var c Comment
 
-	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID)
+	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID)
 	if err != nil {
 		return c, err
 	}
@@ -237,8 +219,8 @@ func ConvertDate(date string) (string, error) {
 	return s, err
 }
 
-func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]JoinComment, error) {
-	var comments []JoinComment
+func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]Comment, error) {
+	var comments []Comment
 	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
 
 					LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
@@ -285,31 +267,21 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	defer rows.Close()
 
 	for rows.Next() {
-		var c JoinComment
+		var c Comment
 
-		if err := rows.Scan(&c.CommentID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.Count, &c.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
 
-		if c.Score.Valid {
-			c.ScoreString = strconv.FormatInt(c.Count.Int64, 10)
-		} else {
-			c.ScoreString = ""
-		}
+		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
 
-		if c.Count.Valid {
-			c.CountString = strconv.FormatInt(c.Count.Int64, 10)
+		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
+			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
 		} else {
-			c.CountString = ""
-		}
-
-		if c.IDsVoted.Valid && currentUser != "" {
-			c.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.IDsVoted.String, currentUser))
-		} else {
-			c.CurrentUserVoted = "false"
+			c.CommentStats.CurrentUserVoted = "false"
 		}
 
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)

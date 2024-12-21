@@ -23,7 +23,7 @@ templ Base(title string, currentUser *users.User) {
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
 						<div class="me-1 scale-x-[-1]">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-accent/80 ri:chat-smile-2-fill" viewBox="0 0 24 24">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ri:chat-smile-2-fill text-accent/80" viewBox="0 0 24 24">
 								<path fill="currentColor" d="M7.291 20.824L2 22l1.176-5.291A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10a9.96 9.96 0 0 1-4.709-1.176M7 12a5 5 0 0 0 10 0h-2a3 3 0 1 1-6 0z"></path>
 							</svg>
 						</div>Grumplr
@@ -592,7 +592,7 @@ templ PartialEditTags(post posts.ZPost) {
 	</form>
 }
 
-templ StarterWelcomeError(currentUser *users.User, posts []posts.ZPost, tags []string) {
+templ StarterWelcomeError(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@StarterWelcome(currentUser, posts, tags) {
 		No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.
 	}
