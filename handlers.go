@@ -256,3 +256,41 @@ func (k *keycloak) editTagsHandler() http.Handler {
 		TemplRender(w, r, templates.PartialEditTags(post))
 	})
 }
+
+func (k *keycloak) saveTagsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		t := r.FormValue("tags-data")
+		fmt.Println("Form data: ", t)
+
+		var tags []string
+		if t != "" {
+			tags = strings.Split(t, ",")
+		}
+
+		err := posts.EditTags(postID, tags)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		p, err := posts.GetTags(postID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		p.ID = postID
+
+		TemplRender(w, r, templates.ShowTags(p))
+	})
+}
+
+func (k *keycloak) deletePostHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		if err := posts.DeletePost(postID, k.currentUser.UserID); err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})
+}

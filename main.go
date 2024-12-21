@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"gorant/database"
@@ -87,43 +86,13 @@ func main() {
 
 	mux.Handle("POST /posts/{postID}/new", k.AltCheckAuthentication()(k.newCommentHandler()))
 
-	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		if err := posts.DeletePost(postID, currentUser.UserID); err != nil {
-			fmt.Println(err)
-			http.Redirect(w, r, "/error", http.StatusSeeOther)
-		}
-
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	})))
+	mux.Handle("POST /posts/{postID}/delete", k.AltCheckAuthentication()(k.deletePostHandler()))
 
 	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
 
 	mux.Handle("GET /posts/{postID}/tags/edit", k.AltCheckAuthentication()(k.editTagsHandler()))
 
-	mux.Handle("POST /posts/{postID}/tags/save", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postID := r.PathValue("postID")
-		t := r.FormValue("tags-data")
-		fmt.Println("Form data: ", t)
-
-		var tags []string
-		if t != "" {
-			tags = strings.Split(t, ",")
-		}
-
-		err := posts.EditTags(postID, tags)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		p, err := posts.GetTags(postID)
-		if err != nil {
-			fmt.Println(err)
-		}
-		p.ID = postID
-
-		TemplRender(w, r, templates.ShowTags(p))
-	})))
+	mux.Handle("POST /posts/{postID}/tags/save", k.AltCheckAuthentication()(k.saveTagsHandler()))
 
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.CheckAuthentication(currentUser, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
