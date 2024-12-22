@@ -45,130 +45,30 @@ func newKeycloak() *keycloak {
 	}
 }
 
-func (k *keycloak) CheckAuthentication(currentUser *users.User, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookieStart := time.Now()
-
-		session, err := k.store.Get(r, "grumplr_kc_session")
-		// Err cannot be nil here since we're verifying token
-		if err != nil || session == nil {
-			*currentUser = users.User{}
-			// http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
-
-		cookieSince := time.Since(cookieStart)
-
-		token, ok := session.Values["token"].(string)
-		if token == "" || !ok {
-			currentUser.UserID = ""
-			fmt.Println("No token found!")
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		cookieUsername, ok := session.Values["username"].(string)
-		if cookieUsername == "" || !ok {
-			fmt.Println("No username cookie found!")
-		}
-		currentUser.UserID = cookieUsername
-
-		authStart := time.Now()
-		result, err := k.gocloak.RetrospectToken(ctx, token, k.config.clientID, k.config.clientSecret, k.config.realm)
-		if err != nil || !*result.Active {
-			fmt.Println("Token inspection failed!")
-			*currentUser = users.User{}
-			next.ServeHTTP(w, r)
-			return
-		}
-		authDuration := time.Since(authStart)
-
-		settingsStart := time.Now()
-
-		// Load user settings from cookie or DB.
-		// If loaded from DB, then store in cookie to be saved.
-		if err := SetSettingsCookie(currentUser, session, cookieUsername); err != nil {
-			fmt.Println(err)
-		}
-
-		if err := session.Save(r, w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Format benchmarks
-		settingsDuration := time.Since(settingsStart)
-		if os.Getenv("DEV_ENV") == "TRUE" {
-
-			bulletListItems := []pterm.BulletListItem{
-				{
-					Level:       0,
-					Text:        "Speed",
-					TextStyle:   pterm.NewStyle(pterm.FgBlue),
-					BulletStyle: pterm.NewStyle(pterm.FgRed),
-					Bullet:      " ",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("Cookie: %v", cookieSince),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("Auth: %v", authDuration),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("Settings: %v", settingsDuration),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-				{
-					Level:       0,
-					Text:        "Cookie",
-					TextStyle:   pterm.NewStyle(pterm.FgBlue),
-					BulletStyle: pterm.NewStyle(pterm.FgRed),
-					Bullet:      " ",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("UserID: %v", currentUser.UserID),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("PreferredName: %v", currentUser.PreferredName),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-				{
-					Level:       1,
-					Text:        fmt.Sprintf("SortComments: %v", currentUser.SortComments),
-					TextStyle:   pterm.NewStyle(pterm.FgLightWhite),
-					BulletStyle: pterm.NewStyle(pterm.FgLightWhite),
-					Bullet:      ">",
-				},
-			}
-			fmt.Println("###################")
-			pterm.DefaultSection.Println("Benchmarks!")
-			pterm.DefaultBulletList.WithItems(bulletListItems).Render()
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (k *keycloak) AltCheckAuthentication() func(http.Handler) http.Handler {
+func (k *keycloak) RequireAuthentication() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("RequireAuthentication()")
+			fmt.Println("UserID: ", k.currentUser.UserID)
+			if k.currentUser.UserID == "" {
+				// w.WriteHeader(http.StatusUnauthorized)
+				if r.Header.Get("Hx-Request") != "" {
+					w.Header().Set("Hx-Redirect", "/error")
+					return
+				} else {
+					http.Redirect(w, r, "/error", http.StatusSeeOther)
+					return
+				}
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("CheckAuthentication()")
 			cookieStart := time.Now()
 
 			session, err := k.store.Get(r, "grumplr_kc_session")
@@ -176,6 +76,7 @@ func (k *keycloak) AltCheckAuthentication() func(http.Handler) http.Handler {
 			if err != nil || session == nil {
 				*k.currentUser = users.User{}
 				// http.Redirect(w, r, "/", http.StatusSeeOther)
+				next.ServeHTTP(w, r)
 				return
 			}
 

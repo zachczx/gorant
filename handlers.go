@@ -565,7 +565,7 @@ func (k *keycloak) editSettingsHandler() http.Handler {
 }
 
 func (k *keycloak) viewErrorHandler(w http.ResponseWriter, r *http.Request) {
-	TemplRender(w, r, templates.Error(k.currentUser, "Oops something went wrong."))
+	TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
 }
 
 func resetAdmin(w http.ResponseWriter, r *http.Request) {

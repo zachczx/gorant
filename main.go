@@ -43,36 +43,36 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Landing page routes
-	mux.Handle("GET /{$}", k.AltCheckAuthentication()(k.landingHandler()))
-	mux.Handle("GET /navbar-profile-badge", k.AltCheckAuthentication()(k.viewNavbarProfileBadge()))
+	mux.Handle("GET /{$}", k.CheckAuthentication()(k.landingHandler()))
+	mux.Handle("GET /navbar-profile-badge", k.CheckAuthentication()(k.viewNavbarProfileBadge()))
 	mux.HandleFunc("POST /anonymous", viewAnonymousHandler)
 
 	// Post routes
-	mux.Handle("GET /posts", k.AltCheckAuthentication()(k.postsHandler()))
+	mux.Handle("GET /posts", k.CheckAuthentication()(k.postsHandler()))
 	mux.HandleFunc("POST /filter", postFilterHandler)
-	mux.Handle("POST /posts/new", k.AltCheckAuthentication()(k.newPostHandler()))
-	mux.Handle("GET /posts/{postID}", k.AltCheckAuthentication()(k.viewPostHandler()))
-	mux.Handle("POST /posts/{postID}", k.AltCheckAuthentication()(k.filterSortPostHandler()))
+	mux.Handle("POST /posts/new", k.CheckAuthentication()(k.newPostHandler()))
+	mux.Handle("GET /posts/{postID}", k.CheckAuthentication()(k.viewPostHandler()))
+	mux.Handle("POST /posts/{postID}", k.CheckAuthentication()(k.filterSortPostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/new", newPostWrongMethodHandler)
-	mux.Handle("POST /posts/{postID}/new", k.AltCheckAuthentication()(k.newCommentHandler()))
-	mux.Handle("POST /posts/{postID}/delete", k.AltCheckAuthentication()(k.deletePostHandler()))
+	mux.Handle("POST /posts/{postID}/new", k.CheckAuthentication()(k.newCommentHandler()))
+	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication()(k.deletePostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
-	mux.Handle("GET /posts/{postID}/tags/edit", k.AltCheckAuthentication()(k.editTagsHandler()))
-	mux.Handle("POST /posts/{postID}/tags/save", k.AltCheckAuthentication()(k.saveTagsHandler()))
-	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.AltCheckAuthentication()(k.editMoodHandler()))
+	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication()(k.editTagsHandler()))
+	mux.Handle("POST /posts/{postID}/tags/save", k.CheckAuthentication()(k.RequireAuthentication()(k.saveTagsHandler())))
+	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.CheckAuthentication()(k.editMoodHandler()))
 
 	// Comment routes
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.AltCheckAuthentication()(k.upvoteCommentHandler()))
-	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.AltCheckAuthentication()(k.editCommentViewHandler()))
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", k.AltCheckAuthentication()(k.editCommentSaveHandler()))
-	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit/cancel", k.AltCheckAuthentication()(k.editCommentCancelHandler()))
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.AltCheckAuthentication()(k.deleteCommentHandler()))
-	mux.Handle("POST /posts/{postID}/description/edit", k.AltCheckAuthentication()(k.editPostDescriptionHandler()))
-	mux.Handle("POST /posts/{postID}/like", k.AltCheckAuthentication()(k.likePostHandler()))
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.CheckAuthentication()(k.upvoteCommentHandler()))
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentViewHandler()))
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentSaveHandler()))
+	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit/cancel", k.CheckAuthentication()(k.editCommentCancelHandler()))
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.CheckAuthentication()(k.deleteCommentHandler()))
+	mux.Handle("POST /posts/{postID}/description/edit", k.CheckAuthentication()(k.editPostDescriptionHandler()))
+	mux.Handle("POST /posts/{postID}/like", k.CheckAuthentication()(k.likePostHandler()))
 
 	// User and misc routes
-	mux.Handle("GET /settings", k.AltCheckAuthentication()(k.viewSettingsHandler()))
-	mux.Handle("POST /settings/edit", k.AltCheckAuthentication()(k.editSettingsHandler()))
+	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))
+	mux.Handle("POST /settings/edit", k.CheckAuthentication()(k.editSettingsHandler()))
 	mux.HandleFunc("GET /error", k.viewErrorHandler)
 	mux.HandleFunc("GET /admin/reset", resetAdmin)
 
@@ -96,3 +96,13 @@ func main() {
 func TemplRender(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	c.Render(r.Context(), w)
 }
+
+// For chaining middleware.Iterating in reverse to start from the 2nd argument onwards.
+// Each middleware function wraps the next handler. To apply them in the order they are provided in the Compose call,
+// we need to start with the innermost wrapper and work our way outwards.
+// func chain(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
+// 	for i := len(middleware) - 1; i >= 0; i-- {
+// 		h = middleware[i](h)
+// 	}
+// 	return h
+// }
