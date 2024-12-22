@@ -109,7 +109,8 @@ func (k *keycloak) LoginHandler(currentUser *users.User) http.Handler {
 		jwt, err := k.gocloak.Login(ctx, k.config.clientID, k.config.clientSecret, k.config.realm, username, password)
 		if err != nil {
 			fmt.Println(err)
-			http.Error(w, "Bad request", http.StatusForbidden)
+			w.WriteHeader(http.StatusUnauthorized)
+			TemplRender(w, r, templates.InvalidUsernameOrPasswordMessage())
 			return
 		}
 		fmt.Println("Access Token: ", jwt.AccessToken)
@@ -131,12 +132,7 @@ func (k *keycloak) LoginHandler(currentUser *users.User) http.Handler {
 			currentUser.UserID = username
 		}
 
-		w.Write([]byte("Successfully authenticated!\r\n\r\n"))
-
-		info := fmt.Sprintf("Username: %v\r\n\r\nAccess Token: %s\r\n\r\nRefresh Token: %s\r\n\r\nExpires in: %v", currentUser.UserID, jwt.AccessToken, jwt.RefreshToken, jwt.ExpiresIn)
-		w.Write([]byte(info))
-
-		w.Header().Set("HX-Redirect", "/")
+		TemplRender(w, r, templates.SuccessfulLoginMessage())
 	})
 }
 

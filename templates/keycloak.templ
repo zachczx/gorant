@@ -6,14 +6,14 @@ templ KeycloakRegister(emptyUser users.User) {
 	@Base("Register", &emptyUser) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
-				<div id="settings-message"></div>
+				<div id="login-message"></div>
 				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Register</h1>
 					<form
 						method="post"
 						class="grid gap-4"
 						hx-post="/registration"
-						hx-target="#settings-message"
+						hx-target="#login-message"
 						hx-swap="outerHTML"
 						hx-target-error="#toast"
 						id="settings-form"
@@ -54,16 +54,16 @@ templ KeycloakLogin(emptyUser users.User) {
 	@Base("Login", &emptyUser) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
-				<div id="settings-message"></div>
+				<div id="login-message"></div>
 				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Login</h1>
 					<form
 						method="post"
 						class="grid gap-4"
 						hx-post="/authenticate"
-						hx-target="#settings-message"
+						hx-target="#login-message"
 						hx-swap="outerHTML"
-						hx-target-error="#toast"
+						hx-target-error="#login-message"
 						id="settings-form"
 					>
 						<label class="form-control">
@@ -103,14 +103,14 @@ templ KeycloakResetPassword(emptyUser users.User) {
 	@Base("Reset Password", &emptyUser) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
-				<div id="settings-message"></div>
+				<div id="login-message"></div>
 				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/70 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Forgot Password</h1>
 					<form
 						method="post"
 						class="grid gap-4"
 						hx-post="/reset-verification"
-						hx-target="#settings-message"
+						hx-target="#login-message"
 						hx-swap="outerHTML"
 						hx-target-error="#toast"
 						id="reset-form"
@@ -159,5 +159,48 @@ templ LoggedOut(currentUser *users.User) {
 				}
 			},1000)
 		})()
+	</script>
+}
+
+templ InvalidUsernameOrPasswordMessage() {
+	<div id="login-message">
+		<div class="text-error-content bg-error p-4 rounded-lg">
+			<div class="float-left me-2">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:error" viewBox="0 0 24 24">
+					<path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
+				</svg>
+			</div>
+			<div>
+				Invalid username or password!
+			</div>
+		</div>
+	</div>
+}
+
+templ SuccessfulLoginMessage() {
+	<div id="login-message">
+		<div class="text-success-content bg-success p-4 rounded-lg">
+			<div class="float-left me-2">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:check-circle" viewBox="0 0 24 24">
+					<path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
+				</svg>
+			</div>
+			<div>
+				Successful login! <a href="/">Redirecting in <span id="counter">3</span></a>...
+			</div>
+		</div>
+	</div>
+	<script>
+		const counterEl = document.getElementById("counter")
+		let counter = 3
+
+		setInterval(() => {
+			counter -= 1
+			if (counter === 0) {
+				window.location.href = "/"
+			} else {
+				counterEl.innerText = counter
+			}
+		}, 1000)			
 	</script>
 }
