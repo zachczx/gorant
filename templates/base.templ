@@ -108,6 +108,12 @@ templ Footer() {
 				// <li class="ms-6">Watermelon illustrations by <a href="https://www.drawkit.com/illustrations/watermelon-illustrations" class="underline" target="_blank" title="Watermelon Illustrations">Drawkit</a></li>
 				// <li class="ms-6">empty wallet by Amethyst Studio from <a href="https://thenounproject.com/browse/icons/term/empty-wallet/" class="underline" target="_blank" title="empty wallet Icons">Noun Project</a> (CC BY 3.0)</li>
 				<li class="ms-6">Empty state illustration by <a href="https://www.figma.com/community/file/931094174831888421" class="underline" target="_blank" title="Icons">TanahAir Studio</a></li>
+				<li class="ms-6">
+					Broken rocket illustration by 
+					<a href="https://www.pixeltrue.com/" class="underline" target="_blank" title="Icons">
+						Pixel True
+					</a>
+				</li>
 			</ul>
 			<div class="modal-action w-full">
 				<form method="dialog" class="w-full">
@@ -605,9 +611,23 @@ templ CreatePostError(message string) {
 templ Error(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
-			<h1 class="text-5xl font-extrabold">GO. RANT.</h1>
-			<img src="/static/images/reshot-illustration-404-page-HASGL2MQBU.svg" alt="Error" class="py-10"/>
-			<p class="text-2xl">{ message }</p>
+			<div class="mb-12">
+				@BrokenRobot()
+			</div>
+			<h1 class="text-5xl mb-2 font-extrabold">Error!</h1>
+			<p class="text-2xl text-base-content/80">{ message }</p>
+		</main>
+	}
+}
+
+templ ErrorUnauthorized(currentUser *users.User, message string) {
+	@Base("Grumplr", currentUser) {
+		<main class="grid place-items-center content-center">
+			<div class="mb-12">
+				@BrokenRocket()
+			</div>
+			<h1 class="text-5xl mb-2 font-extrabold">Error!</h1>
+			<p class="text-2xl text-base-content/80"><a href="/login">{ message }</a></p>
 		</main>
 	}
 }

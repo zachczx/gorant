@@ -45,6 +45,26 @@ func newKeycloak() *keycloak {
 	}
 }
 
+func (k *keycloak) OnlyAuthenticated() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return k.CheckAuthentication()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if k.currentUser.UserID == "" {
+				// w.WriteHeader(http.StatusUnauthorized)
+				if r.Header.Get("Hx-Request") != "" {
+					fmt.Println("Not authenticated, redirecting to error page.")
+					w.Header().Set("Hx-Redirect", "/error-unauthorized")
+					return
+				} else {
+					fmt.Println("Not authenticated, redirecting to error page.")
+					http.Redirect(w, r, "/error-unauthorized", http.StatusSeeOther)
+					return
+				}
+			}
+			next.ServeHTTP(w, r)
+		}))
+	}
+}
+
 func (k *keycloak) RequireAuthentication() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

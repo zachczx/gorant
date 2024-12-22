@@ -58,7 +58,7 @@ func main() {
 	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication()(k.deletePostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
 	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication()(k.editTagsHandler()))
-	mux.Handle("POST /posts/{postID}/tags/save", k.CheckAuthentication()(k.RequireAuthentication()(k.saveTagsHandler())))
+	mux.Handle("POST /posts/{postID}/tags/save", k.RequireAuthentication()(k.saveTagsHandler()))
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.CheckAuthentication()(k.editMoodHandler()))
 
 	// Comment routes
@@ -74,7 +74,11 @@ func main() {
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))
 	mux.Handle("POST /settings/edit", k.CheckAuthentication()(k.editSettingsHandler()))
 	mux.HandleFunc("GET /error", k.viewErrorHandler)
+	mux.HandleFunc("GET /error-unauthorized", k.viewErrorUnauthorizedHandler)
 	mux.HandleFunc("GET /admin/reset", resetAdmin)
+	mux.Handle("GET /testing", k.OnlyAuthenticated()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Protected route here!"))
+	})))
 
 	// Auth routes
 	mux.HandleFunc("GET /login", viewLoginHandler)

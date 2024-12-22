@@ -568,6 +568,10 @@ func (k *keycloak) viewErrorHandler(w http.ResponseWriter, r *http.Request) {
 	TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
 }
 
+func (k *keycloak) viewErrorUnauthorizedHandler(w http.ResponseWriter, r *http.Request) {
+	TemplRender(w, r, templates.ErrorUnauthorized(k.currentUser, "You'll need to login to do that."))
+}
+
 func resetAdmin(w http.ResponseWriter, r *http.Request) {
 	if os.Getenv("DEV_ENV") == "TRUE" {
 		err := database.Reset()
