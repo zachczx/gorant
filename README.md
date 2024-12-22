@@ -10,7 +10,7 @@
 
 ## JS tools
 
-1. Hypermedia/AJAX - HTMX
+1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets)
 2. Formatting - Prettier
 3. Bundling - ESBuild
 
