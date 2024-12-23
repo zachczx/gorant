@@ -4,16 +4,18 @@ function calculateCharsRemaining() {
 	const commentFormMessageInputEl = document.getElementById('comment-form-message-input');
 	const commentFormCharsRemainingEl = document.getElementById('form-message-chars-remaining');
 
-	let total = 2000;
-	commentFormCharsRemainingEl.innerHTML = total;
+	if (commentFormMessageInputEl && commentFormCharsRemainingEl) {
+		let total = 2000;
+		commentFormCharsRemainingEl.innerHTML = total;
 
-	if (commentFormMessageInputEl.value) {
-		commentFormCharsRemainingEl.innerHTML = calculate(commentFormMessageInputEl.value, total);
+		if (commentFormMessageInputEl.value) {
+			commentFormCharsRemainingEl.innerHTML = calculate(commentFormMessageInputEl.value, total);
+		}
+
+		commentFormMessageInputEl.addEventListener('keyup', () => {
+			commentFormCharsRemainingEl.innerHTML = calculate(commentFormMessageInputEl.value, total);
+		});
 	}
-
-	commentFormMessageInputEl.addEventListener('keyup', () => {
-		commentFormCharsRemainingEl.innerHTML = calculate(commentFormMessageInputEl.value, total);
-	});
 }
 
 calculateCharsRemaining();

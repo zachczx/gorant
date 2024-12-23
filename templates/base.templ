@@ -377,7 +377,7 @@ templ ListPosts(posts posts.PostCollection) {
 			}
 		} else {
 			<div class="flex justify-center">
-				@EmptyBox()
+				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="w-32 h-32 lg:h-56 lg:w-56" alt="Nothing!"/>
 			</div>
 			<h2 class="text-center text-2xl font-extrabold">Couldn't find a post</h2>
 			<div class="pb-8 text-center">There's nothing here, try choosing another filter!</div>
@@ -612,9 +612,9 @@ templ Error(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<div class="mb-12">
-				@BrokenRobot()
+				<img src="/static/images/broken-robot.svg" width="363" height="490" class="w-32 h-32 lg:h-96 lg:w-96" alt="Nothing!"/>
 			</div>
-			<h1 class="text-5xl mb-2 font-extrabold">Error!</h1>
+			<h1 class="mb-2 text-5xl font-extrabold">Error!</h1>
 			<p class="text-2xl text-base-content/80">{ message }</p>
 		</main>
 	}
@@ -624,9 +624,9 @@ templ ErrorUnauthorized(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<div class="mb-12">
-				@BrokenRocket()
+				<img src="/static/images/broken-rocket.svg" width="363" height="490" class="h-64 h-64 lg:h-96 lg:w-96" alt="Nothing!"/>
 			</div>
-			<h1 class="text-5xl mb-2 font-extrabold">Error!</h1>
+			<h1 class="mb-2 text-5xl font-extrabold">Error!</h1>
 			<p class="text-2xl text-base-content/80"><a href="/login">{ message }</a></p>
 		</main>
 	}

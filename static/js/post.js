@@ -93,7 +93,9 @@ tags();
 function initKeyBoardShortcutForPosts() {
 	const commentFormMessageInput = document.getElementById('comment-form-message-input');
 	const commentSubmitButton = document.getElementById('comment-submit-button');
-	keyboardShortcut(commentFormMessageInput, commentSubmitButton);
+	if (commentFormMessageInput && commentSubmitButton) {
+		keyboardShortcut(commentFormMessageInput, commentSubmitButton);
+	}
 }
 
 window.addEventListener('load', initKeyBoardShortcutForPosts);

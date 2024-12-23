@@ -289,11 +289,12 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 				</div>
 			}
 		} else {
-			<div class="grid place-items-center gap-4 rounded-lg p-8">
-				// <img src="/static/images/noun-empty-wallet-6118188.svg" width="234px" height="275px" class="" alt="Nothing!"/>
-				@EmptyBox()
-				<h2 class="text-center text-2xl font-extrabold">No comments</h2>
-				<h2 class="text-center">Be the first to comment!</h2>
+			<div class="grid justify-items-center content-center gap-4 rounded-lg p-8 min-h-[50vh]">
+				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="w-32 h-32 lg:h-64 lg:w-64" alt="Nothing!"/>
+				<div>
+					<h2 class="text-center text-2xl font-extrabold mb-2">No comments</h2>
+					<p class="text-center">Be the first to comment!</p>
+				</div>
 			</div>
 		}
 		<script src="/static/js/post-partial.js"></script>
