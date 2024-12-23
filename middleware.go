@@ -93,7 +93,7 @@ func ExcludeCompression(h http.Handler) http.Handler {
 	})
 }
 
-var cacheFiles = []string{"htmx-bundle.js", "InterVariable.woff2", "avatar-shiba.webp"}
+var cacheFiles = []string{"htmx-bundle.js", ".woff2", ".webp", ".svg"}
 
 func contains(s string, a []string) bool {
 	for _, v := range a {
@@ -109,8 +109,10 @@ func SetCacheControl(next http.Handler) http.Handler {
 		if contains(r.URL.Path, cacheFiles) {
 			// Set cache headers
 			w.Header().Set("Cache-Control", "public, max-age=31536000")
-			w.Header().Set("Expires", time.Now().Add(time.Hour).Format(http.TimeFormat))
-			w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+			w.Header().Set("Expires", time.Now().Add(time.Second*31536000).Format(http.TimeFormat))
+			// http.FileServer() sets Last-Modified header, so there's no point modifying it as I tried below.
+			// Read: https://stackoverflow.com/questions/47033156/overriding-last-modified-header-in-http-fileserver
+			// w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
 		}
 
 		next.ServeHTTP(w, r)
