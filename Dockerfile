@@ -5,6 +5,7 @@ COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
 COPY ./posts ./posts
 COPY ./templates ./templates
 COPY ./database ./database
+COPY ./live ./live
 COPY ./users ./users
 COPY ./static ./static
 RUN go mod download
