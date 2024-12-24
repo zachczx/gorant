@@ -7,11 +7,11 @@ require (
 	github.com/a-h/templ v0.2.793
 	github.com/go-swiss/compress v0.0.0-20231015173048-c7b565746931
 	github.com/gorilla/sessions v1.4.0
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pterm/pterm v0.12.80
-	github.com/rezakhademix/govalidator/v2 v2.0.9
+	github.com/rezakhademix/govalidator/v2 v2.1.0
 )
 
 require (
@@ -19,8 +19,8 @@ require (
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/containerd/console v1.0.3 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/containerd/console v1.0.4 // indirect
+	github.com/go-resty/resty/v2 v2.16.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
@@ -33,14 +33,14 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.29.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/term v0.26.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 )
