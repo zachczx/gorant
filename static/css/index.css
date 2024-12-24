@@ -190,6 +190,27 @@
 	#comment-form-message-input textarea:user-invalid {
 		border: 10px solid red !important;
 	}
+
+	/* Individual chat messages */
+	.message-style > div {
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+
+		span.user {
+			color: #fdfdfd;
+			background-color: #1b510f;
+			border-radius: 0.5rem;
+			padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+		}
+
+		span.time {
+			opacity: 0.6;
+		}
+	}
+	.message-style > div:has(+ div) {
+		border-bottom: 2px solid rgba(38, 41, 49, 0.2);
+		width: 100%;
+	}
 }
 
 @layer utilities {

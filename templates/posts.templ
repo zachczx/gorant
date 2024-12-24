@@ -6,7 +6,7 @@ import (
 	"gorant/users"
 )
 
-templ Post(currentUser *users.User, message string, post posts.ZPost, comments []posts.Comment, highlight string, sortComments string) {
+templ Post(currentUser *users.User, message string, post posts.Post, comments []posts.Comment, highlight string, sortComments string) {
 	@Base("Grumplr - Post", currentUser) {
 		<main class="grid w-full content-start justify-items-center space-y-4 lg:max-w-[1600px] lg:grid-cols-3">
 			<div class="hidden w-full space-y-8 justify-self-start lg:col-span-3">
@@ -289,10 +289,10 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 				</div>
 			}
 		} else {
-			<div class="grid justify-items-center content-center gap-4 rounded-lg p-8 min-h-[50vh]">
-				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="w-32 h-32 lg:h-64 lg:w-64" alt="Nothing!"/>
+			<div class="grid min-h-[50vh] content-center justify-items-center gap-4 rounded-lg p-8">
+				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="h-32 w-32 lg:h-64 lg:w-64" alt="Nothing!"/>
 				<div>
-					<h2 class="text-center text-2xl font-extrabold mb-2">No comments</h2>
+					<h2 class="mb-2 text-center text-2xl font-extrabold">No comments</h2>
 					<p class="text-center">Be the first to comment!</p>
 				</div>
 			</div>

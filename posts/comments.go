@@ -29,7 +29,7 @@ type Comment struct {
 }
 
 type CommentVote struct {
-	ID        int `db:"vote_id"`
+	VoteID    int `db:"vote_id"`
 	UserID    int `db:"user_id"`
 	CommentID int `db:"comment_id"`
 	Score     int `db:"score"`
@@ -42,8 +42,6 @@ type CommentStats struct {
 	IDsVoted         sql.NullString `db:"cnt"`
 	IDsVotedString   string         // String separated by "," with the user_ids grouped
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
-	// Score            sql.NullInt64 `db:"score"`
-	// ScoreString      string
 }
 
 func Insert(c Comment) (string, error) {

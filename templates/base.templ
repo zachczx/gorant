@@ -46,13 +46,12 @@ templ Base(title string, currentUser *users.User) {
 
 templ NavProfileBadge(currentUser *users.User) {
 	<div id="navbar-profile-badge" class="navbar-end lg:pe-6">
-		if currentUser.UserID  == "" {
+		if currentUser.UserID == "" {
 			<div>
 				<a href="/register" class="btn btn-accent btn-sm me-2">Register</a>
 				<a href="/login" class="btn btn-outline btn-accent btn-sm me-2">Login</a>
 			</div>
-		}
-		if currentUser.UserID != "" {
+		} else {
 			<div class="flex items-center">
 				<div class="dropdown dropdown-end dropdown-bottom">
 					<div tabindex="0" role="button" class="m-1">
@@ -124,7 +123,7 @@ templ Footer() {
 	</dialog>
 }
 
-templ StarterWelcome(currentUser *users.User, posts posts.PostCollection, tags []string) {
+templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div
 			if len(posts) > 0 {
@@ -144,11 +143,6 @@ templ StarterWelcome(currentUser *users.User, posts posts.PostCollection, tags [
 						<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
 					</div>
 				</div>
-				// if len(posts) == 0 {
-				// 	<h1 id="logo" class="mb-4 flex items-center text-5xl font-extrabold xl:text-9xl">
-				// 		@Watermelon()
-				// 	</h1>
-				// 	}
 				<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-start justify-items-center lg:pt-0">
 					if currentUser.UserID != "" {
 						// Logged in
@@ -191,9 +185,9 @@ templ StarterWelcome(currentUser *users.User, posts posts.PostCollection, tags [
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 							</button>
 						</label>
-						<div class="mt-4 flex space-x-4">
-							<a href="/login" class="btn btn-accent btn-md rounded-lg text-lg lg:text-xl">Sign Up</a>
-							<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent btn-md rounded-lg text-lg lg:text-xl">Incognito</a>
+						<div class="mt-4 grid w-full gap-x-4 gap-y-4 lg:flex lg:justify-center">
+							<a href="/register" class="btn btn-accent btn-md w-full rounded-lg text-lg lg:w-auto lg:min-w-48 lg:text-xl">Register</a>
+							<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent btn-md w-full rounded-lg text-lg lg:w-auto lg:min-w-48 lg:text-xl">Incognito Mode</a>
 						</div>
 					}
 					<div id="post-form-message" class="text-sm text-error">
@@ -377,7 +371,7 @@ templ ListPosts(posts posts.PostCollection) {
 			}
 		} else {
 			<div class="flex justify-center">
-				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="w-32 h-32 lg:h-56 lg:w-56" alt="Nothing!"/>
+				<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="h-32 w-32 lg:h-56 lg:w-56" alt="Nothing!"/>
 			</div>
 			<h2 class="text-center text-2xl font-extrabold">Couldn't find a post</h2>
 			<div class="pb-8 text-center">There's nothing here, try choosing another filter!</div>
@@ -521,7 +515,7 @@ templ CreatePostDrawer() {
 	</div>
 }
 
-templ ShowTags(p posts.ZPost) {
+templ ShowTags(p posts.Post) {
 	<div
 		id="tags-container"
 		class="group flex cursor-pointer items-center justify-center"
@@ -562,7 +556,7 @@ templ EditTags() {
 	</div>
 }
 
-templ PartialEditTags(post posts.ZPost) {
+templ PartialEditTags(post posts.Post) {
 	<form
 		id="tags-container"
 		class="w-full"
@@ -598,8 +592,8 @@ templ PartialEditTags(post posts.ZPost) {
 	</form>
 }
 
-templ StarterWelcomeError(currentUser *users.User, posts posts.PostCollection, tags []string) {
-	@StarterWelcome(currentUser, posts, tags) {
+templ MainPageError(currentUser *users.User, posts posts.PostCollection, tags []string) {
+	@MainPage(currentUser, posts, tags) {
 		No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.
 	}
 }
@@ -612,7 +606,7 @@ templ Error(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<div class="mb-12">
-				<img src="/static/images/broken-robot.svg" width="363" height="490" class="w-32 h-32 lg:h-96 lg:w-96" alt="Nothing!"/>
+				<img src="/static/images/broken-robot.svg" width="363" height="490" class="h-32 w-32 lg:h-96 lg:w-96" alt="Nothing!"/>
 			</div>
 			<h1 class="mb-2 text-5xl font-extrabold">Error!</h1>
 			<p class="text-2xl text-base-content/80">{ message }</p>
@@ -624,7 +618,7 @@ templ ErrorUnauthorized(currentUser *users.User, message string) {
 	@Base("Grumplr", currentUser) {
 		<main class="grid place-items-center content-center">
 			<div class="mb-12">
-				<img src="/static/images/broken-rocket.svg" width="363" height="490" class="h-64 h-64 lg:h-96 lg:w-96" alt="Nothing!"/>
+				<img src="/static/images/broken-rocket.svg" width="363" height="490" class="h-64 lg:h-96 lg:w-96" alt="Nothing!"/>
 			</div>
 			<h1 class="mb-2 text-5xl font-extrabold">Error!</h1>
 			<p class="text-2xl text-base-content/80"><a href="/login">{ message }</a></p>

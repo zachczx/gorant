@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"gorant/database"
+	"gorant/live"
 	"gorant/users"
 
 	"github.com/a-h/templ"
@@ -69,6 +70,21 @@ func main() {
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.CheckAuthentication()(k.deleteCommentHandler()))
 	mux.Handle("POST /posts/{postID}/description/edit", k.CheckAuthentication()(k.editPostDescriptionHandler()))
 	mux.Handle("POST /posts/{postID}/like", k.CheckAuthentication()(k.likePostHandler()))
+
+	// Live
+	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
+	mux.Handle("POST /live/new", k.CheckAuthentication()(k.newInstantPostHandler()))
+	mux.Handle("GET /live/{instPID}", k.viewInstantCommentsHandler())
+	mux.Handle("POST /live/{instPID}/new", k.CheckAuthentication()(k.newInstantCommentHandler()))
+	mux.HandleFunc("GET /live/reset-db", func(w http.ResponseWriter, r *http.Request) {
+		err := live.ResetDB()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w.Write([]byte("Successfully created live DB!"))
+	})
+	mux.HandleFunc("GET /event/{instPID}", sseHandler)
 
 	// User and misc routes
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))

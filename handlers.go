@@ -25,7 +25,7 @@ func (k *keycloak) landingHandler() http.Handler {
 			fmt.Println("Error fetching tags", err)
 		}
 		fmt.Println("Tags: ", t)
-		TemplRender(w, r, templates.StarterWelcome(k.currentUser, p, t))
+		TemplRender(w, r, templates.MainPage(k.currentUser, p, t))
 	})
 }
 
@@ -78,7 +78,7 @@ func (k *keycloak) postsHandler() http.Handler {
 			if err != nil {
 				fmt.Println("Error fetching tags", err)
 			}
-			TemplRender(w, r, templates.StarterWelcomeError(k.currentUser, p, t))
+			TemplRender(w, r, templates.MainPageError(k.currentUser, p, t))
 			return
 		}
 	})
@@ -103,7 +103,7 @@ func (k *keycloak) newPostHandler() http.Handler {
 		}
 		// TODO need to validate mood as well
 
-		p := posts.ZPost{
+		p := posts.Post{
 			ID:     ID,
 			Title:  title,
 			UserID: k.currentUser.UserID,

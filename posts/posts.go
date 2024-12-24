@@ -16,17 +16,17 @@ import (
 )
 
 type PostLike struct {
-	ID     int    `db:"like_id"`
+	LikeID int    `db:"like_id"`
 	UserID string `db:"user_id"`
 	PostID string `db:"post_id"`
 	Score  string `db:"score"`
 }
 
 type JunctionPostTag struct {
-	PostsTagID int    `db:"posts_tags_id"`
-	PostID     string `db:"post_id"`
-	TagID      int    `db:"tag_id"`
-	Tag        string
+	PostsTagsID int    `db:"posts_tags_id"`
+	PostID      string `db:"post_id"`
+	TagID       int    `db:"tag_id"`
+	Tag         string
 }
 
 type JoinPost struct {
@@ -49,60 +49,22 @@ type JoinPost struct {
 	Tags                  []string
 }
 
-type ZPost struct {
-	ID     string `db:"post_id"`
-	Title  string `db:"post_title"`
-	UserID string `db:"user_id"`
-
-	Description string `db:"description"`
-	Protected   int    `db:"protected"`
-	CreatedAt   NewCreatedAt
-	Mood        string `db:"mood"`
-	Tags        Tags
-	PostStats   ZPostStats
-
+type Post struct {
+	ID            string `db:"post_id"`
+	Title         string `db:"post_title"`
+	UserID        string `db:"user_id"`
+	Description   string `db:"description"`
+	Protected     int    `db:"protected"`
+	CreatedAt     NewCreatedAt
+	Mood          string `db:"mood"`
+	Tags          Tags
+	PostStats     PostStats
 	PreferredName string // PreferredName of Author
 }
-
-// type CreatedAt struct {
-// 	CreatedAtString    string `db:"created_at"`
-// 	CreatedAtProcessed string
-// }
 
 type NewCreatedAt struct {
 	Time time.Time
 }
-
-/* func (c *NewCreatedAt) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-
-	fmt.Println(reflect.TypeOf(value))
-	switch val := value.(type) {
-	case time.Time:
-		fmt.Println("It's a time.Time")
-		c.Time = val
-	case []byte:
-		// If the DB returns a string-like value, parse it:
-		t, err := time.Parse(time.RFC3339, string(val))
-		if err != nil {
-			return fmt.Errorf("failed to parse created_at: %w", err)
-		}
-		c.Time = t
-	case string:
-		fmt.Println("It's a string")
-		t, err := time.Parse(time.RFC3339, val)
-		if err != nil {
-			return fmt.Errorf("failed to parse created_at string: %w", err)
-		}
-		c.Time = t
-	default:
-		return fmt.Errorf("cannot convert %T to time.Time", value)
-	}
-
-	return nil
-} */
 
 type Tags struct {
 	TagsNullString sql.NullString `db:"tags"`
@@ -114,7 +76,7 @@ type Tag struct {
 	Tag   string `db:"tag"`
 }
 
-type ZPostStats struct {
+type PostStats struct {
 	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
 	CommentsCountString   string
 	LikesCount            sql.NullInt64 `db:"likes_cnt"`
@@ -123,7 +85,7 @@ type ZPostStats struct {
 	CurrentUserLikeString string
 }
 
-type PostCollection []ZPost
+type PostCollection []Post
 
 var allowedMoods = [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angry"}
 
@@ -191,7 +153,7 @@ func ListPosts() (PostCollection, error) {
 	var posts PostCollection
 
 	for rows.Next() {
-		var p ZPost
+		var p Post
 
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
@@ -330,7 +292,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	var posts PostCollection
 
 	for rows.Next() {
-		var p ZPost
+		var p Post
 
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			fmt.Println("Error scanning")
@@ -353,7 +315,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	return posts, nil
 }
 
-func NewPost(p ZPost, tags []string) error {
+func NewPost(p Post, tags []string) error {
 	var postID string
 	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, NOW(), $4) 
 						RETURNING post_id`, p.ID, p.Title, p.UserID, p.Mood).Scan(&postID)
@@ -384,9 +346,9 @@ func NewPost(p ZPost, tags []string) error {
 	return nil
 }
 
-func GetTags(postID string) (ZPost, error) {
+func GetTags(postID string) (Post, error) {
 	var t string
-	var p ZPost
+	var p Post
 
 	rows, err := database.DB.Query(`SELECT tags.tag
 									FROM(SELECT posts_tags.post_id, posts_tags.tag_id
@@ -646,8 +608,8 @@ func VerifyPostID(title string) (bool, string) {
 	return res.Next(), ID
 }
 
-func GetPost(postID string, currentUser string) (ZPost, error) {
-	var p ZPost
+func GetPost(postID string, currentUser string) (Post, error) {
+	var p Post
 	row, err := database.DB.Query(`SELECT posts.post_id, posts.post_title, posts.user_id, posts.description, posts.protected, posts.created_at, posts.mood, posts_likes.score, STRING_AGG(posts_tags.tag, ',') AS tags
 									FROM posts
 										LEFT JOIN (SELECT * FROM posts_likes) AS posts_likes ON posts.post_id = posts_likes.post_id

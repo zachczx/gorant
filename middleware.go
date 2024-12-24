@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"mime"
 	"net/http"
 	"path"
 	"strconv"
@@ -11,6 +12,20 @@ import (
 	"github.com/go-swiss/compress"
 	"github.com/pterm/pterm"
 )
+
+// Taken from Go-Chi package
+var defaultCompressibleContentTypes = [10]string{
+	"text/html",
+	"text/css",
+	"text/plain",
+	"text/javascript",
+	"application/javascript",
+	"application/x-javascript",
+	"application/json",
+	"application/atom+xml",
+	"application/rss+xml",
+	"image/svg+xml",
+}
 
 type StatusRecorder struct {
 	http.ResponseWriter
@@ -24,6 +39,11 @@ func (rec *StatusRecorder) WriteHeader(statusCode int) {
 
 func StatusLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Eventstream doesn't seem to have header? So it causes panic when WriteHeader is called.
+		if strings.Contains(r.URL.Path, "/event") {
+			next.ServeHTTP(w, r)
+			return
+		}
 		start := time.Now()
 		rec := StatusRecorder{w, 200}
 		next.ServeHTTP(&rec, r)
@@ -80,16 +100,34 @@ func StatusLogger(next http.Handler) http.Handler {
 	})
 }
 
-func ExcludeCompression(h http.Handler) http.Handler {
+func ExcludeCompression(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ext := path.Ext(r.RequestURI)
-		switch ext {
-		case ".webp", ".woff2":
-			h.ServeHTTP(w, r)
-		default:
-			ch := compress.Middleware(h)
-			ch.ServeHTTP(w, r)
+		// Using strings.Contain because css file has an additional charset=utf-8, which doesn't allow == match.
+		// .woff2 also doesn't have a mime type. Using this because mime.TypeByExtension guesses based on extension anyway.
+		ext := mime.TypeByExtension(path.Ext(r.RequestURI))
+		fmt.Println(r.RequestURI, ext)
+		for _, v := range defaultCompressibleContentTypes {
+			if strings.Contains(ext, v) {
+				ch := compress.Middleware(next)
+				ch.ServeHTTP(w, r)
+				return
+			}
 		}
+		next.ServeHTTP(w, r)
+
+		// Not using this because it's more work.
+		// if strings.Contains(r.URL.Path, "/event") {
+		// 	next.ServeHTTP(w, r)
+		// 	return
+		// }
+		// ext := path.Ext(r.RequestURI)
+		// switch ext {
+		// case ".webp", ".woff2":
+		// 	next.ServeHTTP(w, r)
+		// default:
+		// 	ch := compress.Middleware(next)
+		// 	ch.ServeHTTP(w, r)
+		// }
 	})
 }
 
@@ -111,6 +149,7 @@ func SetCacheControl(next http.Handler) http.Handler {
 			w.Header().Set("Cache-Control", "public, max-age=31536000")
 			w.Header().Set("Expires", time.Now().Add(time.Second*31536000).Format(http.TimeFormat))
 			// http.FileServer() sets Last-Modified header, so there's no point modifying it as I tried below.
+			// Anyway it's stupid to set it to time.Now() as I originally did.
 			// Read: https://stackoverflow.com/questions/47033156/overriding-last-modified-header-in-http-fileserver
 			// w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
 		}

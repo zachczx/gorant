@@ -35,7 +35,7 @@ COPY --from=first /app/templates /app/templates
 COPY --from=first /app/static /app/static
 # COPY package*.json ./
 RUN npm install
-RUN npx esbuild ./static/js/index.js ./static/js/post.js ./static/js/post-partial.js  ./static/js/settings.js ./static/js/register-login.js ./static/js/htmx-bundle.js --bundle --outdir=./static/js/output --minify &&\    
+RUN npx esbuild ./static/js/index.js ./static/js/sse.js ./static/js/post.js ./static/js/post-partial.js  ./static/js/settings.js ./static/js/register-login.js ./static/js/htmx-bundle.js --bundle --outdir=./static/js/output --minify &&\    
     npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify &&\
     npx brotli-cli compress --glob /app/static/css/output/styles.css /app/static/js/ext/htmx.min.js /app/static/js/output/comment-form.js /app/static/js/output/index.js
 
