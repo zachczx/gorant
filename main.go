@@ -74,7 +74,7 @@ func main() {
 	// Live
 	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
 	mux.Handle("POST /live/new", k.CheckAuthentication()(k.newInstantPostHandler()))
-	mux.Handle("GET /live/{instPID}", k.viewInstantCommentsHandler())
+	mux.Handle("GET /live/{instPID}", k.CheckAuthentication()(k.viewInstantCommentsHandler()))
 	mux.Handle("POST /live/{instPID}/new", k.CheckAuthentication()(k.newInstantCommentHandler()))
 	mux.HandleFunc("GET /live/reset-db", func(w http.ResponseWriter, r *http.Request) {
 		err := live.ResetDB()
@@ -84,7 +84,7 @@ func main() {
 
 		w.Write([]byte("Successfully created live DB!"))
 	})
-	mux.HandleFunc("GET /event/{instPID}", sseHandler)
+	mux.Handle("GET /event/{instPID}", k.RequireAuthentication()(sseHandler()))
 
 	// User and misc routes
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))

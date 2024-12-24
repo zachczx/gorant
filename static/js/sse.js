@@ -22,7 +22,7 @@
 				sse.classList.remove('hidden');
 				spinner.classList.add('hidden');
 				sse.classList.add('grid');
-			}, 500);
+			}, 100);
 		});
 	});
 })();

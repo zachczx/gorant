@@ -192,27 +192,64 @@
 	}
 
 	/* Individual chat messages */
-	.message-style > div {
-		padding-top: 0.75rem;
-		padding-bottom: 0.75rem;
-		width: 100%;
+	.message-style {
+		display: grid;
+	}
 
-		span.user {
-			color: #081101;
+	.message-style > div > div.avatar {
+		padding: 0.75rem 1.5rem 0.75rem 0;
+		/* background-color: red; */
+
+		span {
+			border-radius: 50%;
+			width: 3rem;
+			height: 3rem;
 			background-color: rgb(151, 220, 66, 0.3);
-			border-radius: 0.5rem;
-			padding: 0.25rem 0.5rem 0.25rem 0.5rem;
-			margin-right: 0.25rem;
-		}
-
-		span.time {
-			opacity: 0.6;
-			/* padding-left: 3rem; */
-			float: right;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			text-transform: capitalize;
+			font-weight: 700;
+			font-size: 1.25rem;
 		}
 	}
+
+	.message-style > div > div.comment {
+		flex-grow: 1;
+		display: grid;
+		align-content: center;
+
+		span.user {
+			display: inline-block;
+			font-weight: 700;
+			/* color: #081101; */
+			/* background-color: rgb(151, 220, 66, 0.3); */
+			border-radius: 0.5rem;
+			/* padding: 0.25rem 0.5rem 0.25rem 0.5rem; */
+			margin-right: 0.5rem;
+			width: 100%;
+			/* max-width: 7rem; */
+		}
+
+		/* span.content {
+			color: #081101;
+			background-color: rgb(151, 220, 66, 0.15);
+			border-radius: 0.5rem;
+			padding: 0.25rem 0.5rem 0.25rem 1.25rem;
+			margin-left: -0.5rem;
+		} */
+	}
+
+	span.time {
+		font-weight: 400;
+		font-size: 0.75rem;
+		opacity: 0.8;
+		/* padding-left: 3rem; */
+		float: right;
+	}
+
 	.message-style > div:has(+ div) {
-		border-bottom: 2px solid rgba(38, 41, 49, 0.1);
+		border-bottom: 2px solid rgba(38, 41, 49, 0.06);
 	}
 }
 

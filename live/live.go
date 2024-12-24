@@ -29,6 +29,10 @@ func (instP *InstantPost) TitleInitials() string {
 	return instP.Title[:2]
 }
 
+func (instC *InstantComment) PreferredNameInitials() string {
+	return instC.PreferredName[:2]
+}
+
 func (instP *InstantPost) IDString() string {
 	return strconv.Itoa(instP.ID)
 }

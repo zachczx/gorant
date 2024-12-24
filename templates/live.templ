@@ -6,8 +6,46 @@ import (
 	"gorant/users"
 )
 
+templ BaseLive(title string, currentUser *users.User) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta description="Grumplr: For grumpy grumblers"/>
+			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
+			<title>{ title }</title>
+			<link href="/static/css/output/styles.css" rel="stylesheet"/>
+			<script src="/static/js/output/htmx-bundle.js"></script>
+		</head>
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
+			<header id="navbar" class="navbar border-b border-b-neutral/5 bg-primary/30 p-0">
+				<div class="navbar-start" preload="mouseover">
+					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
+						<div class="me-1 scale-x-[-1]">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ri:chat-smile-2-fill text-accent/80" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M7.291 20.824L2 22l1.176-5.291A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10a9.96 9.96 0 0 1-4.709-1.176M7 12a5 5 0 0 0 10 0h-2a3 3 0 1 1-6 0z"></path>
+							</svg>
+						</div>Grumplr
+					</a>
+				</div>
+				<div class="navbar-center hidden lg:flex text-xl font-medium text-center"><a href="/" class="px-4 py-1 min-w-24 hover:bg-primary/50 rounded-3xl">Posts</a><span class="px-4 py-1 min-w-24 bg-primary/50 rounded-3xl font-bold">Live</span></div>
+				@NavProfileBadge(currentUser)
+				// <div id="navbar-profile-badge" class="navbar-end lg:pe-6" hx-get="/navbar-profile-badge" hx-swap="outerHTML" hx-trigger="load">
+				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
+				// </div>
+			</header>
+			<div id="container" class="grid justify-items-center px-4 pt-10" preload>
+				{ children... }
+			</div>
+			<div id="toast" class="hidden"></div>
+			@Footer()
+		</body>
+	</html>
+}
+
 templ LiveScreenBase(currentUser *users.User) {
-	@Base("Grumplr", currentUser) {
+	@BaseLive("Grumplr", currentUser) {
 		<div class="grid h-full w-full content-start justify-items-center">
 			<div class="grid w-full content-start justify-items-center">
 				<div class="h-full min-h-[7rem] py-8">
@@ -45,7 +83,7 @@ templ LiveScreenBase(currentUser *users.User) {
 templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, instantComments []live.InstantComment) {
 	@LiveScreenBase(currentUser) {
 		<form class="grid gap-4" hx-post="/live/new" hx-target="#instant-posts-list" hx-swap="innerHTML">
-			<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full justify-self-center items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
+			<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 				<input
 					type="text"
@@ -61,7 +99,7 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 				<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 min-w-20 rounded-full text-xl">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="fluent:live-20-filled" viewBox="0 0 20 20">
 						<path fill="currentColor" d="M5.453 4.167a.726.726 0 0 0-1.027-.01A8.23 8.23 0 0 0 2 10a8.23 8.23 0 0 0 2.604 6.015a.725.725 0 0 0 1.01-.025c.316-.316.277-.819-.027-1.11A6.73 6.73 0 0 1 3.5 10c0-1.846.741-3.52 1.943-4.738c.29-.295.32-.785.01-1.095M7.214 5.93a.714.714 0 0 0-1.008-.016A5.73 5.73 0 0 0 4.5 10c0 1.692.73 3.213 1.893 4.265a.713.713 0 0 0 .983-.038c.328-.328.267-.844-.041-1.134A4.24 4.24 0 0 1 6 10c0-1.15.457-2.194 1.2-2.96c.286-.294.333-.793.014-1.111m5.572 0a.714.714 0 0 1 1.008-.016A5.73 5.73 0 0 1 15.5 10c0 1.692-.73 3.213-1.893 4.265a.713.713 0 0 1-.983-.038c-.328-.328-.267-.844.041-1.134A4.24 4.24 0 0 0 14 10c0-1.15-.457-2.194-1.2-2.96c-.286-.294-.333-.793-.014-1.111m1.761-1.762a.726.726 0 0 1 1.027-.01A8.23 8.23 0 0 1 18 10a8.23 8.23 0 0 1-2.604 6.015a.725.725 0 0 1-1.01-.025c-.316-.316-.277-.819.028-1.11A6.73 6.73 0 0 0 16.5 10c0-1.846-.741-3.52-1.943-4.738c-.29-.295-.32-.785-.01-1.095M10 8.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3"></path>
-					</svg><span class="hidden pe-1 lg:flex">Go Live</span>
+					</svg><span class="hidden ps-2 pe-2 lg:flex">Go Live</span>
 				</button>
 			</label>
 		</form>
@@ -84,32 +122,34 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 templ ViewInstantPost(currentUser *users.User, id string) {
 	@LiveScreenBase(currentUser) {
 		<form class="grid gap-4" hx-post={ string(templ.URL(fmt.Sprintf("/live/%s/new", id))) } hx-swap="none">
-			<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full justify-self-center items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
+			<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 				<input
 					type="text"
 					name="content"
 					placeholder="Add Comment"
 					class="w-full grow text-xl"
-					minlength="10"
+					minlength="1"
 					maxlength="255"
 					autocomplete="off"
 					required
 				/>
 				<button id="post-button" class="top-1.75 btn btn-accent absolute right-1.5 min-w-20 rounded-full text-xl">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="fluent:live-20-filled" viewBox="0 0 20 20">
-						<path fill="currentColor" d="M5.453 4.167a.726.726 0 0 0-1.027-.01A8.23 8.23 0 0 0 2 10a8.23 8.23 0 0 0 2.604 6.015a.725.725 0 0 0 1.01-.025c.316-.316.277-.819-.027-1.11A6.73 6.73 0 0 1 3.5 10c0-1.846.741-3.52 1.943-4.738c.29-.295.32-.785.01-1.095M7.214 5.93a.714.714 0 0 0-1.008-.016A5.73 5.73 0 0 0 4.5 10c0 1.692.73 3.213 1.893 4.265a.713.713 0 0 0 .983-.038c.328-.328.267-.844-.041-1.134A4.24 4.24 0 0 1 6 10c0-1.15.457-2.194 1.2-2.96c.286-.294.333-.793.014-1.111m5.572 0a.714.714 0 0 1 1.008-.016A5.73 5.73 0 0 1 15.5 10c0 1.692-.73 3.213-1.893 4.265a.713.713 0 0 1-.983-.038c-.328-.328-.267-.844.041-1.134A4.24 4.24 0 0 0 14 10c0-1.15-.457-2.194-1.2-2.96c-.286-.294-.333-.793-.014-1.111m1.761-1.762a.726.726 0 0 1 1.027-.01A8.23 8.23 0 0 1 18 10a8.23 8.23 0 0 1-2.604 6.015a.725.725 0 0 1-1.01-.025c-.316-.316-.277-.819.028-1.11A6.73 6.73 0 0 0 16.5 10c0-1.846-.741-3.52-1.943-4.738c-.29-.295-.32-.785-.01-1.095M10 8.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3"></path>
-					</svg><span class="hidden pe-1 lg:flex">Comment</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="ms-1 material-symbols:send-rounded" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
+					</svg>
+					<span class="hidden pe-1 lg:flex">
+						Send
+					</span>
 				</button>
 			</label>
 		</form>
-		<div class="rounded-lg border border-neutral/20 p-4 space-y-4">
-			<h3 class="text-lg font-bold">Live Comments</h3>
-			<div class="grid justify-items-center min-h-24">
-				<div id="spinner" class="grid justify-items-center content-center">
+		<div class="space-y-4 rounded-lg border border-neutral/20 p-4">
+			<div class="grid min-h-24 justify-items-center">
+				<div id="spinner" class="grid content-center justify-items-center">
 					<span class="loading loading-spinner loading-lg text-accent"></span>
 				</div>
-				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", id))) } hx-ext="sse" sse-swap="instant" class="w-full hidden grid justify-self-start content-start message-style"></ul>
+				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", id))) } hx-ext="sse" sse-swap="instant" class="message-style grid hidden w-full content-start justify-self-start"></ul>
 			</div>
 		</div>
 	}
@@ -119,8 +159,8 @@ templ ListInstantPosts(instPosts []live.InstantPost) {
 	<div class="grid grid-cols-3 gap-4">
 		for i := 0; i < len(instPosts); i++ {
 			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].IDString())) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
-				<div class="group grid min-w-10 place-items-center overflow-hidden text-center font-bold text-lg lg:min-w-14 lg:text-2xl">
-					<span class="bg-primary rounded-full w-16 h-16 flex justify-center items-center me-2">{ instPosts[i].TitleInitials() }</span>
+				<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-lg font-bold lg:min-w-14 lg:text-2xl">
+					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary">{ instPosts[i].TitleInitials() }</span>
 				</div>
 				<div class="grow pe-4 ps-6">
 					<h3 class="line-clamp-1 text-xl font-medium leading-loose">

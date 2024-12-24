@@ -29,7 +29,7 @@ templ Base(title string, currentUser *users.User) {
 						</div>Grumplr
 					</a>
 				</div>
-				<div class="navbar-center hidden lg:flex"></div>
+				<div class="navbar-center hidden lg:flex text-xl font-medium text-center"><span class="px-4 py-1 min-w-24 font-bold rounded-3xl bg-primary/50">Posts</span><a href="/live" class="px-4 py-1 min-w-24 hover:bg-primary/50 rounded-3xl">Live</a></div>
 				@NavProfileBadge(currentUser)
 				// <div id="navbar-profile-badge" class="navbar-end lg:pe-6" hx-get="/navbar-profile-badge" hx-swap="outerHTML" hx-trigger="load">
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>

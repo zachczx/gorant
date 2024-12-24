@@ -70,69 +70,71 @@ func (k *keycloak) newInstantCommentHandler() http.Handler {
 	})
 }
 
-func sseHandler(w http.ResponseWriter, r *http.Request) {
-	instPID, err := strconv.Atoi(r.PathValue("instPID"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	if os.Getenv("DEV_ENV") == "TRUE" {
-		fmt.Println("Set Access-Control-Allow-Origin header") // You may need this locally for CORS requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Expose-Headers", "Content-Type")
-	}
-
-	// Create a channel for client disconnection
-	clientGone := r.Context().Done()
-	rc := http.NewResponseController(w)
-	t := time.NewTicker(1 * time.Second)
-	defer t.Stop()
-	var holder string
-	var instComments []live.InstantComment
-	var lastID int = 0
-
-	for {
-		select {
-		case <-clientGone:
-			fmt.Println("Client disconnected!")
+func sseHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		instPID, err := strconv.Atoi(r.PathValue("instPID"))
+		if err != nil {
+			fmt.Println(err)
 			return
-		case <-t.C:
-			instComments, err = live.ViewLivePost(instPID)
-			if len(instComments) == 0 {
-				fmt.Println("No live comments")
-				holder = "event:instant\ndata:No data found!\n\n"
-				w.Write([]byte(holder))
-				err = rc.Flush()
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				return
-			}
-			// Using instComments[0].ID instead of instComments[len(instComments) - 1].ID because I'm sorting by DESC order.
-			if lastID < instComments[0].ID {
-				lastID = instComments[0].ID
-				holder = "event: instant\ndata:"
-				if err != nil {
-					fmt.Println(err)
-				}
-				for _, v := range instComments {
-					holder = holder + fmt.Sprintf("<div><span class='user'>%s</span> %s <span class='time'>%v (%v)</span></div>", v.PreferredName, v.Content, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"))
-				}
-				holder = holder + "\n\n"
-				fmt.Println(holder)
-				w.Write([]byte(holder))
-
-				err = rc.Flush()
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-			}
-
 		}
-	}
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		if os.Getenv("DEV_ENV") == "TRUE" {
+			fmt.Println("Set Access-Control-Allow-Origin header") // You may need this locally for CORS requests
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Expose-Headers", "Content-Type")
+		}
+
+		// Create a channel for client disconnection
+		clientGone := r.Context().Done()
+		rc := http.NewResponseController(w)
+		t := time.NewTicker(1 * time.Second)
+		defer t.Stop()
+		var holder string
+		var instComments []live.InstantComment
+		var lastID int = 0
+
+		for {
+			select {
+			case <-clientGone:
+				fmt.Println("Client disconnected!")
+				return
+			case <-t.C:
+				instComments, err = live.ViewLivePost(instPID)
+				if len(instComments) == 0 {
+					fmt.Println("No live comments")
+					holder = "event:instant\ndata:No data found!\n\n"
+					w.Write([]byte(holder))
+					err = rc.Flush()
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+					return
+				}
+				// Using instComments[0].ID instead of instComments[len(instComments) - 1].ID because I'm sorting by DESC order.
+				if lastID < instComments[0].ID {
+					lastID = instComments[0].ID
+					holder = "event: instant\ndata:"
+					if err != nil {
+						fmt.Println(err)
+					}
+					for _, v := range instComments {
+						holder = holder + fmt.Sprintf("<div class='flex'><div class='avatar'><span>%s</span></div><div class='comment'><span class='user'>%s<span class='time'>%v (%v)</span></span><span class='content'>%s</span></div></div>", v.PreferredNameInitials(), v.PreferredName, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"), v.Content)
+					}
+					holder = holder + "\n\n"
+					fmt.Println(holder)
+					w.Write([]byte(holder))
+
+					err = rc.Flush()
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+
+			}
+		}
+	})
 }
