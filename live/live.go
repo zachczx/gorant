@@ -22,6 +22,7 @@ type InstantComment struct {
 	Content       string    `db:"content"`
 	UserID        string    `db:"user_id"`
 	CreatedAt     time.Time `db:"created_at"`
+	PreferredName string
 }
 
 func (instP *InstantPost) TitleInitials() string {
@@ -114,7 +115,11 @@ func ListLiveComments() ([]InstantComment, error) {
 }
 
 func ViewLivePost(id int) ([]InstantComment, error) {
-	rows, err := database.DB.Query(`SELECT * FROM instant_comments WHERE instant_post_id=$1 ORDER BY created_at DESC`, id)
+	rows, err := database.DB.Query(`SELECT instant_comments.id, instant_comments.instant_post_id, instant_comments.title, instant_comments.content, instant_comments.user_id, instant_comments.created_at, users.preferred_name FROM instant_comments 
+										LEFT JOIN users
+										ON instant_comments.user_id = users.user_id
+									WHERE instant_post_id=$1
+									ORDER BY created_at DESC`, id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -124,7 +129,7 @@ func ViewLivePost(id int) ([]InstantComment, error) {
 	var instC InstantComment
 
 	for rows.Next() {
-		if err := rows.Scan(&instC.ID, &instC.InstantPostID, &instC.Title, &instC.Content, &instC.UserID, &instC.CreatedAt); err != nil {
+		if err := rows.Scan(&instC.ID, &instC.InstantPostID, &instC.Title, &instC.Content, &instC.UserID, &instC.CreatedAt, &instC.PreferredName); err != nil {
 			return instComments, err
 		}
 		instComments = append(instComments, instC)

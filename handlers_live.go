@@ -120,7 +120,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Println(err)
 				}
 				for _, v := range instComments {
-					holder = holder + fmt.Sprintf("<div><span class='user'>%s</span>: %s <span class='time'>(%v)</span></div>", v.UserID, v.Content, v.CreatedAt.Format(time.RFC3339))
+					holder = holder + fmt.Sprintf("<div><span class='user'>%s</span> %s <span class='time'>%v (%v)</span></div>", v.PreferredName, v.Content, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"))
 				}
 				holder = holder + "\n\n"
 				fmt.Println(holder)

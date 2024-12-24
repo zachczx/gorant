@@ -109,7 +109,7 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 				<div id="spinner" class="grid justify-items-center content-center">
 					<span class="loading loading-spinner loading-lg text-accent"></span>
 				</div>
-				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", id))) } hx-ext="sse" sse-swap="instant" class="hidden grid justify-self-start content-start message-style"></ul>
+				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", id))) } hx-ext="sse" sse-swap="instant" class="w-full hidden grid justify-self-start content-start message-style"></ul>
 			</div>
 		</div>
 	}
