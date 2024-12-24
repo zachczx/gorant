@@ -51,6 +51,18 @@ func Reset() error {
 		return err
 	}
 
+	_, err = DB.Exec(`DROP TABLE IF EXISTS instant_posts CASCADE`)
+	if err != nil {
+		fmt.Println("Error dropping table: instant_posts")
+		return err
+	}
+
+	_, err = DB.Exec(`DROP TABLE IF EXISTS instant_comments CASCADE`)
+	if err != nil {
+		fmt.Println("Error dropping table: instant_comments")
+		return err
+	}
+
 	// Users
 
 	_, err = DB.Exec(`CREATE TABLE users (user_id VARCHAR(255) PRIMARY KEY, email VARCHAR(100) NOT NULL, preferred_name VARCHAR(255) DEFAULT '', contact_me INT DEFAULT 1, avatar VARCHAR(255) DEFAULT 'default', sort_comments VARCHAR(15) DEFAULT 'upvote;desc');`)
@@ -131,6 +143,16 @@ func Reset() error {
 		return err
 	}
 	fmt.Println("Created table: posts_tags")
+
+	_, err = DB.Exec(`CREATE TABLE instant_posts (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, created_at TIMESTAMPTZ)`)
+	if err != nil {
+		return err
+	}
+
+	_, err = DB.Exec(`CREATE TABLE instant_comments (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, instant_post_id INT REFERENCES instant_posts(id) ON DELETE CASCADE, title VARCHAR(255) DEFAULT '', content TEXT NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE, created_at TIMESTAMPTZ)`)
+	if err != nil {
+		return err
+	}
 
 	_, err = DB.Exec(`INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')`)
 	if err != nil {
