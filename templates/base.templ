@@ -47,11 +47,11 @@ templ Base(title string, currentUser *users.User) {
 templ NavCenterLinks(activeSection string) {
 	<div class="navbar-center hidden text-center text-xl font-medium text-base-content/80 lg:flex" style="view-transition-name: navbar-center;">
 		if activeSection == "posts" {
-			<a href="/" class="barbar relative min-w-24 rounded-3xl bg-primary/50 px-4 py-1 font-bold text-accent hover:bg-primary/70">Posts</a>
-			<a href="/live" class="relative min-w-24 rounded-3xl px-4 py-1 hover:bg-primary/50">Live</a>
+			<a href="/" class="barbar relative min-w-24 rounded-3xl bg-primary/50 px-4 py-1 font-bold text-accent">Posts</a>
+			<a href="/live" class="relative min-w-24 rounded-3xl px-4 py-1 hover:font-bold hover:text-accent">Live</a>
 		} else if activeSection == "live" {
-			<a href="/" class="relative min-w-24 rounded-3xl px-4 py-1 hover:bg-primary/50">Posts</a>
-			<a href="/live" class="barbar relative min-w-24 rounded-3xl bg-primary/50 px-4 py-1 font-bold text-accent hover:bg-primary/70">Live</a>
+			<a href="/" class="relative min-w-24 rounded-3xl px-4 py-1 hover:font-bold hover:text-accent">Posts</a>
+			<a href="/live" class="barbar relative min-w-24 rounded-3xl bg-primary/50 px-4 py-1 font-bold text-accent">Live</a>
 		}
 	</div>
 }
