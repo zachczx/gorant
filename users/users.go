@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"gorant/database"
@@ -119,4 +120,26 @@ func ChooseAvatar(c string) string {
 		s = "/static/images/avatars/avatar-shiba.webp"
 	}
 	return s
+}
+
+var emailRegex string = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+
+func CheckUsername(username string) (exists bool, err error) {
+	regex, err := regexp.Compile(emailRegex)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if !regex.MatchString(username) {
+		err = errors.New("not an email string received")
+		return exists, err
+	}
+	var dbUserID string
+	err = database.DB.QueryRow(`SELECT user_id FROM users WHERE user_id=$1`, username).Scan(&dbUserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		fmt.Println(err)
+	}
+	return true, nil
 }

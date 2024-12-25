@@ -165,13 +165,13 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 }
 
 templ ListInstantPosts(instPosts []live.InstantPost) {
-	<div class="grid lg:grid-cols-3 gap-4">
+	<div class="grid gap-4 lg:grid-cols-3">
 		for i := 0; i < len(instPosts); i++ {
 			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].IDString())) } class="flex rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
-				<div class="group grid min-w-10 place-items-center overflow-hidden text-center pe-4 text-lg font-bold lg:min-w-14 lg:text-2xl">
+				<div class="group grid min-w-10 place-items-center overflow-hidden pe-4 text-center text-lg font-bold lg:min-w-14 lg:text-2xl">
 					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary">{ instPosts[i].TitleInitials() }</span>
 				</div>
-				<div class="grow max-w-48">
+				<div class="max-w-48 grow">
 					<h3 class="truncate text-xl font-medium leading-loose">
 						{ instPosts[i].Title }
 					</h3>

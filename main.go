@@ -100,6 +100,7 @@ func main() {
 	mux.HandleFunc("GET /login", viewLoginHandler)
 	mux.Handle("POST /authenticate", k.LoginHandler(currentUser))
 	mux.HandleFunc("GET /register", viewRegisterHandler)
+	mux.HandleFunc("POST /register-check-username", registerCheckUsernameHandler)
 	mux.HandleFunc("GET /reset-password", viewResetPassword)
 	mux.Handle("POST /reset-verification", k.resetPasswordVerificationHandler())
 	mux.Handle("POST /registration", k.processRegistrationHandler(currentUser))

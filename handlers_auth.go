@@ -45,7 +45,7 @@ func (k *keycloak) processRegistrationHandler(currentUser *users.User) http.Hand
 		if err != nil {
 			fmt.Println("Error creating user!")
 			fmt.Println(err)
-			http.Error(w, "Error registering!", http.StatusInternalServerError)
+			TemplRender(w, r, templates.Toast("error", "Error processing your registration!"))
 			return
 		}
 
@@ -91,6 +91,22 @@ func (k *keycloak) processRegistrationHandler(currentUser *users.User) http.Hand
 			w.Header().Set("HX-Redirect", "/")
 		}
 	})
+}
+
+func registerCheckUsernameHandler(w http.ResponseWriter, r *http.Request) {
+	u := r.FormValue("username")
+	exists, err := users.CheckUsername(u)
+	fmt.Println(u, "...", exists, "...", err)
+	if err != nil {
+		TemplRender(w, r, templates.CheckUsernameMessage("empty"))
+		return
+	}
+
+	if exists {
+		TemplRender(w, r, templates.CheckUsernameMessage("exists"))
+	} else if !exists {
+		TemplRender(w, r, templates.CheckUsernameMessage("avail"))
+	}
 }
 
 func (k *keycloak) LoginHandler(currentUser *users.User) http.Handler {
