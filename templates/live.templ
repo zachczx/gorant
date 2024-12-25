@@ -29,13 +29,13 @@ templ BaseLive(title string, currentUser *users.User) {
 						</div>Grumplr
 					</a>
 				</div>
-				<div class="navbar-center hidden text-center text-xl font-medium lg:flex"><a href="/" class="min-w-24 rounded-3xl px-4 py-1 hover:bg-primary/50">Posts</a><span class="min-w-24 rounded-3xl bg-primary/50 px-4 py-1 font-bold">Live</span></div>
+				@NavCenterLinks("live")
 				@NavProfileBadge(currentUser)
 				// <div id="navbar-profile-badge" class="navbar-end lg:pe-6" hx-get="/navbar-profile-badge" hx-swap="outerHTML" hx-trigger="load">
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
 				// </div>
 			</header>
-			<div id="container" class="grid justify-items-center px-4 pt-10" preload>
+			<div id="container" class="grid justify-items-center px-4 pt-4" preload>
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
@@ -61,7 +61,7 @@ templ LiveScreenBase(currentUser *users.User) {
 			</div>
 			<div
 				id="content"
-				class="mt-8 w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg lg:mt-16"
+				class="w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
 			>
 				<div class="flex items-center">
 					<h2 class="grow px-8 text-3xl font-bold">Live</h2>
@@ -104,7 +104,7 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 			</label>
 		</form>
 		<div>
-			<div class="p-8 mt-8">
+			<div class="mt-8 p-8">
 				<div id="instant-posts-list">
 					if len(instantPosts) > 0 {
 						@ListInstantPosts(instantPosts)
@@ -112,7 +112,7 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 						<div class="flex justify-center">
 							<img src="/static/images/missing-puzzle.svg" width="363" height="400" class="h-32 w-32 lg:h-56 lg:w-56" alt="Nothing!"/>
 						</div>
-						<h2 class="text-center text-2xl font-extrabold mt-8">Couldn't find a live post</h2>
+						<h2 class="mt-8 text-center text-2xl font-extrabold">Couldn't find a live post</h2>
 						<div class="pb-8 text-center">Be the first to start one!</div>
 					}
 				</div>
@@ -165,14 +165,14 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 }
 
 templ ListInstantPosts(instPosts []live.InstantPost) {
-	<div class="grid grid-cols-3 gap-4">
+	<div class="grid lg:grid-cols-3 gap-4">
 		for i := 0; i < len(instPosts); i++ {
-			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].IDString())) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
-				<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-lg font-bold lg:min-w-14 lg:text-2xl">
+			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].IDString())) } class="flex rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
+				<div class="group grid min-w-10 place-items-center overflow-hidden text-center pe-4 text-lg font-bold lg:min-w-14 lg:text-2xl">
 					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary">{ instPosts[i].TitleInitials() }</span>
 				</div>
-				<div class="grow pe-4 ps-6">
-					<h3 class="line-clamp-1 text-xl font-medium leading-loose">
+				<div class="grow max-w-48">
+					<h3 class="truncate text-xl font-medium leading-loose">
 						{ instPosts[i].Title }
 					</h3>
 					<div class="text-sm text-base-content/60">by { instPosts[i].UserID }</div>

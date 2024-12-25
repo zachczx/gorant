@@ -7,6 +7,11 @@
 		outline: 1px red solid;
 	} */
 
+	:root {
+		/* Reserve space for scrollbar to prevent layout jumping */
+		scrollbar-gutter: stable;
+	}
+
 	/* inter-latin-wght-normal */
 	@font-face {
 		font-family: 'Inter Variable';
@@ -23,7 +28,7 @@
 	@view-transition {
 		navigation: auto;
 	}
-
+	/* 
 	@keyframes fade-in {
 		from {
 			opacity: 0;
@@ -46,7 +51,7 @@
 		to {
 			transform: translateX(-90px);
 		}
-	}
+	} */
 
 	/* define animations for the old and new content */
 	::view-transition-old(slide-it) {
@@ -251,6 +256,19 @@
 	.message-style > div:has(+ div) {
 		border-bottom: 2px solid rgba(38, 41, 49, 0.06);
 	}
+
+	/* .barbar::after {
+		content: '';
+		height: 0.25rem;
+		width: 3rem;
+		background-color: #1b510f;
+		opacity: 0.1;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		transform: translate(50%, 0);
+		view-transition-name: navbar-line;
+	} */
 }
 
 @layer utilities {
