@@ -2,25 +2,37 @@ import tags from './tags';
 
 // Input cancel button
 
-(function showInputCancelButton() {
-	document.getElementById('post-title').addEventListener('keydown', (evt) => {
+(() => {
+	const postTitleEl = document.getElementById('post-title');
+	const postTitleInputCancelButton = document.getElementById('input-cancel-button');
+	if (postTitleEl) {
+		showInputCancelButton(postTitleEl);
+	}
+
+	if (postTitleInputCancelButton) {
+		clearInput(postTitleInputCancelButton);
+	}
+})();
+
+function showInputCancelButton(el) {
+	el.addEventListener('keydown', (evt) => {
 		if (evt.target.value.length > 0) {
 			document.getElementById('input-cancel-button').classList.remove('hidden');
 		} else if (evt.target.value.length === 0) {
 			document.getElementById('input-cancel-button').classList.add('hidden');
 		}
 	});
-})();
+}
 
-(function clearInput() {
-	document.getElementById('input-cancel-button').addEventListener('click', () => {
+function clearInput(el) {
+	el.addEventListener('click', () => {
 		const input = document.getElementById('post-title');
 		input.value = '';
 		document.getElementById('input-cancel-button').classList.add('hidden');
 		document.getElementById('post-form-message').innerHTML = '';
 		input.focus();
 	});
-})();
+}
 
 // Disable button if special characters are detected
 
