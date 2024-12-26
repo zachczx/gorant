@@ -30,6 +30,8 @@ type Settings struct {
 	SortComments  string
 }
 
+var avatars = []string{"bird", "bird2", "bulldog", "cat", "cat2", "cat3", "cat4", "cat5", "cat6", "corgi", "dog2", "dog3", "dog4", "dog5", "goldfish", "hamster", "husky", "owl", "pigeon", "poodle", "rabbit", "shiba", "snake", "turtle", "whitehamster"}
+
 func (u *User) GetSettings(username string) error {
 	if err := database.DB.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
 		if err == sql.ErrNoRows {
@@ -49,8 +51,7 @@ func Validate(s Settings) map[string](string) {
 	v := govalidator.New()
 
 	var ok bool = false
-	avatarVals := []string{"default", "shiba", "cat", "parrot", "bulldog"}
-	for _, v := range avatarVals {
+	for _, v := range avatars {
 		if v == s.Avatar {
 			ok = true
 			break
@@ -105,20 +106,20 @@ func SaveSortComments(username string, s string) (string, error) {
 
 // TODO avatar choice
 
+func ReturnAvatars() []string {
+	return avatars
+}
+
 func ChooseAvatar(c string) string {
-	var s string
-	switch c {
-	case "shiba":
-		s = "/static/images/avatars/avatar-shiba.webp"
-	case "cat":
-		s = "/static/images/avatars/avatar-cat.webp"
-	case "parrot":
-		s = "/static/images/avatars/avatar-parrot.webp"
-	case "bulldog":
-		s = "/static/images/avatars/avatar-bulldog.webp"
-	case "default":
-		s = "/static/images/avatars/avatar-shiba.webp"
+	var s string = "/static/images/avatars/%s.svg"
+	for _, v := range avatars {
+		if c == v {
+			s = fmt.Sprintf(s, v)
+			return s
+		}
 	}
+	// Default value if it's default value
+	s = fmt.Sprintf(s, "shiba")
 	return s
 }
 

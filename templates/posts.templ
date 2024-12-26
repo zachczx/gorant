@@ -237,7 +237,7 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 							<div class="flex grow items-center">
 								<div class="avatar me-4">
 									<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
-										<img src={ string(templ.URL(comments[i].AvatarPath)) } alt="Avatar"/>
+										<img src={ string(templ.URL(comments[i].AvatarPath)) } class="scale-125" alt={ comments[i].PreferredName + "'s Avatar" }/>
 									</div>
 								</div>
 								<div>

@@ -509,14 +509,15 @@ func (k *keycloak) viewSettingsHandler() http.Handler {
 			fmt.Println("Error fetching settings: ", err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
+		a := users.ReturnAvatars()
 
 		switch ref {
 		case "firstlogin":
 			fmt.Println("in switch")
-			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser))
+			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, a))
 			return
 		}
-		TemplRender(w, r, templates.Settings(k.currentUser))
+		TemplRender(w, r, templates.Settings(k.currentUser, a))
 	})
 }
 

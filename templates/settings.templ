@@ -1,8 +1,12 @@
 package templates
 
-import "gorant/users"
+import (
+	"fmt"
+	"gorant/users"
+	"strings"
+)
 
-templ Settings(currentUser *users.User) {
+templ Settings(currentUser *users.User, avatars []string) {
 	@Base("User Settings", currentUser) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="space-y-4">
@@ -68,63 +72,29 @@ templ Settings(currentUser *users.User) {
 							<div class="label">
 								<div class="label-text font-medium">Choose an Avatar</div>
 							</div>
-							<div id="avatar-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-								<label id="shiba" class="avatar grid cursor-pointer justify-items-center space-y-2">
-									<input
-										type="radio"
-										name="avatar-radio"
-										value="shiba"
-										class="radio-accent radio radio-sm hidden"
-										if currentUser.Avatar == "shiba" || currentUser.Avatar == "default" {
-											checked="checked"
+							<div id="avatar-grid" class="grid gap-4 px-4 md:grid-cols-3 lg:grid-cols-5 max-h-56 overflow-y-auto">
+								for i := 0; i < len(avatars); i ++ {
+									<label
+										id={ avatars[i] }
+										class="avatar grid cursor-pointer justify-items-center space-y-2"
+										if i > 6 {
+											loading="lazy"
 										}
-									/>
-									<div class="w-24 rounded-full bg-primary/20">
-										<img src="/static/images/avatars/avatar-shiba.webp" alt="Shiba"/>
-									</div>
-								</label>
-								<label id="bulldog" class="avatar grid cursor-pointer justify-items-center space-y-2">
-									<input
-										type="radio"
-										name="avatar-radio"
-										value="bulldog"
-										class="radio-accent radio radio-sm hidden"
-										if currentUser.Avatar == "bulldog" {
-											checked="checked"
-										}
-									/>
-									<div class="w-24 rounded-full bg-primary/20">
-										<img src="/static/images/avatars/avatar-bulldog.webp" alt="Bulldog"/>
-									</div>
-								</label>
-								<label id="parrot" class="avatar grid cursor-pointer justify-items-center space-y-2">
-									<input
-										type="radio"
-										name="avatar-radio"
-										value="parrot"
-										class="radio-accent radio radio-sm hidden"
-										if currentUser.Avatar == "parrot" {
-											checked="checked"
-										}
-									/>
-									<div class="w-24 rounded-full bg-primary/20">
-										<img src="/static/images/avatars/avatar-parrot.webp" alt="Parrot"/>
-									</div>
-								</label>
-								<label id="cat" class="avatar grid cursor-pointer justify-items-center space-y-2">
-									<input
-										type="radio"
-										name="avatar-radio"
-										value="cat"
-										class="radio-accent radio radio-sm hidden"
-										if currentUser.Avatar == "cat" {
-											checked="checked"
-										}
-									/>
-									<div class="w-24 rounded-full bg-primary/20">
-										<img src="/static/images/avatars/avatar-cat.webp" alt="Cat"/>
-									</div>
-								</label>
+									>
+										<input
+											type="radio"
+											name="avatar-radio"
+											value={ avatars[i] }
+											class="radio-accent radio radio-sm hidden"
+											if currentUser.Avatar == avatars[i] {
+												checked="checked"
+											}
+										/>
+										<div class="w-24 rounded-full bg-primary/20">
+											<img src={ string(templ.URL(fmt.Sprintf("/static/images/avatars/%s.svg", avatars[i]))) } class="scale-125" alt={ strings.ToTitle(avatars[i]) }/>
+										</div>
+									</label>
+								}
 							</div>
 						</div>
 						<div class="form-control mt-4">
@@ -150,8 +120,8 @@ templ Settings(currentUser *users.User) {
 	}
 }
 
-templ SettingsFirstLogin(currentUser *users.User) {
-	@Settings(currentUser) {
+templ SettingsFirstLogin(currentUser *users.User, avatars []string) {
+	@Settings(currentUser, avatars) {
 		<div id="first-login-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
 			<h2 class="flex flex-wrap items-center px-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
