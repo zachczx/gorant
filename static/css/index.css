@@ -271,7 +271,7 @@
 		background-color: #1b510f;
 		opacity: 0.5;
 		position: absolute;
-		bottom: -0.1rem;
+		bottom: -0.05rem;
 		left: 0;
 		transform: translate(0%, 0); /* translate(50%, 0) */
 		view-transition-name: navbar-line;
