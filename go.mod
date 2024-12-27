@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/a-h/templ v0.2.793
+	github.com/andybalholm/brotli v1.1.1
 	github.com/go-swiss/compress v0.0.0-20231015173048-c7b565746931
 	github.com/gorilla/sessions v1.4.0
 	github.com/jackc/pgx/v5 v5.7.2
@@ -18,7 +19,6 @@ require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
-	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/containerd/console v1.0.4 // indirect
 	github.com/go-resty/resty/v2 v2.16.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect

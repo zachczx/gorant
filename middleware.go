@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"mime"
 	"net/http"
@@ -9,12 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andybalholm/brotli"
 	"github.com/go-swiss/compress"
 	"github.com/pterm/pterm"
 )
 
 // Taken from Go-Chi package
-var defaultCompressibleContentTypes = [10]string{
+var defaultCompressibleContentTypes = []string{
 	"text/html",
 	"text/css",
 	"text/plain",
@@ -100,14 +102,88 @@ func StatusLogger(next http.Handler) http.Handler {
 	})
 }
 
+// Implements Gzip for SSE compression with added flushing.
+type ZResponseWriter struct {
+	http.ResponseWriter
+	GzipWriter *gzip.Writer
+}
+
+func (zrw *ZResponseWriter) Write(data []byte) (int, error) {
+	n, err := zrw.GzipWriter.Write(data)
+	if err != nil {
+		return n, err
+	}
+	err = zrw.GzipWriter.Flush()
+	return n, err
+}
+
+// This is needed, else SSE doesn't stream.
+func (zrw *ZResponseWriter) Flush() {
+	zrw.GzipWriter.Flush()
+	if flusher, ok := zrw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Implements Brotli for SSE compression with added flushing.
+type ZBrResponseWriter struct {
+	http.ResponseWriter
+	BrWriter *brotli.Writer
+}
+
+func (zrw *ZBrResponseWriter) Write(data []byte) (int, error) {
+	n, err := zrw.BrWriter.Write(data)
+	if err != nil {
+		return n, err
+	}
+	err = zrw.BrWriter.Flush()
+	return n, err
+}
+
+func (zrw *ZBrResponseWriter) Flush() {
+	zrw.BrWriter.Flush()
+	if flusher, ok := zrw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func ZxCompress() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ae := r.Header.Get("Accept-Encoding")
+		if !strings.Contains(ae, "br") && !strings.Contains(ae, "gzip") {
+			fmt.Println("NOOOOOOO!!!!!!!!!!!!!!!!!!!!")
+			sseHandler(w, r)
+			return
+		}
+
+		if strings.Contains(ae, "br") {
+			fmt.Println("BR!!!!!!")
+			w.Header().Set("Content-Encoding", "br")
+			brotliWriter := brotli.NewWriterLevel(w, 2)
+			defer brotliWriter.Close()
+			zipped := &ZBrResponseWriter{ResponseWriter: w, BrWriter: brotliWriter}
+			sseHandler(zipped, r)
+			return
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+		gzw := gzip.NewWriter(w)
+		zipped := &ZResponseWriter{ResponseWriter: w, GzipWriter: gzw}
+		defer gzw.Close()
+		sseHandler(zipped, r)
+	})
+}
+
 func ExcludeCompression(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Using strings.Contain because css file has an additional charset=utf-8, which doesn't allow == match.
 		// .woff2 also doesn't have a mime type. Using this because mime.TypeByExtension guesses based on extension anyway.
+
 		ext := mime.TypeByExtension(path.Ext(r.RequestURI))
-		fmt.Println(r.RequestURI, ext)
+
 		for _, v := range defaultCompressibleContentTypes {
 			if strings.Contains(ext, v) {
+				fmt.Println(r.RequestURI, "matched...", v)
 				ch := compress.Middleware(next)
 				ch.ServeHTTP(w, r)
 				return

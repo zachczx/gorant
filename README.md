@@ -7,10 +7,11 @@
 3. HMR - Air
 4. Authentication/Authorization - Keyclock, GoCloak
 5. Cookies/Sessions - Gorilla Sessions
+6. Compression - Brotli, Gzip
 
 ## JS tools
 
-1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets)
+1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets, SSE)
 2. Formatting - Prettier
 3. Bundling - ESBuild
 
@@ -26,10 +27,6 @@
 3. Local mail testing - Maildev (Dev-only)
 4. Terminal formatting - PTerm | Pretty Terminal Printer (Dev-only)
 5. Auth/auth - Stytch (swapped out)
-
-## To Do
-
-1. Real time posts with SSE
 
 ## Notes for Choice of Auth
 

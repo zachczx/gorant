@@ -84,7 +84,9 @@ func main() {
 
 		w.Write([]byte("Successfully created live DB!"))
 	})
-	mux.Handle("GET /event/{instPID}", k.CheckAuthentication()(sseHandler()))
+	// Implemented own compress with Brotli/Gzip, with extra flushing.
+	// An alternative that works out of box is klauspost/compress/gzhttp. Others don't. It's because of flushing.
+	mux.Handle("GET /event/{instPID}", ZxCompress())
 
 	// User and misc routes
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))
