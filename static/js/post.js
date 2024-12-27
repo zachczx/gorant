@@ -91,6 +91,7 @@ postTitleTruncated.addEventListener('click', (evt) => {
 tags();
 
 function initKeyBoardShortcutForPosts() {
+	// const commentForm = document.getElementById('comment-form');
 	const commentFormMessageInput = document.getElementById('comment-form-message-input');
 	const commentSubmitButton = document.getElementById('comment-submit-button');
 	if (commentFormMessageInput && commentSubmitButton) {
