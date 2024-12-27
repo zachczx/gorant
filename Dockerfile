@@ -1,4 +1,4 @@
-FROM golang:1.23.3 AS first
+FROM golang:1.23.4 AS first
 ENV GO111MODULE=on
 WORKDIR /app
 COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
