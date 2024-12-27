@@ -72,7 +72,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 							<div class="label">
 								<div class="label-text font-medium">Choose an Avatar</div>
 							</div>
-							<div id="avatar-grid" class="grid gap-4 px-4 md:grid-cols-3 lg:grid-cols-5 max-h-56 overflow-y-auto">
+							<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-y-auto px-4 md:grid-cols-3 lg:grid-cols-5">
 								for i := 0; i < len(avatars); i ++ {
 									<label
 										id={ avatars[i] }

@@ -199,6 +199,13 @@
 	/* Individual chat messages */
 	.message-style {
 		display: grid;
+		max-width: 100%;
+		overflow-wrap: anywhere;
+		hyphens: auto;
+
+		div.flex {
+			padding: 0.5rem 0 0.5rem 0;
+		}
 	}
 
 	.message-style > div > div.avatar {
