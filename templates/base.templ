@@ -112,7 +112,7 @@ templ NavProfileBadge(currentUser *users.User) {
 							</div>
 						</button>
 					</div>
-					<ul tabindex="0" class="max-w-screen menu dropdown-content z-[2] rounded-box border border-neutral/30 bg-white/70 p-2 shadow-lg backdrop-blur-3xl">
+					<ul tabindex="0" class="max-w-screen menu dropdown-content z-[2] lg:min-w-72 rounded-box border border-neutral/30 bg-white/70 p-2 shadow-lg backdrop-blur-3xl">
 						<li class="mb-2 rounded-t-md border-b border-b-neutral/30 pb-2">
 							<a href="/settings" class="hover:bg-transparent focus:bg-transparent active:bg-transparent" preload>
 								<div class="flex">
@@ -354,7 +354,7 @@ templ ListPosts(posts posts.PostCollection) {
 	<div id="posts" class="grid min-h-[20dvh] content-start gap-4 px-8">
 		if len(posts) >0 {
 			for i := 0; i < len(posts); i++ {
-				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
+				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/70 p-2">
 					<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-3xl lg:min-w-14 lg:text-5xl">
 						<span class="inline-block transition-all delay-500 group-hover:animate-wiggle">
 							if posts[i].Mood  == "elated" {
