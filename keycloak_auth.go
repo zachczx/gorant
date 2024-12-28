@@ -88,9 +88,7 @@ func (k *keycloak) RequireAuthentication() func(http.Handler) http.Handler {
 func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("CheckAuthentication()")
 			cookieStart := time.Now()
-
 			session, err := k.store.Get(r, "grumplr_kc_session")
 			// Err cannot be nil here since we're verifying token
 			if err != nil || session == nil {
@@ -130,7 +128,7 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 
 			// Load user settings from cookie or DB.
 			// If loaded from DB, then store in cookie to be saved.
-			if err := SetSettingsCookie(k.currentUser, session, cookieUsername); err != nil {
+			if err := SetSettingsCookie(k.currentUser, session, cookieUsername, false); err != nil {
 				fmt.Println(err)
 			}
 
@@ -234,30 +232,32 @@ func SyncUserLocalDB(username string) (bool, error) {
 	return false, nil
 }
 
-func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session, cookieUsername string) error {
+func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session, cookieUsername string, refetch bool) error {
 	// Check if cookies are filled, if so, store user pref values in currentUser
-	var refetch bool
-	var ok bool
-	currentUser.PreferredName, ok = session.Values["PreferredName"].(string)
-	if currentUser.PreferredName == "" || !ok {
-		fmt.Println("No PreferredName cookie found!")
-		refetch = true
-	}
 
-	currentUser.Avatar, ok = session.Values["Avatar"].(string)
-	if currentUser.Avatar == "" || !ok {
-		fmt.Println("No Avatar cookie found!")
-		refetch = true
-	}
-	currentUser.AvatarPath, ok = session.Values["AvatarPath"].(string)
-	if currentUser.AvatarPath == "" || !ok {
-		fmt.Println("No AvatarPath cookie found!")
-		refetch = true
-	}
-	currentUser.SortComments, ok = session.Values["SortComments"].(string)
-	if currentUser.SortComments == "" || !ok {
-		fmt.Println("No SortComments cookie found!")
-		refetch = true
+	var ok bool
+	if !refetch {
+		currentUser.PreferredName, ok = session.Values["PreferredName"].(string)
+		if currentUser.PreferredName == "" || !ok {
+			fmt.Println("No PreferredName cookie found!")
+			refetch = true
+		}
+
+		currentUser.Avatar, ok = session.Values["Avatar"].(string)
+		if currentUser.Avatar == "" || !ok {
+			fmt.Println("No Avatar cookie found!")
+			refetch = true
+		}
+		currentUser.AvatarPath, ok = session.Values["AvatarPath"].(string)
+		if currentUser.AvatarPath == "" || !ok {
+			fmt.Println("No AvatarPath cookie found!")
+			refetch = true
+		}
+		currentUser.SortComments, ok = session.Values["SortComments"].(string)
+		if currentUser.SortComments == "" || !ok {
+			fmt.Println("No SortComments cookie found!")
+			refetch = true
+		}
 	}
 
 	// If cookies are empty, then fetch from DB

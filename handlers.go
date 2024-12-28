@@ -213,12 +213,31 @@ func (k *keycloak) filterSortPostHandler() http.Handler {
 
 		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
 		if sort != "" {
+
+			fmt.Println("Inside saving")
 			s, err := users.SaveSortComments(k.currentUser.UserID, sort)
 			if err != nil {
 				fmt.Println(err)
 			}
-
 			k.currentUser.SortComments = s
+		}
+
+		// Set cookies too
+		session, err := k.store.Get(r, "grumplr_kc_session")
+		// Err cannot be nil here since we're verifying token
+		if err != nil || session == nil {
+			*k.currentUser = users.User{}
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		if err := SetSettingsCookie(k.currentUser, session, k.currentUser.UserID, true); err != nil {
+			fmt.Println(err)
+		}
+
+		if err := session.Save(r, w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
