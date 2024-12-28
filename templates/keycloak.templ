@@ -16,6 +16,7 @@ templ KeycloakRegister(emptyUser users.User) {
 						hx-target="#login-message"
 						hx-swap="outerHTML"
 						hx-target-error="#toast"
+						hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#register-button"
 						id="settings-form"
 					>
 						<label class="form-control">
@@ -52,7 +53,7 @@ templ KeycloakRegister(emptyUser users.User) {
 								</button>
 							</div>
 						</label>
-						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Register</button>
+						<button id="register-button" class="btn btn-accent mt-4 w-full rounded-lg text-lg">Register</button>
 						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Or login to an account?</a></div>
 					</form>
 				</div>
@@ -76,6 +77,7 @@ templ KeycloakLogin(emptyUser users.User) {
 						hx-target="#login-message"
 						hx-swap="outerHTML"
 						hx-target-error="#login-message"
+						hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#login-button"
 						id="settings-form"
 					>
 						<label class="form-control">
@@ -101,7 +103,7 @@ templ KeycloakLogin(emptyUser users.User) {
 							</div>
 						</label>
 						<div class="flex justify-end"><a href="/reset-password" class="pt-1 text-sm text-accent underline">Forgot password?</a></div>
-						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Login</button>
+						<button id="login-button" class="btn btn-accent mt-4 w-full rounded-lg text-lg">Login</button>
 						<div class="text-center text-sm text-accent underline hover:text-accent"><a href="/register">Or register an account?</a></div>
 					</form>
 				</div>

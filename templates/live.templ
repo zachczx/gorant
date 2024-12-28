@@ -71,7 +71,7 @@ templ LiveScreenBase(currentUser *users.User) {
 						<span class="loading loading-spinner text-accent"></span>
 					</div>
 				</div>
-				<div class="grid gap-8 px-8">
+				<div class="grid gap-8 px-2 lg:px-8">
 					{ children... }
 				</div>
 			</div>
@@ -84,7 +84,8 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 	@LiveScreenBase(currentUser) {
 		if currentUser.UserID != "" {
 			<form class="grid gap-4" hx-post="/live/new" hx-target="#instant-posts-list" hx-swap="innerHTML">
-				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
+				// Padding end for label is to prevent input from overflowing under the button
+				<label class="lg:max-w-11/12 input input-lg input-accent relative pe-20 lg:pe-[8.6rem] flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 					<input
 						type="text"
@@ -97,10 +98,10 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 						autocomplete="off"
 						required
 					/>
-					<button id="post-button" class="top-1.75 btn btn-accent absolute right-2 min-w-20 rounded-full text-xl">
+					<button id="post-button" class="top-1.75 btn btn-accent absolute right-2 lg:min-w-20 rounded-full text-xl">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="fluent:live-20-filled" viewBox="0 0 20 20">
 							<path fill="currentColor" d="M5.453 4.167a.726.726 0 0 0-1.027-.01A8.23 8.23 0 0 0 2 10a8.23 8.23 0 0 0 2.604 6.015a.725.725 0 0 0 1.01-.025c.316-.316.277-.819-.027-1.11A6.73 6.73 0 0 1 3.5 10c0-1.846.741-3.52 1.943-4.738c.29-.295.32-.785.01-1.095M7.214 5.93a.714.714 0 0 0-1.008-.016A5.73 5.73 0 0 0 4.5 10c0 1.692.73 3.213 1.893 4.265a.713.713 0 0 0 .983-.038c.328-.328.267-.844-.041-1.134A4.24 4.24 0 0 1 6 10c0-1.15.457-2.194 1.2-2.96c.286-.294.333-.793.014-1.111m5.572 0a.714.714 0 0 1 1.008-.016A5.73 5.73 0 0 1 15.5 10c0 1.692-.73 3.213-1.893 4.265a.713.713 0 0 1-.983-.038c-.328-.328-.267-.844.041-1.134A4.24 4.24 0 0 0 14 10c0-1.15-.457-2.194-1.2-2.96c-.286-.294-.333-.793-.014-1.111m1.761-1.762a.726.726 0 0 1 1.027-.01A8.23 8.23 0 0 1 18 10a8.23 8.23 0 0 1-2.604 6.015a.725.725 0 0 1-1.01-.025c-.316-.316-.277-.819.028-1.11A6.73 6.73 0 0 0 16.5 10c0-1.846-.741-3.52-1.943-4.738c-.29-.295-.32-.785-.01-1.095M10 8.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3"></path>
-						</svg><span class="hidden pe-2 ps-2 lg:flex">Go Live</span>
+						</svg><span class="hidden pe-2 ps-1 lg:flex">Start</span>
 					</button>
 				</label>
 			</form>
@@ -110,7 +111,7 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 			</div>
 		}
 		<div>
-			<div class="p-8">
+			<div class="p-2 lg:p-8">
 				<div id="instant-posts-list">
 					if len(instantPosts) > 0 {
 						@ListInstantPosts(instantPosts)
@@ -144,7 +145,8 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 				hx-swap="none"
 				hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#post-button"
 			>
-				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
+				// Padding end for label is to prevent input from overflowing under the button
+				<label class="lg:max-w-11/12 input input-lg input-accent pe-20 lg:pe-[8.2rem] relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 					<input
 						id="content-input"

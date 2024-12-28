@@ -95,7 +95,7 @@ function initKeyBoardShortcutForPosts() {
 	const commentFormMessageInput = document.getElementById('comment-form-message-input');
 	const commentSubmitButton = document.getElementById('comment-submit-button');
 	if (commentFormMessageInput && commentSubmitButton) {
-		keyboardShortcut(commentFormMessageInput, commentSubmitButton);
+		keyboardShortcut(commentFormMessageInput, commentSubmitButton, undefined, undefined, 'textarea');
 	}
 }
 

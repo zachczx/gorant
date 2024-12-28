@@ -403,7 +403,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 			if oobSwap == "true" {
 				hx-swap-oob="true"
 			}
-			hx-swap="outerHTML"
+			hx-swap="morph:outerHTML"
 			hx-target="#posts"
 			hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#comment-submit-button"
 			class="w-full space-y-2"
