@@ -156,8 +156,8 @@ module.exports = {
 				custom: {
 					primary: '#97dc42',
 					'primary-content': '#081101',
-					secondary: '#35c46c', //'#1c64d9', //https://mycolor.space/?hex=%2397DC42&sub=1
-					'secondary-content': '#d2e1fa',
+					secondary: '#2a9c56', //'#35c46c', //'#1c64d9', //https://mycolor.space/?hex=%2397DC42&sub=1
+					'secondary-content': '#ffffff', //'#d2e1fa',
 					accent: '#1b510f', //'#4de42c',
 					'accent-content': '#fdfdfd', //'#021201',
 					neutral: '#262931', //'#B8B8B3',

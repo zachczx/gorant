@@ -207,48 +207,48 @@ func (k *keycloak) filterSortPostHandler() http.Handler {
 		postID := r.PathValue("postID")
 		filter := r.FormValue("f")
 		sort := r.FormValue("sort")
-
 		fmt.Println("Form value sort: ", r.FormValue("sort"))
 		fmt.Println("Filter value: ", filter)
 
 		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
 		if sort != "" {
-
 			fmt.Println("Inside saving")
 			s, err := users.SaveSortComments(k.currentUser.UserID, sort)
 			if err != nil {
 				fmt.Println(err)
 			}
 			k.currentUser.SortComments = s
+			if err := k.UpdateSessionStore(w, r); err != nil {
+				fmt.Println(err)
+				w.Header().Set("Hx-Redirect", "/error")
+				return
+			}
 		}
-
-		// Set cookies too
-		session, err := k.store.Get(r, "grumplr_kc_session")
-		// Err cannot be nil here since we're verifying token
-		if err != nil || session == nil {
-			*k.currentUser = users.User{}
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
-
-		if err := SetSettingsCookie(k.currentUser, session, k.currentUser.UserID, true); err != nil {
-			fmt.Println(err)
-		}
-
-		if err := session.Save(r, w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
-			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
+			w.Header().Set("Hx-Redirect", "/error")
 			return
 		}
-
 		TemplRender(w, r, templates.PartialPostNewSorted(k.currentUser, comments, ""))
 	})
+}
+
+func (k *keycloak) UpdateSessionStore(w http.ResponseWriter, r *http.Request) error {
+	// get session from gorilla sessions
+	session, err := k.store.Get(r, "grumplr_kc_session")
+	// Err cannot be nil here since we're verifying token
+	if err != nil || session == nil {
+		*k.currentUser = users.User{}
+		return err
+	}
+	if err := SetSettingsCookie(k.currentUser, session, k.currentUser.UserID, true); err != nil {
+		return err
+	}
+	if err := session.Save(r, w); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (k *keycloak) newCommentHandler() http.Handler {

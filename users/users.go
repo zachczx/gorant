@@ -105,7 +105,6 @@ func SaveSortComments(username string, s string) (string, error) {
 }
 
 // TODO avatar choice
-
 func ReturnAvatars() []string {
 	return avatars
 }

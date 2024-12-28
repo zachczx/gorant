@@ -71,6 +71,10 @@ type Tags struct {
 	Tags           []string
 }
 
+func (t *Tags) Count() string {
+	return strconv.Itoa(len(t.Tags))
+}
+
 type Tag struct {
 	TagID int    `db:"tag_id"`
 	Tag   string `db:"tag"`

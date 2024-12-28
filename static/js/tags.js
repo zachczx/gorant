@@ -48,10 +48,10 @@ function tagsUi() {
 	const classes = [
 		'user-tag',
 		'btn',
-		'bg-primary/50',
-		'text-accent',
+		'bg-secondary',
+		'text-secondary-content',
 		'border-0',
-		'hover:bg-primary/60',
+		'hover:bg-secondary',
 		'btn-sm',
 		'text-md',
 		'me-2',
