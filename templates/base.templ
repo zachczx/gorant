@@ -18,7 +18,7 @@ templ Base(title string, currentUser *users.User) {
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
-		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload,morph">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/10 p-0">
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
