@@ -5,7 +5,7 @@ function calculateCharsRemaining() {
 	const commentFormCharsRemainingEl = document.getElementById('form-message-chars-remaining');
 
 	if (commentFormMessageInputEl && commentFormCharsRemainingEl) {
-		let total = 2000;
+		const total = 2000;
 		commentFormCharsRemainingEl.innerHTML = total;
 
 		if (commentFormMessageInputEl.value) {

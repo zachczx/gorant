@@ -28,10 +28,6 @@ dev/esbuild:
 dev/prettier:
 	npx prettier . --write ./static/js
 
-# unused 
-dev/biome:
-	npx @biomejs/biome check --write ./static/js/
-
 dev/keycloak:
 # run keycloak and maildev in containers
 #	docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.0.7 start-dev

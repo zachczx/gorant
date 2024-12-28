@@ -19,7 +19,6 @@ export default function tags() {
 }
 
 function checkDomForTagsEls() {
-	console.log('Checking DOM for tagsEls');
 	if (
 		document.getElementById('tags-input') &&
 		document.getElementById('tags-list') &&
@@ -28,9 +27,8 @@ function checkDomForTagsEls() {
 		document.getElementById('tags-container')
 	) {
 		return true;
-	} else {
-		return false;
 	}
+	return false;
 }
 
 function tagsUi() {
@@ -39,7 +37,7 @@ function tagsUi() {
 	const tagsList = document.getElementById('tags-list');
 	const tagsSaveButton = document.getElementById('tags-save-button');
 	const tagsForm = document.getElementById('tags-container');
-	let tagsData = document.getElementById('tags-data');
+	const tagsData = document.getElementById('tags-data');
 	let margin = 0;
 
 	tagsInput.focus();
@@ -60,12 +58,12 @@ function tagsUi() {
 
 	// Fetch tags from hidden form value if there already are tags there
 	if (tagsData.value.length > 0) {
-		let tags = tagsData.value.split(',');
+		const tags = tagsData.value.split(',');
 		for (let i = 0; i < tags.length; i++) {
 			tags[i] = tags[i].trim().toLowerCase();
 			if (tags[i].length > 0) {
-				let el = document.createElement('li');
-				el.id = 'user-tag-' + tags[i];
+				const el = document.createElement('li');
+				el.id = `user-tag-${tags[i]}`;
 				el.classList.add(...classes);
 				el.innerHTML = tags[i];
 				tagsList.appendChild(el);
@@ -83,27 +81,26 @@ function tagsUi() {
 			(evt.key === 'Tab' && tagsInput.value.length > 0)
 		) {
 			evt.preventDefault();
-			let tags = tagsInput.value.split(',');
+			const tags = tagsInput.value.split(',');
 			for (let i = 0; i < tags.length; i++) {
 				tags[i] = tags[i].trim().toLowerCase();
 				if (tags[i].length > 0) {
-					let el = document.createElement('li');
-					el.id = 'user-tag-' + tags[i];
+					const el = document.createElement('li');
+					el.id = `user-tag-${tags[i]}`;
 					el.classList.add(...classes);
 					el.innerHTML = tags[i];
 					tagsList.appendChild(el);
-
 					if (tagsData.value.length === 0) {
 						tagsData.value = tags[i];
 					} else {
-						tagsData.value = tagsData.value + ',' + tags[i];
+						tagsData.value = `${tagsData.value},${tags[i]}`;
 					}
 				}
 			}
 			tagsInput.value = '';
 
 			if (tagsList.childElementCount > 0) {
-				margin = 'me-' + String(tagsList.childElementCount * 2);
+				margin = `me-${String(tagsList.childElementCount * 2)}`;
 				tagsList.classList.add(margin);
 			}
 		}
@@ -116,10 +113,10 @@ function tagsUi() {
 			tagsList.removeChild(evt.target);
 			if (!tagsData.value.includes(',')) {
 				tagsData.value = tagsData.value.replace(evt.target.innerText, '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(evt.target.innerText + ',')) {
-				tagsData.value = tagsData.value.replace(evt.target.innerText + ',', '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(',' + evt.target.innerText)) {
-				tagsData.value = tagsData.value.replace(',' + evt.target.innerText, '');
+			} else if (tagsData.value.includes(',') && tagsData.value.includes(`${evt.target.innerText},`)) {
+				tagsData.value = tagsData.value.replace(`${evt.target.innerText},`, '');
+			} else if (tagsData.value.includes(',') && tagsData.value.includes(`,${evt.target.innerText}`)) {
+				tagsData.value = tagsData.value.replace(`,${evt.target.innerText}`, '');
 			}
 		}
 	});
@@ -136,7 +133,7 @@ function tagsUi() {
 		if (evt.detail.elt === tagsForm) {
 			if (tagsInput.value.length > 0) {
 				if (tagsData.value.length > 0) {
-					tagsData.value = tagsData.value + ',' + tagsInput.value;
+					tagsData.value = `${tagsData.value},${tagsInput.value}`;
 					evt.detail.parameters['tags-data'] = tagsData.value;
 					console.log('Existing tagsData found, ', tagsData.value);
 				} else {

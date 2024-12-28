@@ -40,7 +40,7 @@ const postButton = document.getElementById('post-button');
 (() => {
 	const contentInput = document.getElementById('content-input');
 	window.addEventListener('htmx:afterRequest', (evt) => {
-		let reqStatus = evt.detail.successful;
+		const reqStatus = evt.detail.successful;
 		console.log('reqStatus: ', reqStatus);
 		console.log('contentInput: ', contentInput);
 		console.log('elt: ', evt.detail.elt);

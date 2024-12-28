@@ -21,8 +21,16 @@ module.exports = {
 			},
 			keyframes: {
 				'drawer-slide-down': {
-					'0%': { display: 'none', opacity: '20%', transform: 'translateY(-0.5rem)' },
-					'100%': { display: 'inline', opacity: '100%', transform: 'translateY(0rem)' },
+					'0%': {
+						display: 'none',
+						opacity: '20%',
+						transform: 'translateY(-0.5rem)',
+					},
+					'100%': {
+						display: 'inline',
+						opacity: '100%',
+						transform: 'translateY(0rem)',
+					},
 				},
 				'drawer-slide-up': {
 					'0%': { opacity: '100%', transform: 'translateY(0rem)' },
