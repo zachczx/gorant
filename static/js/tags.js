@@ -1,48 +1,56 @@
 import { keyboardShortcut } from './common';
 
-// For UI supporting Tag's tag-style input
+/**
+ * For UI supporting Tag's tag-style input
+ * @exports tagsUi
+ */
 
-//Window is used because document.addEventListener() is unreliable
+/**
+ * @typedef {object} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
+ * @property {HTMLFormElement} form - form element with hx-post
+ * @property {HTMLInputElement} input - form input for user to key in tags
+ * @property {HTMLUListElement} list - form input for user to key in tags
+ * @property {HTMLButtonElement} saveButton - form button
+ * @property {HTMLInputElement} data - hidden form input that contains all the tags for form submission
+ */
 
-export default function tags() {
-	window.addEventListener('load', () => {
-		if (checkDomForTagsEls()) {
-			tagsUi();
+/**
+ * Default configs for tags-related functions.
+ * @type {TagsConfig} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
+ */
+const defaultTagsConfig = {
+	form: 'tags-container',
+	input: 'tags-input',
+	list: 'tags-list',
+	saveButton: 'tags-save-button',
+	data: 'tags-data',
+};
+
+/**
+ * Check if HTML elements taken from argument ID names are in the DOM.
+ * @param {TagsConfig} tagsConfig - object with HTML ID names.
+ * @returns {boolean} - true if HTML elements are found in the DOM, typically for after hx-swap of tags form completes.
+ */
+function checkDomForTagsEls(tagsConfig = defaultTagsConfig) {
+	for (let el in tagsConfig) {
+		if (!document.getElementById(tagsConfig[el])) {
+			return false;
 		}
-	});
-
-	document.addEventListener('htmx:afterSwap', () => {
-		if (checkDomForTagsEls()) {
-			tagsUi();
-		}
-	});
-}
-
-function checkDomForTagsEls() {
-	if (
-		document.getElementById('tags-input') &&
-		document.getElementById('tags-list') &&
-		document.getElementById('tags-data') &&
-		document.getElementById('tags-save-button') &&
-		document.getElementById('tags-container')
-	) {
-		return true;
 	}
-	return false;
+	return true;
 }
 
-function tagsUi() {
-	console.log('Loading tagsUI');
-	const tagsInput = document.getElementById('tags-input');
-	const tagsList = document.getElementById('tags-list');
-	const tagsSaveButton = document.getElementById('tags-save-button');
-	const tagsForm = document.getElementById('tags-container');
-	const tagsData = document.getElementById('tags-data');
-	let margin = 0;
+/**
+ * Functionality for tags (posting, editing and deleting) in the post page
+ * @param {TagsConfig} tagsConfig - Object with the ids of the HTML Elements to be used in this func.
+ */
+function tagsUi(tagsConfig = defaultTagsConfig) {
+	const tagsElements = {};
+	for (const name in tagsConfig) {
+		tagsElements[name] = document.getElementById(tagsConfig[name]);
+	}
 
-	tagsInput.focus();
-
-	// Classes to add for each tag
+	/** @type {string[]} Styling Classes to add for each tag */
 	const classes = [
 		'user-tag',
 		'btn',
@@ -56,32 +64,23 @@ function tagsUi() {
 		'my-1',
 	];
 
-	// Fetch tags from hidden form value if there already are tags there
-	if (tagsData.value.length > 0) {
-		const tags = tagsData.value.split(',');
-		for (let i = 0; i < tags.length; i++) {
-			tags[i] = tags[i].trim().toLowerCase();
-			if (tags[i].length > 0) {
-				const el = document.createElement('li');
-				el.id = `user-tag-${tags[i]}`;
-				el.classList.add(...classes);
-				el.innerHTML = tags[i];
-				tagsList.appendChild(el);
-			}
-		}
-	}
+	let margin = 0;
 
-	tagsInput.addEventListener('keydown', (evt) => {
+	tagsElements.input.focus();
+
+	fetchTagsFromHiddenFormField(tagsElements.data, tagsElements.list, classes);
+
+	tagsElements.input.addEventListener('keydown', (evt) => {
 		if (
 			(evt.key === 'Enter' && !evt.ctrlKey) ||
 			evt.key === ',' ||
 			evt.key === ' ' ||
 			evt.key === ';' ||
 			evt.key === '.' ||
-			(evt.key === 'Tab' && tagsInput.value.length > 0)
+			(evt.key === 'Tab' && tagsElements.input.value.length > 0)
 		) {
 			evt.preventDefault();
-			const tags = tagsInput.value.split(',');
+			const tags = tagsElements.input.value.split(',');
 			for (let i = 0; i < tags.length; i++) {
 				tags[i] = tags[i].trim().toLowerCase();
 				if (tags[i].length > 0) {
@@ -89,34 +88,40 @@ function tagsUi() {
 					el.id = `user-tag-${tags[i]}`;
 					el.classList.add(...classes);
 					el.innerHTML = tags[i];
-					tagsList.appendChild(el);
-					if (tagsData.value.length === 0) {
-						tagsData.value = tags[i];
+					tagsElements.list.appendChild(el);
+					if (tagsElements.data.value.length === 0) {
+						tagsElements.data.value = tags[i];
 					} else {
-						tagsData.value = `${tagsData.value},${tags[i]}`;
+						tagsElements.data.value = `${tagsElements.data.value},${tags[i]}`;
 					}
 				}
 			}
-			tagsInput.value = '';
+			tagsElements.input.value = '';
 
-			if (tagsList.childElementCount > 0) {
-				margin = `me-${String(tagsList.childElementCount * 2)}`;
-				tagsList.classList.add(margin);
+			if (tagsElements.list.childElementCount > 0) {
+				margin = `me-${String(tagsElements.list.childElementCount * 2)}`;
+				tagsElements.list.classList.add(margin);
 			}
 		}
 	});
 
-	tagsList.addEventListener('click', (evt) => {
+	tagsElements.list.addEventListener('click', (evt) => {
 		if (evt.target.id.includes('user-tag-')) {
 			evt.preventDefault();
-			console.log('Clicked a tag');
-			tagsList.removeChild(evt.target);
-			if (!tagsData.value.includes(',')) {
-				tagsData.value = tagsData.value.replace(evt.target.innerText, '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(`${evt.target.innerText},`)) {
-				tagsData.value = tagsData.value.replace(`${evt.target.innerText},`, '');
-			} else if (tagsData.value.includes(',') && tagsData.value.includes(`,${evt.target.innerText}`)) {
-				tagsData.value = tagsData.value.replace(`,${evt.target.innerText}`, '');
+			// console.log('Clicked a tag');
+			tagsElements.list.removeChild(evt.target);
+			if (!tagsElements.data.value.includes(',')) {
+				tagsElements.data.value = tagsElements.data.value.replace(evt.target.innerText, '');
+			} else if (
+				tagsElements.data.value.includes(',') &&
+				tagsElements.data.value.includes(`${evt.target.innerText},`)
+			) {
+				tagsElements.data.value = tagsElements.data.value.replace(`${evt.target.innerText},`, '');
+			} else if (
+				tagsElements.data.value.includes(',') &&
+				tagsElements.data.value.includes(`,${evt.target.innerText}`)
+			) {
+				tagsElements.data.value = tagsElements.data.value.replace(`,${evt.target.innerText}`, '');
 			}
 		}
 	});
@@ -130,16 +135,14 @@ function tagsUi() {
 		// htmx:configRequest triggers after htmx collected params - https://htmx.org/events/#htmx:configRequest
 		// htmx:beforeRequest does not change params.
 		// Alternative to listening to configRequest is to add eventListeners directly to the button or listen for keypresses ctrl+enter, which is tedious
-		if (evt.detail.elt === tagsForm) {
-			if (tagsInput.value.length > 0) {
-				if (tagsData.value.length > 0) {
-					tagsData.value = `${tagsData.value},${tagsInput.value}`;
-					evt.detail.parameters['tags-data'] = tagsData.value;
-					console.log('Existing tagsData found, ', tagsData.value);
+		if (evt.detail.elt === tagsElements.form) {
+			if (tagsElements.input.value.length > 0) {
+				if (tagsElements.data.value.length > 0) {
+					tagsElements.data.value = `${tagsElements.data.value},${tagsElements.input.value}`;
+					evt.detail.parameters['tags-data'] = tagsElements.data.value;
 				} else {
-					tagsData.value = tagsInput.value;
-					evt.detail.parameters['tags-data'] = tagsData.value;
-					console.log('No existing tagsData, ', tagsData.value);
+					tagsElements.data.value = tagsElements.input.value;
+					evt.detail.parameters['tags-data'] = tagsElements.data.value;
 				}
 			}
 		}
@@ -147,5 +150,46 @@ function tagsUi() {
 	});
 
 	//Keyboard shortcuts for tags UI
-	keyboardShortcut(tagsInput, tagsSaveButton, tagsForm);
+	keyboardShortcut(tagsElements.input, tagsElements.saveButton, tagsElements.form, undefined, 'textarea');
+}
+
+/**
+ * Fetch tags from hidden form value if there already are tags there
+ * @param {HTMLInputElement} data - hidden form input that contains all the tags for form submission
+ * @param {HTMLUListElement} list - button style tags under the input field
+ * @param {string[]} classes - Styling Classes to add for each tag
+ */
+function fetchTagsFromHiddenFormField(data, list, classes) {
+	if (data.value.length > 0) {
+		const tags = data.value.split(',');
+		for (let i = 0; i < tags.length; i++) {
+			tags[i] = tags[i].trim().toLowerCase();
+			if (tags[i].length > 0) {
+				const el = document.createElement('li');
+				el.id = `user-tag-${tags[i]}`;
+				el.classList.add(...classes);
+				el.innerHTML = tags[i];
+				list.appendChild(el);
+			}
+		}
+	}
+}
+
+/**
+ * Init tags posting/editing/deleting user functionality
+ * This uses Window eventListener because document.addEventListener() is unreliable
+ * @param {TagsConfig} tagsConfig - Object with the ids of the HTML Elements to be used in this func.
+ */
+export default function tags(tagsConfig = defaultTagsConfig) {
+	window.addEventListener('load', () => {
+		if (checkDomForTagsEls()) {
+			tagsUi(tagsConfig);
+		}
+	});
+
+	document.addEventListener('htmx:afterSwap', () => {
+		if (checkDomForTagsEls()) {
+			tagsUi(tagsConfig);
+		}
+	});
 }

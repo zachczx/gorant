@@ -16,6 +16,7 @@ import { keyboardShortcut } from './common.js';
 const liveCommentForm = document.getElementById('live-comment-form');
 const contentInput = document.getElementById('content-input');
 const postButton = document.getElementById('post-button');
+const nearInstantDelayMs = 100;
 
 (() => {
 	window.addEventListener('load', () => {
@@ -26,25 +27,19 @@ const postButton = document.getElementById('post-button');
 		window.addEventListener('htmx:sseMessage', () => {
 			const sse = document.getElementById('instant-sse');
 			const spinner = document.getElementById('spinner');
-			console.log('triggered');
 
 			setTimeout(() => {
 				sse.classList.remove('hidden');
 				spinner.classList.add('hidden');
 				sse.classList.add('grid');
-			}, 100);
+			}, nearInstantDelayMs);
 		});
 	});
 })();
 
 (() => {
-	const contentInput = document.getElementById('content-input');
 	window.addEventListener('htmx:afterRequest', (evt) => {
 		const reqStatus = evt.detail.successful;
-		console.log('reqStatus: ', reqStatus);
-		console.log('contentInput: ', contentInput);
-		console.log('elt: ', evt.detail.elt);
-		console.log('form el: ', liveCommentForm);
 		window.addEventListener('htmx:sseMessage', () => {
 			if (reqStatus && contentInput && evt.detail.elt === liveCommentForm) {
 				contentInput.value = '';

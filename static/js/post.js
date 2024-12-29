@@ -106,7 +106,6 @@ window.addEventListener('htmx:validation:failed', (evt) => {
 	const commentFormMessageInput = document.getElementById('comment-form-message-input');
 	const formMessageLabel = document.getElementById('form-message-label');
 	const commentFormErrorMessage = document.getElementById('comment-form-error-message');
-	console.log(evt.detail.elt);
 	if (evt.detail.elt === commentFormMessageInput) {
 		if (commentFormMessageInput.value.length < 10) {
 			commentFormMessageInput.classList.add('border-error');

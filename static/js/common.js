@@ -1,4 +1,5 @@
 /**
+ * For Keyboard shortcuts (ctr+enter) to submit form
  * @param {HTMLInputElement} inputEl - the HTML input element
  * @param {HTMLButtonElement} buttonEl - the button to submit
  * @param {('xs'|'sm'|'md'|'lg')} loaderSize - size of the loading spinner
@@ -9,23 +10,23 @@ export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = 
 	// Save the inner HTML first.
 	const buttonHTML = buttonEl.innerHTML;
 
-	//This is keydown, so it's faster than the keyup submit hx-trigger on the form
+	// This is keydown, so it's faster than the keyup submit hx-trigger on the form
 	inputEl.addEventListener('keydown', (evt) => {
 		if (elType == 'input') {
 			if (!evt.ctrlKey && evt.key === 'Enter') {
-				console.log('Received signal, changing to spinner');
+				// console.log('Received signal, changing to spinner');
 				buttonEl.innerHTML = `<span class="loading loading-spinner loading-${loaderSize}"></span>`;
 			}
 		}
 
 		if (evt.ctrlKey && evt.key === 'Enter') {
-			console.log('Received signal, changing to spinner');
+			// console.log('Received signal, changing to spinner');
 			buttonEl.innerHTML = `<span class="loading loading-spinner loading-${loaderSize}"></span>`;
 		}
 	});
 
 	buttonEl.addEventListener('click', () => {
-		console.log('Received signal, changing to spinner');
+		// console.log('Received signal, changing to spinner');
 		buttonEl.innerHTML = `<span class="loading loading-spinner loading-${loaderSize}"></span>`;
 	});
 
@@ -36,7 +37,7 @@ export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = 
 	});
 
 	window.addEventListener('htmx:validation:failed', () => {
-		console.log('Changing back to text button');
+		// console.log('Changing back to text button');
 		setTimeout(() => {
 			buttonEl.innerHTML = buttonHTML; //'Add Comment';
 		}, 1);

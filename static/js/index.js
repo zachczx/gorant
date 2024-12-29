@@ -1,70 +1,113 @@
 import tags from './tags';
 
-// Input cancel button
+/**
+ * @typedef {object} NewPostConfig - Object with ID names of HTML Elements to create new post on main page.
+ * @property {HTMLInputElement} input - Post title.
+ * @property {HTMLButtonElement} button - Post button.
+ * @property {HTMLDivElement} message - Div that will get swapped and contains form validation error message.
+ */
 
-(() => {
-	const postTitleEl = document.getElementById('post-title');
-	const postTitleInputCancelButton = document.getElementById('input-cancel-button');
-	if (postTitleEl) {
-		showInputCancelButton(postTitleEl);
+/**
+ * @type {NewPostConfig} Default NewPostConfig
+ */
+const defaultNewPostConfig = {
+	input: 'post-title',
+	button: 'post-button',
+	message: 'post-form-message',
+	clear: 'input-clear-button',
+};
+
+/**
+ * Initialize eventListeners for clear button.
+ * @param {NewPostConfig} newPostConfig - HTML IDs.
+ */
+(function initClearButtonListeners(newPostConfig = defaultNewPostConfig) {
+	const newPostElements = {};
+	for (let name in newPostConfig) {
+		newPostElements[name] = document.getElementById(newPostConfig[name]);
+	}
+	if (newPostElements.input) {
+		showInputCancelButton();
 	}
 
-	if (postTitleInputCancelButton) {
-		clearInput(postTitleInputCancelButton);
+	if (newPostElements.clear) {
+		clearInput();
 	}
 })();
 
-function showInputCancelButton(el) {
-	el.addEventListener('keydown', (evt) => {
+/**
+ * Show/hide clear button.
+ * @param {NewPostConfig} newPostConfig - HTML IDs.
+ */
+function showInputCancelButton(newPostConfig = defaultNewPostConfig) {
+	const input = document.getElementById(newPostConfig.input);
+	const clear = document.getElementById(newPostConfig.clear);
+
+	// Keyup is better than keydown. For the latter, user needs to do 1 more backspace on empty field to remove clear button.
+	input.addEventListener('keyup', (evt) => {
 		if (evt.target.value.length > 0) {
-			document.getElementById('input-cancel-button').classList.remove('hidden');
+			clear.classList.remove('hidden');
 		} else if (evt.target.value.length === 0) {
-			document.getElementById('input-cancel-button').classList.add('hidden');
+			clear.classList.add('hidden');
 		}
 	});
 }
 
-function clearInput(el) {
-	el.addEventListener('click', () => {
-		const input = document.getElementById('post-title');
+/**
+ * Button to clear input.
+ * @param {NewPostConfig} newPostConfig - HTML IDs.
+ */
+function clearInput(newPostConfig = defaultNewPostConfig) {
+	console.log('Triggered clearInput()');
+	const input = document.getElementById(newPostConfig.input);
+	const clear = document.getElementById(newPostConfig.clear);
+	const message = document.getElementById(newPostConfig.message);
+	clear.addEventListener('click', () => {
 		input.value = '';
-		document.getElementById('input-cancel-button').classList.add('hidden');
-		document.getElementById('post-form-message').innerHTML = '';
+		clear.classList.add('hidden');
+		message.innerHTML = '';
 		input.focus();
 	});
 }
 
 // Disable button if special characters are detected
 
-window.addEventListener('load', BlockSpecialChars);
+window.addEventListener('load', BlockSpecialChars());
 
-window.addEventListener('htmx:afterSwap', BlockSpecialChars);
+window.addEventListener('htmx:afterSwap', BlockSpecialChars());
 
 const regex = /^[A-Za-z0-9 _!.$/\\|()[\]=`{}<>?@#%^&*—,:;'"+\-"]+$/;
 
-function BlockSpecialChars() {
-	const inputEl = document.getElementById('post-title');
-	const postButton = document.getElementById('post-button');
-	const postFormMessage = document.getElementById('post-form-message');
-
-	if (inputEl && postButton && postFormMessage) {
-		inputEl.addEventListener('keyup', () => {
-			if (!regex.test(inputEl.value) && inputEl.value.length > 0) {
-				postButton.disabled = 'true';
-				postFormMessage.classList.remove('hidden');
-				inputEl.classList.remove('input-accent');
-				inputEl.classList.add('input-error');
-				postFormMessage.innerText = 'Invalid characters found. Please use A-Z, a-z, 0-9, and standard symbols.';
+/**
+ * Client-side validation for new post input text and prevents submission.
+ * @param {NewPostConfig} newPostConfig - HTML IDs.
+ */
+function BlockSpecialChars(newPostConfig = defaultNewPostConfig) {
+	const newPostElements = {};
+	for (let name in newPostConfig) {
+		newPostElements[name] = document.getElementById(newPostConfig[name]);
+	}
+	if (newPostElements.input && newPostElements.button && newPostElements.message) {
+		newPostElements.input.addEventListener('keyup', () => {
+			if (!regex.test(newPostElements.input.value) && newPostElements.input.value.length > 0) {
+				newPostElements.button.disabled = 'true';
+				newPostElements.message.classList.remove('hidden');
+				newPostElements.input.classList.remove('input-accent');
+				newPostElements.input.classList.add('input-error');
+				newPostElements.message.innerText = 'Invalid characters found. Please use A-Z, a-z, 0-9, and standard symbols.';
 			} else {
-				postFormMessage.classList.add('hidden');
-				inputEl.classList.remove('input-error');
-				inputEl.classList.add('input-accent');
-				if (postButton.disabled) {
-					postButton.removeAttribute('disabled');
+				newPostElements.message.classList.add('hidden');
+				newPostElements.input.classList.remove('input-error');
+				newPostElements.input.classList.add('input-accent');
+				if (newPostElements.button.disabled) {
+					newPostElements.button.removeAttribute('disabled');
 				}
 			}
 		});
 	}
 }
 
+/**
+ * Init tags for new post tags input in drawer.
+ */
 tags();
