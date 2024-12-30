@@ -1,4 +1,4 @@
-import { keyboardShortcut } from './common.js';
+import { keyboardShortcut } from './common';
 
 // const instantSSEEl = document.getElementById('instant-sse');
 

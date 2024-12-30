@@ -2,20 +2,22 @@ import { keyboardShortcut } from './common';
 
 /**
  * For UI supporting Tag's tag-style input
+ *
  * @exports tagsUi
  */
 
 /**
  * @typedef {object} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
- * @property {HTMLFormElement} form - form element with hx-post
- * @property {HTMLInputElement} input - form input for user to key in tags
- * @property {HTMLUListElement} list - form input for user to key in tags
- * @property {HTMLButtonElement} saveButton - form button
- * @property {HTMLInputElement} data - hidden form input that contains all the tags for form submission
+ * @property {HTMLFormElement} form - Form element with hx-post
+ * @property {HTMLInputElement} input - Form input for user to key in tags
+ * @property {HTMLUListElement} list - Form input for user to key in tags
+ * @property {HTMLButtonElement} saveButton - Form button
+ * @property {HTMLInputElement} data - Hidden form input that contains all the tags for form submission
  */
 
 /**
  * Default configs for tags-related functions.
+ *
  * @type {TagsConfig} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
  */
 const defaultTagsConfig = {
@@ -28,8 +30,9 @@ const defaultTagsConfig = {
 
 /**
  * Check if HTML elements taken from argument ID names are in the DOM.
- * @param {TagsConfig} tagsConfig - object with HTML ID names.
- * @returns {boolean} - true if HTML elements are found in the DOM, typically for after hx-swap of tags form completes.
+ *
+ * @param {TagsConfig} tagsConfig - Object with HTML ID names.
+ * @returns {boolean} - True if HTML elements are found in the DOM, typically for after hx-swap of tags form completes.
  */
 function checkDomForTagsEls(tagsConfig = defaultTagsConfig) {
 	for (let el in tagsConfig) {
@@ -42,6 +45,7 @@ function checkDomForTagsEls(tagsConfig = defaultTagsConfig) {
 
 /**
  * Functionality for tags (posting, editing and deleting) in the post page
+ *
  * @param {TagsConfig} tagsConfig - Object with the ids of the HTML Elements to be used in this func.
  */
 function tagsUi(tagsConfig = defaultTagsConfig) {
@@ -155,8 +159,9 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
 
 /**
  * Fetch tags from hidden form value if there already are tags there
- * @param {HTMLInputElement} data - hidden form input that contains all the tags for form submission
- * @param {HTMLUListElement} list - button style tags under the input field
+ *
+ * @param {HTMLInputElement} data - Hidden form input that contains all the tags for form submission
+ * @param {HTMLUListElement} list - Button style tags under the input field
  * @param {string[]} classes - Styling Classes to add for each tag
  */
 function fetchTagsFromHiddenFormField(data, list, classes) {
@@ -176,8 +181,9 @@ function fetchTagsFromHiddenFormField(data, list, classes) {
 }
 
 /**
- * Init tags posting/editing/deleting user functionality
- * This uses Window eventListener because document.addEventListener() is unreliable
+ * Init tags posting/editing/deleting user functionality This uses Window eventListener because
+ * document.addEventListener() is unreliable
+ *
  * @param {TagsConfig} tagsConfig - Object with the ids of the HTML Elements to be used in this func.
  */
 export default function tags(tagsConfig = defaultTagsConfig) {

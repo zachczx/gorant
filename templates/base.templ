@@ -564,7 +564,7 @@ templ CreatePostDrawer() {
 templ ShowTags(p posts.Post) {
 	<div
 		id="tags-container"
-		class="group flex flex-wrap gap-2 cursor-pointer items-center justify-center"
+		class="group flex cursor-pointer flex-wrap items-center justify-center gap-2"
 		hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/tags/edit", p.ID))) }
 		hx-target="#tags-container"
 		hx-swap="outerHTML"

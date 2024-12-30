@@ -1,10 +1,13 @@
 /**
  * For Keyboard shortcuts (ctr+enter) to submit form
- * @param {HTMLInputElement} inputEl - the HTML input element
- * @param {HTMLButtonElement} buttonEl - the button to submit
- * @param {('xs'|'sm'|'md'|'lg')} loaderSize - size of the loading spinner
- * @param {HTMLFormElement|null} formEl - form element to check if htmx:afterRequest originated from, used to get successful post even when there's no swap (i.e. SSE mode)
- * @param {('input'|'textarea')} elType - controls whether enter button should change loading icon - input should but textarea shouldn't
+ *
+ * @param {HTMLInputElement} inputEl - The HTML input element
+ * @param {HTMLButtonElement} buttonEl - The button to submit
+ * @param {'xs' | 'sm' | 'md' | 'lg'} loaderSize - Size of the loading spinner
+ * @param {HTMLFormElement | null} formEl - Form element to check if htmx:afterRequest originated from, used to get
+ *   successful post even when there's no swap (i.e. SSE mode)
+ * @param {'input' | 'textarea'} elType - Controls whether enter button should change loading icon - input should but
+ *   textarea shouldn't
  */
 export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = null, elType = 'input') {
 	// Save the inner HTML first.

@@ -138,7 +138,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 					hx-target="#posts"
 					hx-swap="outerHTML"
 					hx-indicator="#filter-loading"
-					hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-cancel-button"
+					hx-trigger="keyup[target.value.length > 1 || target.value.length == 0] changed delay:0.5s, click from:#filter-clear-button"
 				>
 					<div class="join">
 						<label class="input input-sm join-item flex w-full items-center gap-2 border-neutral/20 bg-white/70 text-accent text-neutral/70 lg:w-96">
@@ -151,7 +151,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								placeholder="Type something to filter"
 							/>
 							<button
-								id="filter-cancel-button"
+								id="filter-clear-button"
 								type="button"
 								class="hidden text-neutral/70"
 								hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", post.ID))) }
@@ -297,7 +297,7 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 				</div>
 			</div>
 		}
-		<script src="/static/js/post-partial.js"></script>
+		<script src="/static/js/output/post-partial.js"></script>
 		<!-- Children props are for Toasts -->
 		{ children... }
 	</article>

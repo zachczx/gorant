@@ -8,7 +8,6 @@ export default [
 	{ languageOptions: { globals: globals.browser } },
 	{ ignores: ['static/js/output/', 'static/js/ext/', '**/**.config.js'] },
 	js.configs.recommended,
-
 	{
 		files: ['**/*.js'],
 		plugins: { jsdoc: jsdoc },
@@ -17,6 +16,7 @@ export default [
 			'no-unused-vars': ['error', { args: 'after-used' }],
 			'jsdoc/require-description': 'warn',
 			'jsdoc/check-values': 'error',
+			'jsdoc/tag-lines': ['warn', 'never'],
 			'jsdoc/require-jsdoc': [
 				'warn',
 				{
