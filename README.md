@@ -28,6 +28,11 @@
 4. Terminal formatting - PTerm | Pretty Terminal Printer (Dev-only)
 5. Auth/auth - Stytch (swapped out)
 
+## TODO
+
+1. Option for markdown formatting/processing for posts
+2. File uploads
+
 ## Notes for Choice of Auth
 
 1. Stytch introduced about 250ms on localhost owing to service.CheckAuthentication()
