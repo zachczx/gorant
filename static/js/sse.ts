@@ -13,10 +13,10 @@ import { keyboardShortcut } from './common';
 // 		instantSSEEl.appendChild(newEl);
 // 	}
 // });
-const liveCommentForm = document.getElementById('live-comment-form');
-const contentInput = document.getElementById('content-input');
-const postButton = document.getElementById('post-button');
-const nearInstantDelayMs = 100;
+const liveCommentForm = document.getElementById('live-comment-form') as HTMLFormElement;
+const contentInput = document.getElementById('content-input') as HTMLInputElement;
+const postButton = document.getElementById('post-button') as HTMLButtonElement;
+// const nearInstantDelayMs: number = 100;
 
 (() => {
 	window.addEventListener('load', () => {
@@ -25,20 +25,26 @@ const nearInstantDelayMs = 100;
 			keyboardShortcut(contentInput, postButton, 'md', liveCommentForm);
 		}
 		window.addEventListener('htmx:sseMessage', () => {
-			const sse = document.getElementById('instant-sse');
-			const spinner = document.getElementById('spinner');
+			const sse = document.getElementById('instant-sse') as HTMLUListElement;
+			const spinner = document.getElementById('spinner') as HTMLDivElement;
+
+			// setTimeout(() => {
+			// 	sse.classList.remove('hidden');
+			// 	spinner.classList.add('hidden');
+			// 	sse.classList.add('grid');
+			// }, nearInstantDelayMs);
 
 			setTimeout(() => {
 				sse.classList.remove('hidden');
 				spinner.classList.add('hidden');
 				sse.classList.add('grid');
-			}, nearInstantDelayMs);
+			}, 100);
 		});
 	});
 })();
 
 (() => {
-	window.addEventListener('htmx:afterRequest', (evt) => {
+	window.addEventListener('htmx:afterRequest', ((evt: CustomEvent<any>) => {
 		const reqStatus = evt.detail.successful;
 		window.addEventListener('htmx:sseMessage', () => {
 			if (reqStatus && contentInput && evt.detail.elt === liveCommentForm) {
@@ -46,5 +52,5 @@ const nearInstantDelayMs = 100;
 				contentInput.focus();
 			}
 		});
-	});
+	}) as EventListener);
 })();

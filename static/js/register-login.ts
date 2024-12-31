@@ -1,8 +1,8 @@
 (() => {
-	const passwordInput = document.getElementById('password-input');
-	const revealPasswordButton = document.getElementById('show-password-button');
-	const iconShow = document.getElementById('icon-show');
-	const iconHide = document.getElementById('icon-hide');
+	const passwordInput = document.getElementById('password-input') as HTMLInputElement;
+	const revealPasswordButton = document.getElementById('show-password-button') as HTMLButtonElement;
+	const iconShow = document.getElementById('icon-show') as HTMLButtonElement;
+	const iconHide = document.getElementById('icon-hide') as HTMLButtonElement;
 
 	revealPasswordButton.addEventListener('click', () => {
 		if (revealPasswordButton.dataset.status === 'hidden') {

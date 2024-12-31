@@ -22,8 +22,9 @@ dev/tailwind:
 dev/air:
 	air -c .air.toml
 
+# only difference here with the Dockerfile one is sourcemap 
 dev/esbuild:
-	npx esbuild ./static/js/index.ts ./static/js/sse.ts ./static/js/post.ts ./static/js/post-partial.ts ./static/js/settings.ts ./static/js/register-login.ts ./static/js/htmx-bundle.ts --bundle --outdir=./static/js/output --minify --watch
+	npx esbuild ./static/js/index.ts ./static/js/sse.ts ./static/js/post.ts ./static/js/post-partial.ts ./static/js/settings.ts ./static/js/register-login.ts ./static/js/htmx-bundle.ts --bundle --sourcemap --outdir=./static/js/output --minify --watch
 
 dev/prettier:
 	npx prettier . --write ./static/js

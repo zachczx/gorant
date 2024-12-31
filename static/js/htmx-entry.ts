@@ -4,4 +4,6 @@ import htmx from 'htmx.org';
 //
 // "At the moment you need some workarounds to use an extension with Vite, Rollup or other build tools because of a missing UMD wrapper.
 // Furthermore, the extensions are not minified like htmx.js."
+
+// @ts-ignore
 window.htmx = htmx;

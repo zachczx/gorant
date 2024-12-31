@@ -38,10 +38,10 @@ import { keyboardShortcut } from './common';
 const postTitleTruncated = document.getElementById('post-title-truncated') as HTMLButtonElement;
 const postTitleTruncatedClasses = ['line-clamp-2', 'max-h-[6.3rem]'];
 postTitleTruncated.addEventListener('click', (evt) => {
-	if ((<HTMLButtonElement>evt.target)?.classList.contains('line-clamp-2')) {
-		(<HTMLButtonElement>evt.target).classList.remove(...postTitleTruncatedClasses);
+	if ((evt.target as HTMLInputElement)?.classList.contains('line-clamp-2')) {
+		(evt.target as HTMLInputElement).classList.remove(...postTitleTruncatedClasses);
 	} else {
-		(<HTMLButtonElement>evt.target)?.classList.add(...postTitleTruncatedClasses);
+		(evt.target as HTMLInputElement)?.classList.add(...postTitleTruncatedClasses);
 	}
 });
 
@@ -79,9 +79,9 @@ postTitleTruncated.addEventListener('click', (evt) => {
 	const filterInput = document.getElementById('filter-input') as HTMLInputElement;
 	const filterInputClearButton = document.getElementById('filter-clear-button') as HTMLButtonElement;
 	filterInput.addEventListener('keyup', (evt) => {
-		if ((<HTMLInputElement>evt.target).value.length > 0) {
+		if ((evt.target as HTMLInputElement).value.length > 0) {
 			filterInputClearButton.classList.remove('hidden');
-		} else if ((<HTMLInputElement>evt.target).value.length === 0) {
+		} else if ((evt.target as HTMLInputElement).value.length === 0) {
 			filterInputClearButton.classList.add('hidden');
 		}
 	});
@@ -100,10 +100,13 @@ postTitleTruncated.addEventListener('click', (evt) => {
 
 tags();
 
+/**
+ * Executes eventListeners for keyboard shortcuts to post (ctr+enter).
+ */
 function initKeyBoardShortcutForPosts() {
 	// const commentForm = document.getElementById('comment-form');
-	const commentFormMessageInput = document.getElementById('comment-form-message-input');
-	const commentSubmitButton = document.getElementById('comment-submit-button');
+	const commentFormMessageInput = document.getElementById('comment-form-message-input') as HTMLInputElement;
+	const commentSubmitButton = document.getElementById('comment-submit-button') as HTMLButtonElement;
 	if (commentFormMessageInput && commentSubmitButton) {
 		keyboardShortcut(commentFormMessageInput, commentSubmitButton, undefined, undefined, 'textarea');
 	}
@@ -112,15 +115,24 @@ function initKeyBoardShortcutForPosts() {
 window.addEventListener('load', initKeyBoardShortcutForPosts);
 window.addEventListener('htmx:afterSwap', initKeyBoardShortcutForPosts);
 
-window.addEventListener('htmx:validation:failed', (evt) => {
+type HtmxEvent = {
+	detail?: {
+		message: string;
+		validity: ValidityState;
+		elt: HTMLElement;
+		xhr: XMLHttpRequest;
+		target: HTMLElement;
+	};
+};
+window.addEventListener('htmx:validation:failed', ((evt: HtmxEvent) => {
 	const commentFormMessageInput = document.getElementById('comment-form-message-input') as HTMLTextAreaElement;
 	const formMessageLabel = document.getElementById('form-message-label') as HTMLDivElement;
 	const commentFormErrorMessage = document.getElementById('comment-form-error-message') as HTMLDivElement;
-	if (evt.detail.elt === commentFormMessageInput) {
+	if (evt.detail?.elt === commentFormMessageInput) {
 		if (commentFormMessageInput.value.length < 10) {
 			commentFormMessageInput.classList.add('border-error');
 			formMessageLabel.classList.add('text-error');
 			commentFormErrorMessage.innerText = 'Message must be at least 10 characters long.';
 		}
 	}
-});
+}) as EventListener);

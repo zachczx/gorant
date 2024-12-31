@@ -63,9 +63,9 @@ function showInputCancelButton(newPostConfig: NewPostConfig = defaultNewPostConf
 
 	if (input && clear) {
 		input.addEventListener('keyup', (evt) => {
-			if ((<HTMLInputElement>evt.target)?.value.length > 0) {
+			if ((evt.target as HTMLInputElement)?.value.length > 0) {
 				clear?.classList.remove('hidden');
-			} else if ((<HTMLInputElement>evt.target)?.value.length === 0) {
+			} else if ((evt.target as HTMLInputElement)?.value.length === 0) {
 				clear?.classList.add('hidden');
 			}
 		});

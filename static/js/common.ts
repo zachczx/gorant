@@ -9,7 +9,13 @@
  * @param {'input' | 'textarea'} elType - Controls whether enter button should change loading icon - input should but
  *   textarea shouldn't
  */
-export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = null, elType = 'input') {
+export function keyboardShortcut(
+	inputEl: HTMLInputElement,
+	buttonEl: HTMLButtonElement,
+	loaderSize: 'xs' | 'sm' | 'md' | 'lg' = 'xs',
+	formEl: HTMLFormElement | null = null,
+	elType: 'input' | 'textarea' = 'input',
+) {
 	// Save the inner HTML first.
 	const buttonHTML = buttonEl.innerHTML;
 
@@ -33,11 +39,11 @@ export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = 
 		buttonEl.innerHTML = `<span class="loading loading-spinner loading-${loaderSize}"></span>`;
 	});
 
-	window.addEventListener('htmx:afterSwap', (evt) => {
+	window.addEventListener('htmx:afterSwap', ((evt: CustomEvent<any>) => {
 		if (evt.detail.elt === inputEl) {
 			buttonEl.innerHTML = buttonHTML; //'Add Comment';
 		}
-	});
+	}) as EventListener);
 
 	window.addEventListener('htmx:validation:failed', () => {
 		// console.log('Changing back to text button');
@@ -47,12 +53,12 @@ export function keyboardShortcut(inputEl, buttonEl, loaderSize = 'xs', formEl = 
 	});
 
 	if (formEl) {
-		window.addEventListener('htmx:afterRequest', (evt) => {
+		window.addEventListener('htmx:afterRequest', ((evt: CustomEvent<any>) => {
 			if (evt.detail.elt === formEl) {
 				setTimeout(() => {
 					buttonEl.innerHTML = buttonHTML;
 				}, 200);
 			}
-		});
+		}) as EventListener);
 	}
 }

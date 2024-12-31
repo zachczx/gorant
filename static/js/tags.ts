@@ -2,12 +2,11 @@ import { keyboardShortcut } from './common';
 
 /**
  * For UI supporting Tag's tag-style input
- *
  * @exports tagsUi
  */
 
 /**
- * @typedef {object} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
+ * @type {TagsConfig} Object with the ids of the HTML Elements to be used in this func.
  * @property {HTMLFormElement} form - Form element with hx-post
  * @property {HTMLInputElement} input - Form input for user to key in tags
  * @property {HTMLUListElement} list - Form input for user to key in tags
@@ -15,12 +14,17 @@ import { keyboardShortcut } from './common';
  * @property {HTMLInputElement} data - Hidden form input that contains all the tags for form submission
  */
 
-/**
- * Default configs for tags-related functions.
- *
- * @type {TagsConfig} TagsConfig - Object with the ids of the HTML Elements to be used in this func.
- */
-const defaultTagsConfig = {
+type TagsConfig = { form: string; input: string; list: string; saveButton: string; data: string };
+
+type TagsElements = {
+	form: HTMLFormElement;
+	input: HTMLInputElement;
+	list: HTMLUListElement;
+	saveButton: HTMLButtonElement;
+	data: HTMLInputElement;
+};
+
+const defaultTagsConfig: TagsConfig = {
 	form: 'tags-container',
 	input: 'tags-input',
 	list: 'tags-list',
@@ -30,13 +34,10 @@ const defaultTagsConfig = {
 
 /**
  * Check if HTML elements taken from argument ID names are in the DOM.
- *
- * @param {TagsConfig} tagsConfig - Object with HTML ID names.
- * @returns {boolean} - True if HTML elements are found in the DOM, typically for after hx-swap of tags form completes.
  */
-function checkDomForTagsEls(tagsConfig = defaultTagsConfig) {
-	for (let el in tagsConfig) {
-		if (!document.getElementById(tagsConfig[el])) {
+function checkDomForTagsEls(tagsConfig: TagsConfig = defaultTagsConfig) {
+	for (const el in tagsConfig) {
+		if (!document.getElementById(tagsConfig[el as keyof TagsConfig])) {
 			return false;
 		}
 	}
@@ -45,17 +46,18 @@ function checkDomForTagsEls(tagsConfig = defaultTagsConfig) {
 
 /**
  * Functionality for tags (posting, editing and deleting) in the post page
- *
- * @param {TagsConfig} tagsConfig - Object with the ids of the HTML Elements to be used in this func.
  */
-function tagsUi(tagsConfig = defaultTagsConfig) {
-	const tagsElements = {};
-	for (const name in tagsConfig) {
-		tagsElements[name] = document.getElementById(tagsConfig[name]);
-	}
+function tagsUi(tagsConfig: TagsConfig = defaultTagsConfig) {
+	let tagsElements: TagsElements = {
+		form: document.getElementById(tagsConfig.form) as HTMLFormElement,
+		input: document.getElementById(tagsConfig.input) as HTMLInputElement,
+		list: document.getElementById(tagsConfig.list) as HTMLUListElement,
+		saveButton: document.getElementById(tagsConfig.saveButton) as HTMLButtonElement,
+		data: document.getElementById(tagsConfig.data) as HTMLInputElement,
+	};
 
-	/** @type {string[]} Styling Classes to add for each tag */
-	const classes = [
+	/** Styling Classes to add for each tag */
+	const classes: string[] = [
 		'user-tag',
 		'btn',
 		'bg-secondary',
@@ -67,8 +69,6 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
 		'me-2',
 		'my-1',
 	];
-
-	let margin = 0;
 
 	tagsElements.input.focus();
 
@@ -101,31 +101,26 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
 				}
 			}
 			tagsElements.input.value = '';
-
-			if (tagsElements.list.childElementCount > 0) {
-				margin = `me-${String(tagsElements.list.childElementCount * 2)}`;
-				tagsElements.list.classList.add(margin);
-			}
 		}
 	});
 
 	tagsElements.list.addEventListener('click', (evt) => {
-		if (evt.target.id.includes('user-tag-')) {
+		if ((evt.target as HTMLInputElement).id.includes('user-tag-')) {
 			evt.preventDefault();
 			// console.log('Clicked a tag');
-			tagsElements.list.removeChild(evt.target);
+			tagsElements.list.removeChild(evt.target as HTMLInputElement);
 			if (!tagsElements.data.value.includes(',')) {
-				tagsElements.data.value = tagsElements.data.value.replace(evt.target.innerText, '');
+				tagsElements.data.value = tagsElements.data.value.replace((evt.target as HTMLInputElement).innerText, '');
 			} else if (
 				tagsElements.data.value.includes(',') &&
-				tagsElements.data.value.includes(`${evt.target.innerText},`)
+				tagsElements.data.value.includes(`${(evt.target as HTMLInputElement).innerText},`)
 			) {
-				tagsElements.data.value = tagsElements.data.value.replace(`${evt.target.innerText},`, '');
+				tagsElements.data.value = tagsElements.data.value.replace(`${(evt.target as HTMLInputElement).innerText},`, '');
 			} else if (
 				tagsElements.data.value.includes(',') &&
-				tagsElements.data.value.includes(`,${evt.target.innerText}`)
+				tagsElements.data.value.includes(`,${(evt.target as HTMLInputElement).innerText}`)
 			) {
-				tagsElements.data.value = tagsElements.data.value.replace(`,${evt.target.innerText}`, '');
+				tagsElements.data.value = tagsElements.data.value.replace(`,${(evt.target as HTMLInputElement).innerText}`, '');
 			}
 		}
 	});
@@ -135,7 +130,7 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
 	//
 	// Note: Seems like just the click event precedes the request, so this doesn't require evt.preventDefault()
 	// Note: However, I added a delay of 100ms to hx-trigger just to be safe
-	window.addEventListener('htmx:configRequest', (evt) => {
+	window.addEventListener('htmx:configRequest', ((evt: CustomEvent<any>) => {
 		// htmx:configRequest triggers after htmx collected params - https://htmx.org/events/#htmx:configRequest
 		// htmx:beforeRequest does not change params.
 		// Alternative to listening to configRequest is to add eventListeners directly to the button or listen for keypresses ctrl+enter, which is tedious
@@ -151,10 +146,10 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
 			}
 		}
 		console.log('tags data', evt.detail.parameters['tags-data']);
-	});
+	}) as EventListener);
 
 	//Keyboard shortcuts for tags UI
-	keyboardShortcut(tagsElements.input, tagsElements.saveButton, tagsElements.form, undefined, 'textarea');
+	keyboardShortcut(tagsElements.input, tagsElements.saveButton, undefined, tagsElements.form, 'textarea');
 }
 
 /**
@@ -164,7 +159,7 @@ function tagsUi(tagsConfig = defaultTagsConfig) {
  * @param {HTMLUListElement} list - Button style tags under the input field
  * @param {string[]} classes - Styling Classes to add for each tag
  */
-function fetchTagsFromHiddenFormField(data, list, classes) {
+function fetchTagsFromHiddenFormField(data: HTMLInputElement, list: HTMLUListElement, classes: string[]) {
 	if (data.value.length > 0) {
 		const tags = data.value.split(',');
 		for (let i = 0; i < tags.length; i++) {
