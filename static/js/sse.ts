@@ -44,7 +44,7 @@ const postButton = document.getElementById('post-button') as HTMLButtonElement;
 })();
 
 (() => {
-	window.addEventListener('htmx:afterRequest', ((evt: CustomEvent<any>) => {
+	window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
 		const reqStatus = evt.detail.successful;
 		window.addEventListener('htmx:sseMessage', () => {
 			if (reqStatus && contentInput && evt.detail.elt === liveCommentForm) {

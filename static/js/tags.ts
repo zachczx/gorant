@@ -48,7 +48,7 @@ function checkDomForTagsEls(tagsConfig: TagsConfig = defaultTagsConfig) {
  * Functionality for tags (posting, editing and deleting) in the post page
  */
 function tagsUi(tagsConfig: TagsConfig = defaultTagsConfig) {
-	let tagsElements: TagsElements = {
+	const tagsElements: TagsElements = {
 		form: document.getElementById(tagsConfig.form) as HTMLFormElement,
 		input: document.getElementById(tagsConfig.input) as HTMLInputElement,
 		list: document.getElementById(tagsConfig.list) as HTMLUListElement,
@@ -130,7 +130,7 @@ function tagsUi(tagsConfig: TagsConfig = defaultTagsConfig) {
 	//
 	// Note: Seems like just the click event precedes the request, so this doesn't require evt.preventDefault()
 	// Note: However, I added a delay of 100ms to hx-trigger just to be safe
-	window.addEventListener('htmx:configRequest', ((evt: CustomEvent<any>) => {
+	window.addEventListener('htmx:configRequest', ((evt: HtmxConfigRequest) => {
 		// htmx:configRequest triggers after htmx collected params - https://htmx.org/events/#htmx:configRequest
 		// htmx:beforeRequest does not change params.
 		// Alternative to listening to configRequest is to add eventListeners directly to the button or listen for keypresses ctrl+enter, which is tedious

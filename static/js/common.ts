@@ -39,7 +39,7 @@ export function keyboardShortcut(
 		buttonEl.innerHTML = `<span class="loading loading-spinner loading-${loaderSize}"></span>`;
 	});
 
-	window.addEventListener('htmx:afterSwap', ((evt: CustomEvent<any>) => {
+	window.addEventListener('htmx:afterSwap', ((evt: HtmxAfterRequest) => {
 		if (evt.detail.elt === inputEl) {
 			buttonEl.innerHTML = buttonHTML; //'Add Comment';
 		}
@@ -53,7 +53,7 @@ export function keyboardShortcut(
 	});
 
 	if (formEl) {
-		window.addEventListener('htmx:afterRequest', ((evt: CustomEvent<any>) => {
+		window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
 			if (evt.detail.elt === formEl) {
 				setTimeout(() => {
 					buttonEl.innerHTML = buttonHTML;
