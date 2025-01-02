@@ -4,6 +4,7 @@ WORKDIR /app
 COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
 COPY ./posts ./posts
 COPY ./templates ./templates
+COPY ./upload ./upload
 COPY ./database ./database
 COPY ./live ./live
 COPY ./users ./users
