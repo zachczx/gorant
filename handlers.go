@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -339,22 +338,23 @@ func uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, 
 	}
 
 	// Peek into first 512 bytes to get mime/type
-	buff := make([]byte, 512)
-	_, err = uploadedFile.Read(buff)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileType := http.DetectContentType(buff)
-	accepted := false
-	for _, v := range mimeTypes {
-		if fileType == v {
-			accepted = true
-		}
-	}
-	if !accepted {
-		err = errors.New("filetype not allowed")
-		return uploadedFile, header, err
-	}
+	// buff := make([]byte, 512)
+	// _, err = uploadedFile.Read(buff)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fileType := http.DetectContentType(buff)
+	// fmt.Println(fileType)
+	// accepted := false
+	// for _, v := range mimeTypes {
+	// 	if fileType == v {
+	// 		accepted = true
+	// 	}
+	// }
+	// if !accepted {
+	// 	err = errors.New("filetype not allowed")
+	// 	return uploadedFile, header, err
+	// }
 
 	defer uploadedFile.Close()
 	if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
