@@ -197,10 +197,10 @@ templ PartialSettingsEditSuccess(s users.User) {
 
 templ PartialCommentEdit(c posts.Comment) {
 	<form
-		id={ "post-" + c.ID + "-content" }
+		id={ "post-" + c.ID.String() + "-content" }
 		class="py-4"
-		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.ID))) }
-		hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID))) }
+		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.ID.String()))) }
+		hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID.String()))) }
 		hx-swap="outerHTML"
 	>
 		<textarea name="edit-content" class="textarea textarea-bordered h-36 w-full grow text-base" minlength="1" maxlength="2000" required>{ c.Content }</textarea>
@@ -209,8 +209,8 @@ templ PartialCommentEdit(c posts.Comment) {
 			<button
 				type="button"
 				class="btn btn-outline btn-accent btn-sm min-w-24 rounded-lg"
-				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit/cancel", c.PostID, c.ID))) }
-				hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID))) }
+				hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit/cancel", c.PostID, c.ID.String()))) }
+				hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID.String()))) }
 				hx-swap="outerHTML"
 			>Cancel</button>
 		</div>
@@ -218,5 +218,5 @@ templ PartialCommentEdit(c posts.Comment) {
 }
 
 templ PartialCommentEditSuccess(c posts.Comment) {
-	<div id={ "post-" + c.ID + "-content" } class="whitespace-pre-line py-4 text-base">{ c.Content }</div>
+	<div id={ "post-" + c.ID.String() + "-content" } class="whitespace-pre-line py-4 text-base">{ c.Content }</div>
 }

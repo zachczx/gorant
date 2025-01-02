@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strings"
@@ -10,6 +13,7 @@ import (
 	"gorant/database"
 	"gorant/posts"
 	"gorant/templates"
+	"gorant/upload"
 	"gorant/users"
 )
 
@@ -202,6 +206,11 @@ func (k *keycloak) likePostHandler() http.Handler {
 	})
 }
 
+func viewFileHandler(w http.ResponseWriter, r *http.Request) {
+	fileID := r.PathValue("fileID")
+	TemplRender(w, r, templates.ViewFile(fileID))
+}
+
 func (k *keycloak) filterSortPostHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
@@ -251,33 +260,46 @@ func (k *keycloak) UpdateSessionStore(w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func (k *keycloak) newCommentHandler() http.Handler {
+var mimeTypes = []string{"image/png", "image/jpeg", "image/webp", "image/avif", "image/gif", "image/svg+xml"}
+
+func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-
-		if k.currentUser.UserID == "" {
-			fmt.Println("Not authenticated")
-			var comments []posts.Comment
-			comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
-			if err != nil {
-				fmt.Println(err)
-				TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
-				return
-			}
-			TemplRender(w, r, templates.PartialPostNewErrorLogin(k.currentUser, comments))
-			return
-		}
 
 		if exists, _ := posts.VerifyPostID(postID); !exists {
 			fmt.Println("Error verifying post exists")
 			TemplRender(w, r, templates.Error(k.currentUser, "Error! Post doesn't exist!"))
 			return
 		}
+		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
+		r.ParseMultipartForm(32 << 20)
+		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
+		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
-		c := posts.Comment{
-			UserID:  k.currentUser.UserID,
-			Content: r.FormValue("message"),
-			PostID:  postID,
+		var c posts.Comment
+		uploadedFile, header, err := uploaderHandler(r, bc)
+		if err != nil {
+			if err.Error() == "filetype not allowed" {
+				w.WriteHeader(http.StatusForbidden)
+				TemplRender(w, r, templates.Toast("error", "Uploaded file type not allowed!"))
+				return
+			}
+			// No file or an error.
+			c = posts.Comment{
+				UserID:  k.currentUser.UserID,
+				Content: r.FormValue("message"),
+				PostID:  postID,
+			}
+		} else {
+			// File was uploaded
+			c = posts.Comment{
+				UserID:  k.currentUser.UserID,
+				Content: r.FormValue("message"),
+				PostID:  postID,
+				File: upload.LookupFile{
+					File: uploadedFile, FileKey: header.Filename, FileStore: "r2", FileBucket: "gorant",
+				},
+			}
 		}
 
 		if v := posts.Validate(c); v != nil {
@@ -293,8 +315,9 @@ func (k *keycloak) newCommentHandler() http.Handler {
 		}
 
 		var insertedID string
-		insertedID, err := posts.Insert(c)
+		insertedID, err = posts.Insert(c)
 		if err != nil {
+			TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
 			fmt.Println("Error inserting: ", err)
 		}
 
@@ -307,6 +330,37 @@ func (k *keycloak) newCommentHandler() http.Handler {
 			TemplRender(w, r, templates.PartialPostNewSuccess(k.currentUser, comments, insertedID))
 		}
 	})
+}
+
+func uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, *multipart.FileHeader, error) {
+	uploadedFile, header, err := r.FormFile("file")
+	if err != nil {
+		return uploadedFile, header, err
+	}
+
+	// Peek into first 512 bytes to get mime/type
+	buff := make([]byte, 512)
+	_, err = uploadedFile.Read(buff)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fileType := http.DetectContentType(buff)
+	accepted := false
+	for _, v := range mimeTypes {
+		if fileType == v {
+			accepted = true
+		}
+	}
+	if !accepted {
+		err = errors.New("filetype not allowed")
+		return uploadedFile, header, err
+	}
+
+	defer uploadedFile.Close()
+	if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
+		return uploadedFile, header, err
+	}
+	return uploadedFile, header, nil
 }
 
 func getTagsHandler(w http.ResponseWriter, r *http.Request) {
@@ -584,6 +638,46 @@ func (k *keycloak) editSettingsHandler() http.Handler {
 	})
 }
 
+func (k *keycloak) viewUploadHandler(bc *upload.BucketConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, err := bc.ListBucket()
+		if err != nil {
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+
+		TemplRender(w, r, templates.Upload("testing upload", k.currentUser, f))
+	})
+}
+
+func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Start uploading")
+		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
+		r.ParseMultipartForm(32 << 20)
+		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
+		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
+
+		upload, header, err := r.FormFile("upload")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer upload.Close()
+		fmt.Println(r.FormValue("text"))
+		fmt.Println(header.Header.Get("Content-Type"))
+		if err := bc.UploadToBucket(upload, header.Filename); err != nil {
+			fmt.Println("Upload issue!!! ", err)
+		}
+
+		if r.Header.Get("Hx-Request") == "" {
+			TemplRender(w, r, templates.Upload("testing upload", k.currentUser, nil))
+			return
+		}
+
+		TemplRender(w, r, templates.SuccessfulUpload(""))
+	})
+}
+
 func (k *keycloak) viewErrorHandler(w http.ResponseWriter, r *http.Request) {
 	TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
 }
@@ -597,7 +691,9 @@ func resetAdmin(w http.ResponseWriter, r *http.Request) {
 		err := database.Reset()
 		if err != nil {
 			fmt.Println(err)
-			w.Write([]byte("Reset failed, errored out"))
+			w.Write([]byte("Reset failed, errored out\r\n"))
+			msg := fmt.Sprintf("%v", err)
+			io.WriteString(w, msg)
 			return
 		}
 

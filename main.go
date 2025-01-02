@@ -8,7 +8,8 @@ import (
 	"os"
 
 	"gorant/database"
-	"gorant/live"
+	"gorant/templates"
+	"gorant/upload"
 	"gorant/users"
 
 	"github.com/a-h/templ"
@@ -37,6 +38,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	r2 := upload.NewBucketConfig(
+		upload.WithBucketName("gorant"),
+		upload.WithBaseEndpoint(os.Getenv("S3_BASE_ENDPOINT")),
+		upload.WithAccessKeyID(os.Getenv("S3_ACCESS_KEY")),
+		upload.WithAccessKeySecret(os.Getenv("S3_SECRET_ACCESS_KEY")),
+		upload.WithPublicAccessDomain(os.Getenv("S3_PUBLIC_ACCESS_DOMAIN")),
+	)
+
 	// Init Keycloak client
 	k := newKeycloak()
 	currentUser := &users.User{SortComments: "upvote;desc"}
@@ -55,7 +64,6 @@ func main() {
 	mux.Handle("GET /posts/{postID}", k.CheckAuthentication()(k.viewPostHandler()))
 	mux.Handle("POST /posts/{postID}", k.CheckAuthentication()(k.filterSortPostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/new", newPostWrongMethodHandler)
-	mux.Handle("POST /posts/{postID}/new", k.CheckAuthentication()(k.newCommentHandler()))
 	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication()(k.deletePostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
 	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication()(k.editTagsHandler()))
@@ -63,6 +71,7 @@ func main() {
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.CheckAuthentication()(k.editMoodHandler()))
 
 	// Comment routes
+	mux.Handle("POST /posts/{postID}/new", k.RequireAuthentication()(k.newCommentHandler(r2)))
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.CheckAuthentication()(k.upvoteCommentHandler()))
 	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentViewHandler()))
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentSaveHandler()))
@@ -70,20 +79,13 @@ func main() {
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.CheckAuthentication()(k.deleteCommentHandler()))
 	mux.Handle("POST /posts/{postID}/description/edit", k.CheckAuthentication()(k.editPostDescriptionHandler()))
 	mux.Handle("POST /posts/{postID}/like", k.CheckAuthentication()(k.likePostHandler()))
-
+	mux.HandleFunc("GET /view/{fileID}", viewFileHandler)
 	// Live
 	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
 	mux.Handle("POST /live/new", k.CheckAuthentication()(k.newInstantPostHandler()))
 	mux.Handle("GET /live/{instPID}", k.CheckAuthentication()(k.viewInstantCommentsHandler()))
 	mux.Handle("POST /live/{instPID}/new", k.RequireAuthentication()(k.newInstantCommentHandler()))
-	mux.HandleFunc("GET /live/reset-db", func(w http.ResponseWriter, r *http.Request) {
-		err := live.ResetDB()
-		if err != nil {
-			fmt.Println(err)
-		}
 
-		w.Write([]byte("Successfully created live DB!"))
-	})
 	// Implemented own compress with Brotli/Gzip, with extra flushing.
 	// An alternative that works out of box is klauspost/compress/gzhttp. Others don't. It's because of flushing.
 	mux.Handle("GET /event/{instPID}", ZxCompress())
@@ -107,6 +109,13 @@ func main() {
 	mux.Handle("POST /reset-verification", k.resetPasswordVerificationHandler())
 	mux.Handle("POST /registration", k.processRegistrationHandler(currentUser))
 	mux.Handle("GET /logout", k.Logout(currentUser))
+
+	// Test
+	mux.Handle("GET /upload", k.CheckAuthentication()(k.viewUploadHandler(r2)))
+	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.uploadFileHandler(r2)))
+	mux.HandleFunc("GET /tiptap", func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.TipTap())
+	})
 
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))

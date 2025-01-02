@@ -1,0 +1,59 @@
+package templates
+
+import (
+	"fmt"
+	"gorant/upload"
+	"gorant/users"
+)
+
+templ Upload(title string, currentUser *users.User, files []upload.BucketFile) {
+	@Base(title, currentUser) {
+		<div class="grid grid-cols-2">
+			<div class="grid content-center">
+				<div class="my-8">
+					<div class="grid grid-cols-3">
+						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Filename</div>
+						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Last Modified</div>
+						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Size (bytes)</div>
+						for i := 0; i < len(files); i++ {
+							<div class="border border-neutral/70 p-4">{ files[i].Key }</div>
+							<div class="border border-neutral/70 p-4">{ files[i].LastModifiedString() }</div>
+							<div class="border border-neutral/70 p-4">{ files[i].SizeString() }</div>
+						}
+					</div>
+				</div>
+				// method="post" action="/upload" enctype="multipart/form-data"
+				<form class="grid gap-4" hx-post="/upload/process" hx-swap="outerHTML" hx-target="#uploaded-preview" hx-encoding="multipart/form-data">
+					<div class="space-y-2">
+						<label class="grid min-h-24 cursor-pointer content-center justify-items-center rounded-lg py-8 outline-dashed outline-2 outline-accent hover:bg-primary/30">
+							<input type="file" name="upload" class="file-input file-input-bordered file-input-accent hidden w-full"/>
+							<svg xmlns="http://www.w3.org/2000/svg" width="3rem" height="3rem" class="material-symbols:upload-file text-accent" viewBox="0 0 24 24"><path fill="currentColor" d="M11 19h2v-4.175l1.6 1.6L16 15l-4-4l-4 4l1.425 1.4L11 14.825zm-5 3q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
+							<div class="font-medium"><span class="font-bold text-accent">Select a file</span> to upload</div>
+						</label>
+						<div class="text-sm text-neutral/70">Supported formats: .jpg, .png, .webp, .txt, .pdf, .docx</div>
+						<input type="text" name="text" class="input input-bordered w-full"/>
+					</div>
+					<button class="btn btn-accent w-full">Upload</button>
+				</form>
+			</div>
+			<div class="grid content-center justify-center">
+				<div id="uploaded-preview"></div>
+			</div>
+		</div>
+	}
+}
+
+templ SuccessfulUpload(url string) {
+	<div id="uploaded-preview" class="p-8">
+		<img src={ string(templ.URL(url)) } class="object-fit" alt="Uploaded image"/>
+	</div>
+}
+
+templ ViewFile(fileID string) {
+	<html>
+		<head></head>
+		<body>
+			<img src={ string(templ.URL(fmt.Sprintf("https://bucket.grumplr.com/%s", fileID))) } alt="Image"/>
+		</body>
+	</html>
+}

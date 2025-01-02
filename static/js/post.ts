@@ -104,16 +104,16 @@ tags();
  * Executes eventListeners for keyboard shortcuts to post (ctr+enter).
  */
 function initKeyBoardShortcutForPosts() {
-	// const commentForm = document.getElementById('comment-form');
+	const commentForm = document.getElementById('comment-form') as HTMLFormElement;
 	const commentFormMessageInput = document.getElementById('comment-form-message-input') as HTMLInputElement;
 	const commentSubmitButton = document.getElementById('comment-submit-button') as HTMLButtonElement;
 	if (commentFormMessageInput && commentSubmitButton) {
-		keyboardShortcut(commentFormMessageInput, commentSubmitButton, undefined, undefined, 'textarea');
+		keyboardShortcut(commentFormMessageInput, commentSubmitButton, undefined, commentForm, 'textarea');
 	}
 }
 
 window.addEventListener('load', initKeyBoardShortcutForPosts);
-window.addEventListener('htmx:afterSwap', initKeyBoardShortcutForPosts);
+// window.addEventListener('htmx:afterSwap', initKeyBoardShortcutForPosts);
 
 type HtmxEvent = {
 	detail?: {

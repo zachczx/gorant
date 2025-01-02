@@ -10,6 +10,8 @@ import (
 
 	"gorant/live"
 	"gorant/templates"
+
+	"github.com/google/uuid"
 )
 
 func (k *keycloak) mainLivePageHandler() http.Handler {
@@ -53,7 +55,7 @@ func (k *keycloak) viewInstantCommentsHandler() http.Handler {
 
 func (k *keycloak) newInstantCommentHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		instPID, err := strconv.Atoi(r.PathValue("instPID"))
+		instPID, err := uuid.Parse(r.PathValue("instPID"))
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -129,21 +131,23 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// Using instComments[0].ID instead of instComments[len(instComments) - 1].ID because I'm sorting by DESC order.
-			if lastID < instComments[0].ID {
-				lastID = instComments[0].ID
-				fmt.Println("lastID: ", lastID)
-				sb.WriteString("event: instant\ndata:")
-				for _, v := range instComments {
-					sb.WriteString(fmt.Sprintf("<div class='flex'><div class='avatar'><span>%s</span></div><div class='comment'><span class='user'>%s<span class='time'>%v (%v)</span></span><span class='content'>%s</span></div></div>", v.PreferredNameInitials(), v.PreferredName, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"), v.Content))
-				}
-				sb.WriteString("\n\n")
 
-				if _, err := w.Write([]byte(sb.String())); err != nil {
-					fmt.Println("write error: ", err)
-				}
-
-				flusher.Flush()
+			// TODO: Since converting to UUID, I can't get the last ID anymore, so I'll need a datetime comparison
+			// if lastID < instComments[0].ID {
+			// lastID = instComments[0].ID
+			fmt.Println("lastID: ", lastID)
+			sb.WriteString("event: instant\ndata:")
+			for _, v := range instComments {
+				sb.WriteString(fmt.Sprintf("<div class='flex'><div class='avatar'><span>%s</span></div><div class='comment'><span class='user'>%s<span class='time'>%v (%v)</span></span><span class='content'>%s</span></div></div>", v.PreferredNameInitials(), v.PreferredName, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"), v.Content))
 			}
+			sb.WriteString("\n\n")
+
+			if _, err := w.Write([]byte(sb.String())); err != nil {
+				fmt.Println("write error: ", err)
+			}
+
+			flusher.Flush()
+			// }
 		}
 	}
 }

@@ -6,18 +6,20 @@ import (
 	"time"
 
 	"gorant/database"
+
+	"github.com/google/uuid"
 )
 
 type InstantPost struct {
-	ID        int       `db:"id"`
+	ID        uuid.UUID `db:"id"`
 	Title     string    `db:"title"`
 	UserID    string    `db:"user_id"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
 type InstantComment struct {
-	ID            int       `db:"id"`
-	InstantPostID int       `db:"instant_post_id"`
+	ID            uuid.UUID `db:"id"`
+	InstantPostID uuid.UUID `db:"instant_post_id"`
 	Title         string    `db:"title"`
 	Content       string    `db:"content"`
 	UserID        string    `db:"user_id"`
@@ -31,14 +33,6 @@ func (instP *InstantPost) TitleInitials() string {
 
 func (instC *InstantComment) PreferredNameInitials() string {
 	return instC.PreferredName[:2]
-}
-
-func (instP *InstantPost) IDString() string {
-	return strconv.Itoa(instP.ID)
-}
-
-func (instC *InstantComment) IDString() string {
-	return strconv.Itoa(instC.ID)
 }
 
 func (instP *InstantPost) DateString() string {
@@ -151,31 +145,6 @@ func CreateInstantPost(instP InstantPost) error {
 
 func CreateInstantComment(instC InstantComment) error {
 	_, err := database.DB.Exec(`INSERT INTO instant_comments (instant_post_id, content, user_id, created_at) VALUES ($1, $2, $3, NOW())`, instC.InstantPostID, instC.Content, instC.UserID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func ResetDB() error {
-	_, err := database.DB.Exec(`DROP TABLE IF EXISTS instant_posts CASCADE`)
-	if err != nil {
-		fmt.Println("Error dropping table: instant_posts")
-		return err
-	}
-
-	_, err = database.DB.Exec(`CREATE TABLE instant_posts (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, created_at TIMESTAMPTZ)`)
-	if err != nil {
-		return err
-	}
-
-	_, err = database.DB.Exec(`DROP TABLE IF EXISTS instant_comments CASCADE`)
-	if err != nil {
-		fmt.Println("Error dropping table: instant_comments")
-		return err
-	}
-
-	_, err = database.DB.Exec(`CREATE TABLE instant_comments (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, instant_post_id INT REFERENCES instant_posts(id) ON DELETE CASCADE, title VARCHAR(255) DEFAULT '', content TEXT NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE, created_at TIMESTAMPTZ)`)
 	if err != nil {
 		return err
 	}

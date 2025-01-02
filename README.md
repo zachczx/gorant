@@ -4,7 +4,7 @@
 
 1. Templating - Templ
 2. SQL - SQLx, pgx
-3. HMR - Air
+3. Live Reload - Air
 4. Authentication/Authorization - Keyclock, GoCloak
 5. Cookies/Sessions - Gorilla Sessions
 6. Compression - Brotli, Gzip
@@ -32,6 +32,7 @@
 
 1. Option for markdown formatting/processing for posts
 2. File uploads
+3. Need a way to disconnect live clients (remnant browser tabs causing panics)
 
 ## Notes for Choice of Auth
 

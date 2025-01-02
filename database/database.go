@@ -28,6 +28,11 @@ func Reset() error {
 		fmt.Println("Error dropping table: posts")
 		return err
 	}
+	_, err = DB.Exec(`DROP TABLE IF EXISTS files CASCADE;`)
+	if err != nil {
+		fmt.Println("Error dropping table: files")
+		return err
+	}
 	_, err = DB.Exec(`DROP TABLE IF EXISTS users CASCADE;`)
 	if err != nil {
 		fmt.Println("Error dropping table: users")
@@ -81,9 +86,18 @@ func Reset() error {
 	}
 	fmt.Println("Created table: posts")
 
+	// Files
+
+	_, err = DB.Exec(`CREATE TABLE files (file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), file_key VARCHAR(2000), file_store VARCHAR(255),file_bucket VARCHAR(255));`)
+	if err != nil {
+		fmt.Println("Error creating table: files")
+		return err
+	}
+	fmt.Println("Created table: files")
+
 	// Comments
 
-	_, err = DB.Exec(`CREATE TABLE comments (comment_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255), FOREIGN KEY(post_id) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE);`)
+	_, err = DB.Exec(`CREATE TABLE comments (comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, file_id UUID REFERENCES files(file_id) ON DELETE SET NULL);`)
 	if err != nil {
 		fmt.Println("Error creating table: comments")
 		return err
@@ -99,7 +113,7 @@ func Reset() error {
 
 	// Posts Likes
 
-	_, err = DB.Exec(`CREATE TABLE posts_likes (like_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
+	_, err = DB.Exec(`CREATE TABLE posts_likes (like_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
 	if err != nil {
 		fmt.Println("Error creating table: posts_likes")
 		return err
@@ -114,7 +128,7 @@ func Reset() error {
 	fmt.Println("Created index: idx_posts_likes_post_id")
 
 	// Comments Votes
-	_, err = DB.Exec(`CREATE TABLE comments_votes (vote_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, comment_id INT REFERENCES comments(comment_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
+	_, err = DB.Exec(`CREATE TABLE comments_votes (vote_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, comment_id UUID REFERENCES comments(comment_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`)
 	if err != nil {
 		fmt.Println("Error creating table: comments_votes")
 		return err
@@ -129,7 +143,7 @@ func Reset() error {
 	fmt.Println("Created index: idx_comments_votes_comment_id")
 
 	// Tags
-	_, err = DB.Exec(`CREATE TABLE tags (tag_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, tag VARCHAR(30) UNIQUE NOT NULL);`)
+	_, err = DB.Exec(`CREATE TABLE tags (tag_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), tag VARCHAR(30) UNIQUE NOT NULL);`)
 	if err != nil {
 		fmt.Println("Error creating table: tags")
 		return err
@@ -137,22 +151,26 @@ func Reset() error {
 	fmt.Println("Created table: tags")
 
 	// Intermediate Tags table
-	_, err = DB.Exec(`CREATE TABLE posts_tags (posts_tags_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, tag_id INT REFERENCES tags(tag_id) ON DELETE CASCADE ON UPDATE CASCADE);`)
+	_, err = DB.Exec(`CREATE TABLE posts_tags (posts_tags_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, tag_id UUID REFERENCES tags(tag_id) ON DELETE CASCADE ON UPDATE CASCADE);`)
 	if err != nil {
 		fmt.Println("Error creating table: posts_tags")
 		return err
 	}
 	fmt.Println("Created table: posts_tags")
 
-	_, err = DB.Exec(`CREATE TABLE instant_posts (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, created_at TIMESTAMPTZ)`)
+	// Instant Posts
+	_, err = DB.Exec(`CREATE TABLE instant_posts (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, created_at TIMESTAMPTZ)`)
 	if err != nil {
 		return err
 	}
+	fmt.Println("Created table: instant_posts")
 
-	_, err = DB.Exec(`CREATE TABLE instant_comments (id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, instant_post_id INT REFERENCES instant_posts(id) ON DELETE CASCADE, title VARCHAR(255) DEFAULT '', content TEXT NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE, created_at TIMESTAMPTZ)`)
+	// Instant Comments
+	_, err = DB.Exec(`CREATE TABLE instant_comments (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), instant_post_id UUID REFERENCES instant_posts(id) ON DELETE CASCADE, title VARCHAR(255) DEFAULT '', content TEXT NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE, created_at TIMESTAMPTZ)`)
 	if err != nil {
 		return err
 	}
+	fmt.Println("Created table: instant_comments")
 
 	_, err = DB.Exec(`INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')`)
 	if err != nil {

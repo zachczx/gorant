@@ -11,21 +11,22 @@ import (
 
 	"gorant/database"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/rezakhademix/govalidator/v2"
 )
 
 type PostLike struct {
-	LikeID int    `db:"like_id"`
-	UserID string `db:"user_id"`
-	PostID string `db:"post_id"`
-	Score  string `db:"score"`
+	LikeID uuid.UUID `db:"like_id"`
+	UserID string    `db:"user_id"`
+	PostID string    `db:"post_id"`
+	Score  string    `db:"score"`
 }
 
 type JunctionPostTag struct {
-	PostsTagsID int    `db:"posts_tags_id"`
-	PostID      string `db:"post_id"`
-	TagID       int    `db:"tag_id"`
+	PostsTagsID uuid.UUID `db:"posts_tags_id"`
+	PostID      string    `db:"post_id"`
+	TagID       uuid.UUID `db:"tag_id"`
 	Tag         string
 }
 
@@ -76,8 +77,8 @@ func (t *Tags) Count() string {
 }
 
 type Tag struct {
-	TagID int    `db:"tag_id"`
-	Tag   string `db:"tag"`
+	TagID uuid.UUID `db:"tag_id"`
+	Tag   string    `db:"tag"`
 }
 
 type PostStats struct {
@@ -182,7 +183,7 @@ func ListPosts() (PostCollection, error) {
 
 func ListTags() ([]string, error) {
 	var tags []string
-	var tagID string
+	var tagID uuid.UUID
 	var tag string
 
 	rows, err := database.DB.Query(`SELECT posts_tags.tag_id, tags.tag
@@ -201,6 +202,7 @@ func ListTags() ([]string, error) {
 
 		tags = append(tags, tag)
 	}
+	fmt.Println(tags)
 
 	return tags, nil
 }
@@ -538,7 +540,7 @@ func ValidateTags(tag string) (passed bool, err error) {
 
 func DeleteUnwantedTags(inputTags []string, postsTags []JunctionPostTag) error {
 	// Loop through postTags to find tags that are not in current user input, then mark those for deletion.
-	var tagsToDeleteID []int
+	var tagsToDeleteID []uuid.UUID
 	var exists bool
 	for _, v := range postsTags {
 		if exists = contains(inputTags, v.Tag); !exists {

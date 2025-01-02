@@ -40,8 +40,10 @@ export function keyboardShortcut(
 	});
 
 	window.addEventListener('htmx:afterSwap', ((evt: HtmxAfterRequest) => {
-		if (evt.detail.elt === inputEl) {
-			buttonEl.innerHTML = buttonHTML; //'Add Comment';
+		if (evt.detail.elt === formEl) {
+			setTimeout(() => {
+				buttonEl.innerHTML = buttonHTML; // Add Comment
+			}, 200);
 		}
 	}) as EventListener);
 

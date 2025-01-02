@@ -86,7 +86,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 											name="avatar-radio"
 											value={ avatars[i] }
 											class="radio-accent radio radio-sm hidden"
-											if currentUser.Avatar == avatars[i] {
+											if currentUser.Avatar == avatars[i] || (currentUser.Avatar == "default" && avatars[i] == "bird") {
 												checked="checked"
 											}
 										/>
