@@ -287,8 +287,8 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 						</div>
 						<div id={ "post-" + comments[i].ID.String() + "-content" } class="hyphenate whitespace-pre-line pt-4 text-base">{ comments[i].Content }</div>
 						if len(comments[i].File.FileKey) > 0 {
-							<div class="pt-4 flex">
-								<a href={ templ.URL(fmt.Sprintf("/view/%s", comments[i].File.FileKey)) } class="flex items-center btn btn-outline btn-accent btn-sm">
+							<div class="flex pt-4">
+								<a href={ templ.URL(fmt.Sprintf("/view/%s", comments[i].File.FileKey)) } class="btn btn-outline btn-accent btn-sm flex items-center">
 									<svg xmlns="http://www.w3.org/2000/svg" width="1.9em" height="1.9em" class="material-symbols:attachment mx-1" viewBox="0 0 24 24">
 										<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
 									</svg>
