@@ -10,15 +10,15 @@ templ Upload(title string, currentUser *users.User, files []upload.BucketFile) {
 	@Base(title, currentUser) {
 		<div class="grid grid-cols-2">
 			<div class="grid content-center">
-				<div class="my-8">
-					<div class="grid grid-cols-3">
-						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Filename</div>
-						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Last Modified</div>
-						<div class="border border-neutral/70 bg-neutral p-4 text-neutral-content">Size (bytes)</div>
+				<div class="my-8 text-xs">
+					<div class="grid grid-cols-5">
+						<div class="border border-neutral/70 bg-neutral p-2 text-neutral-content col-span-3">Filename</div>
+						<div class="border border-neutral/70 bg-neutral p-2 text-neutral-content">Last Modified</div>
+						<div class="border border-neutral/70 bg-neutral p-2 text-neutral-content">Size (Kb)</div>
 						for i := 0; i < len(files); i++ {
-							<div class="border border-neutral/70 p-4">{ files[i].Key }</div>
-							<div class="border border-neutral/70 p-4">{ files[i].LastModifiedString() }</div>
-							<div class="border border-neutral/70 p-4">{ files[i].SizeString() }</div>
+							<div class="border border-neutral/70 p-2 break-words col-span-3 underline"><a href={ templ.URL(fmt.Sprintf("/view/%s", files[i].Key)) }>{ files[i].Key }</a></div>
+							<div class="border border-neutral/70 p-2">{ files[i].LastModifiedString() }</div>
+							<div class="border border-neutral/70 p-2">{ files[i].SizeString() }</div>
 						}
 					</div>
 				</div>
@@ -45,7 +45,7 @@ templ Upload(title string, currentUser *users.User, files []upload.BucketFile) {
 
 templ SuccessfulUpload(url string) {
 	<div id="uploaded-preview" class="p-8">
-		<img src={ string(templ.URL(url)) } class="object-fit" alt="Uploaded image"/>
+		<img src={ string(templ.URL(fmt.Sprintf("https://bucket.grumplr.com/%s", url))) } class="object-fit" alt="Uploaded image"/>
 	</div>
 }
 

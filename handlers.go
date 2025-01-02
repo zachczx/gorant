@@ -674,7 +674,7 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 			return
 		}
 
-		TemplRender(w, r, templates.SuccessfulUpload(""))
+		TemplRender(w, r, templates.SuccessfulUpload(header.Filename))
 	})
 }
 

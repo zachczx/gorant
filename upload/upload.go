@@ -25,7 +25,8 @@ type BucketFile struct {
 }
 
 func (f *BucketFile) SizeString() string {
-	return strconv.FormatInt(f.Size, 10)
+	s := f.Size / 1000
+	return strconv.FormatInt(s, 10)
 }
 
 func (f *BucketFile) LastModifiedString() string {
