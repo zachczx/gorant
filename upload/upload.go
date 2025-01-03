@@ -40,6 +40,7 @@ func (f *BucketFile) LastModifiedString() string {
 }
 
 type BucketConfig struct {
+	Store              string
 	BucketName         string
 	AccountID          string
 	BaseEndpoint       string
@@ -49,11 +50,12 @@ type BucketConfig struct {
 }
 
 type LookupFile struct {
-	File       multipart.File
-	FileID     uuid.UUID
-	FileKey    string
-	FileStore  string
-	FileBucket string
+	File        multipart.File
+	FileID      uuid.UUID
+	FileKey     string
+	FileStore   string
+	FileBucket  string
+	FileBaseURL string
 }
 
 type NullFile struct {
@@ -70,6 +72,12 @@ func NewBucketConfig(options ...func(*BucketConfig)) *BucketConfig {
 		o(config)
 	}
 	return config
+}
+
+func WithStore(storeName string) func(*BucketConfig) {
+	return func(c *BucketConfig) {
+		c.Store = storeName
+	}
 }
 
 func WithBucketName(bucketName string) func(*BucketConfig) {

@@ -62,7 +62,6 @@ func Insert(c Comment) (string, error) {
 		if err != nil {
 			return insertedCommentID, err
 		}
-
 		insertedCommentID = returnCommentID.String()
 		return insertedCommentID, err
 	}

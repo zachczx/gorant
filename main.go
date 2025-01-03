@@ -39,7 +39,8 @@ func main() {
 	}
 
 	r2 := upload.NewBucketConfig(
-		upload.WithBucketName("gorant"),
+		upload.WithStore(os.Getenv("S3_STORE")),
+		upload.WithBucketName(os.Getenv("S3_BUCKET_NAME")),
 		upload.WithBaseEndpoint(os.Getenv("S3_BASE_ENDPOINT")),
 		upload.WithAccessKeyID(os.Getenv("S3_ACCESS_KEY")),
 		upload.WithAccessKeySecret(os.Getenv("S3_SECRET_ACCESS_KEY")),
@@ -79,7 +80,6 @@ func main() {
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.CheckAuthentication()(k.deleteCommentHandler()))
 	mux.Handle("POST /posts/{postID}/description/edit", k.CheckAuthentication()(k.editPostDescriptionHandler()))
 	mux.Handle("POST /posts/{postID}/like", k.CheckAuthentication()(k.likePostHandler()))
-	mux.HandleFunc("GET /view/{fileID}", viewFileHandler)
 	// Live
 	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
 	mux.Handle("POST /live/new", k.CheckAuthentication()(k.newInstantPostHandler()))
@@ -112,6 +112,7 @@ func main() {
 
 	// Test
 	mux.Handle("GET /upload", k.CheckAuthentication()(k.viewUploadHandler(r2)))
+	mux.Handle("GET /view/{fileID}", viewFileHandler(r2))
 	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.uploadFileHandler(r2)))
 	mux.Handle("POST /upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
 	mux.Handle("GET /upload/duplicates", k.CheckAuthentication()(k.viewDuplicateFilesHandler()))

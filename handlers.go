@@ -199,9 +199,12 @@ func (k *keycloak) likePostHandler() http.Handler {
 	})
 }
 
-func viewFileHandler(w http.ResponseWriter, r *http.Request) {
-	fileID := r.PathValue("fileID")
-	TemplRender(w, r, templates.ViewFile(fileID))
+func viewFileHandler(bc *upload.BucketConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		domain := bc.PublicAccessDomain
+		fileID := r.PathValue("fileID")
+		TemplRender(w, r, templates.ViewFile(domain, fileID))
+	})
 }
 
 func (k *keycloak) filterSortPostHandler() http.Handler {
@@ -292,7 +295,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 				Content: r.FormValue("message"),
 				PostID:  postID,
 				File: upload.LookupFile{
-					File: uploadedFile, FileKey: header.Filename, FileStore: "r2", FileBucket: "gorant",
+					File: uploadedFile, FileKey: header.Filename, FileStore: bc.Store, FileBucket: bc.BucketName,
 				},
 			}
 		}

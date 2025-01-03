@@ -81,11 +81,15 @@ templ SuccessfulTestUpload(url string) {
 	</div>
 }
 
-templ ViewFile(fileID string) {
+templ ViewFile(domain string, fileID string) {
 	<html>
-		<head></head>
+		<head>
+			<title>
+				{ fileID }
+			</title>
+		</head>
 		<body>
-			<img src={ string(templ.URL(fmt.Sprintf("https://bucket.grumplr.com/%s", fileID))) } alt="Image"/>
+			<img src={ string(templ.URL(fmt.Sprintf("%s/%s", domain, fileID))) } alt="Image"/>
 		</body>
 	</html>
 }
@@ -94,7 +98,7 @@ templ ViewOrphanFiles(title string, currentUser *users.User, files []upload.Buck
 	@Base(title, currentUser) {
 		<div class="grid content-center justify-items-center gap-8">
 			<div id="toast"></div>
-			<h1 class="font-bold text-2xl">{ title }</h1>
+			<h1 class="text-2xl font-bold">{ title }</h1>
 			<div class="grid grid-cols-5">
 				<div class="col-span-3 border border-neutral/70 bg-neutral p-2 text-neutral-content">Filename</div>
 				<div class="border border-neutral/70 bg-neutral p-2 text-neutral-content">Last Modified</div>
@@ -106,14 +110,14 @@ templ ViewOrphanFiles(title string, currentUser *users.User, files []upload.Buck
 						<div class="border border-neutral/70 p-2">{ files[i].SizeString() }</div>
 					}
 				} else {
-					<div class="border border-neutral/70 p-2 col-span-5 w-full text-center">No duplicate files!</div>
+					<div class="col-span-5 w-full border border-neutral/70 p-2 text-center">No duplicate files!</div>
 				}
 			</div>
 			<button
 				hx-post="/upload/duplicates/delete"
 				hx-swap="outerHTML"
 				hx-target="#toast"
-				class="btn btn-error text-lg w-full max-w-96"
+				class="btn btn-error w-full max-w-96 text-lg"
 			>Delete</button>
 		</div>
 	}
