@@ -8,14 +8,20 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
+
+	"gorant/database"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type BucketFile struct {
@@ -132,8 +138,9 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string) err
 	return nil
 }
 
-/* func uploadToLocal(file multipart.File, fileName string) error {
-	dst, err := os.Create(filepath.Join("./static/uploads/avatars", fileName))
+func UploadToLocal(file multipart.File, fileName string) error {
+	localDir := "./static/uploads"
+	dst, err := os.Create(filepath.Join(localDir, fileName))
 	if err != nil {
 		return err
 	}
@@ -144,10 +151,10 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string) err
 		return err
 	}
 
-	fmt.Printf("Filename: %s\r\nNumber of bytes written: %s", filepath.Join("./static/uploads/avatars", fileName), strconv.FormatInt(bytes, 10))
+	fmt.Printf("Filename: %s\r\nNumber of bytes written: %s", filepath.Join(localDir, fileName), strconv.FormatInt(bytes, 10))
 
 	return nil
-} */
+}
 
 func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 	var files []BucketFile
@@ -173,4 +180,68 @@ func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 	}
 
 	return files, nil
+}
+
+func GetOrphanFilesDB() ([]BucketFile, error) {
+	var files []BucketFile
+	var f BucketFile
+	rows, err := database.DB.Query(`SELECT files.file_key FROM files WHERE files.file_id NOT IN
+										(SELECT DISTINCT comments.file_id
+										FROM comments
+										WHERE comments.file_id IS NOT NULL);`)
+	if err != nil {
+		return files, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err := rows.Scan(&f.Key); err != nil {
+			return files, err
+		}
+		files = append(files, f)
+	}
+	return files, nil
+}
+
+func (bc *BucketConfig) DeleteBucketFiles(files []BucketFile) error {
+	client, err := bc.ConnectBucket()
+	if err != nil {
+		return err
+	}
+	var filesList []types.ObjectIdentifier
+	var f types.ObjectIdentifier
+	for _, v := range files {
+		f.Key = aws.String(v.Key)
+		filesList = append(filesList, f)
+	}
+	fmt.Println(filesList)
+	fmt.Println(client)
+	_, err = client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+		Bucket: &bc.BucketName,
+		Delete: &types.Delete{Objects: filesList},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteOrphanFilesDB(files []BucketFile) error {
+	var keys []string
+	for _, v := range files {
+		key := v.Key
+		keys = append(keys, key)
+	}
+	// Bindvars only work with (?), not ($1)
+	query, args, err := sqlx.In("DELETE FROM files WHERE file_key IN (?);", keys)
+	if err != nil {
+		return err
+	}
+	query = database.DB.Rebind(query)
+	fmt.Println(query)
+	_, err = database.DB.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+	return nil
 }

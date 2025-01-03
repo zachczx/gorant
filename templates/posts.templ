@@ -439,8 +439,9 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 				></textarea>
 			</label>
 			<div class="collapse border border-base-content/20 text-base-content/70">
-				<input type="checkbox"/>
-				<div class="collapse-title content-center px-4 py-1 text-sm">
+				// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
+				<input type="checkbox" class="min-h-10"/>
+				<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
 					<div class="flex items-center">
 						<div class="grow font-medium">Upload File</div>
 						<div>
@@ -452,9 +453,9 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 				</div>
 				<div class="collapse-content space-y-2">
 					<label class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
-						<input type="file" name="file" class="file-input file-input-bordered file-input-accent hidden w-full" accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/svg+xml"/>
+						<input id="comment-file-input" type="file" name="file" class="file-input file-input-bordered file-input-accent hidden w-full" accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/svg+xml"/>
 						<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="material-symbols:upload-file" viewBox="0 0 24 24"><path fill="currentColor" d="M11 19h2v-4.175l1.6 1.6L16 15l-4-4l-4 4l1.425 1.4L11 14.825zm-5 3q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
-						<div class="text-base font-medium"><span class="font-bold">Select a file</span> to upload</div>
+						<div id="comment-file-message" class="text-base font-medium break-all px-2"><b>Select a file</b> to upload</div>
 					</label>
 					<div class="text-xs">Supported formats: .jpg, .gif, .png, .webp, .avif</div>
 				</div>

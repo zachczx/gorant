@@ -88,6 +88,8 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
+	//
+	// This is not being used, everything is using FilterSort variant.
 	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_store, files.file_bucket, cnt, ids_voted, users.preferred_name, users.avatar FROM comments
 
 									LEFT JOIN files
@@ -116,27 +118,21 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
-
 		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
-
 		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
 			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
 		} else {
 			c.CommentStats.CurrentUserVoted = "false"
 		}
-
 		if c.NullFile.FileID.Valid {
 			c.File.FileID = c.NullFile.FileID.UUID
 			c.File.FileKey = c.NullFile.FileKey.String
 			c.File.FileStore = c.NullFile.FileStore.String
 			c.File.FileBucket = c.NullFile.FileBucket.String
 		}
-
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
 		comments = append(comments, c)
-
-		fmt.Println("Comments: ", c)
 	}
 
 	return comments, nil
@@ -312,26 +308,21 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
-
 		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
-
 		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
 			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
 		} else {
 			c.CommentStats.CurrentUserVoted = "false"
 		}
-
 		if c.NullFile.FileID.Valid {
 			c.File.FileID = c.NullFile.FileID.UUID
 			c.File.FileKey = c.NullFile.FileKey.String
 			c.File.FileStore = c.NullFile.FileStore.String
 			c.File.FileBucket = c.NullFile.FileBucket.String
 		}
-
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
 		comments = append(comments, c)
-		fmt.Println("Comments: ", c)
 	}
 
 	return comments, nil

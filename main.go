@@ -113,6 +113,9 @@ func main() {
 	// Test
 	mux.Handle("GET /upload", k.CheckAuthentication()(k.viewUploadHandler(r2)))
 	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.uploadFileHandler(r2)))
+	mux.Handle("POST /upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
+	mux.Handle("GET /upload/duplicates", k.CheckAuthentication()(k.viewDuplicateFilesHandler()))
+	mux.Handle("POST /upload/duplicates/delete", k.CheckAuthentication()(k.deleteDuplicateFilesHandler(r2)))
 	mux.HandleFunc("GET /tiptap", func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.TipTap())
 	})

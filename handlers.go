@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,6 +15,8 @@ import (
 	"gorant/templates"
 	"gorant/upload"
 	"gorant/users"
+
+	"github.com/google/uuid"
 )
 
 func (k *keycloak) landingHandler() http.Handler {
@@ -22,7 +25,6 @@ func (k *keycloak) landingHandler() http.Handler {
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
-
 		t, err := posts.ListTags()
 		if err != nil {
 			fmt.Println("Error fetching tags", err)
@@ -46,15 +48,10 @@ func postFilterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	m := r.Form["mood"]
 	t := r.Form["tags"]
-
-	fmt.Println("Mood: ", m)
-	fmt.Println("Tags: ", t)
-
 	p, err := posts.ListPostsFilter(m, t)
 	if err != nil {
 		fmt.Println("Error fetching posts", err)
 	}
-
 	TemplRender(w, r, templates.ListPosts(p))
 }
 
@@ -151,16 +148,13 @@ func (k *keycloak) viewPostHandler() http.Handler {
 			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
 			return
 		}
-
 		var filter string
-
 		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
 			return
 		}
-
 		TemplRender(w, r, templates.Post(k.currentUser, "Posts", post, comments, "", k.currentUser.SortComments))
 	})
 }
@@ -259,8 +253,6 @@ func (k *keycloak) UpdateSessionStore(w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-var mimeTypes = []string{"image/png", "image/jpeg", "image/webp", "image/avif", "image/gif", "image/svg+xml"}
-
 func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
@@ -278,16 +270,20 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 		var c posts.Comment
 		uploadedFile, header, err := uploaderHandler(r, bc)
 		if err != nil {
-			if err.Error() == "filetype not allowed" {
+			fmt.Println(err)
+			if err.Error() == "http: no such file" || err.Error() == "empty file" {
+				c = posts.Comment{
+					UserID:  k.currentUser.UserID,
+					Content: r.FormValue("message"),
+					PostID:  postID,
+				}
+			} else if err.Error() == "filetype not allowed" {
 				w.WriteHeader(http.StatusForbidden)
 				TemplRender(w, r, templates.Toast("error", "Uploaded file type not allowed!"))
 				return
-			}
-			// No file or an error.
-			c = posts.Comment{
-				UserID:  k.currentUser.UserID,
-				Content: r.FormValue("message"),
-				PostID:  postID,
+			} else {
+				w.Header().Set("Hx-Redirect", "/error")
+				return
 			}
 		} else {
 			// File was uploaded
@@ -336,27 +332,16 @@ func uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, 
 	if err != nil {
 		return uploadedFile, header, err
 	}
-
-	// Peek into first 512 bytes to get mime/type
-	// buff := make([]byte, 512)
-	// _, err = uploadedFile.Read(buff)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// fileType := http.DetectContentType(buff)
-	// fmt.Println(fileType)
-	// accepted := false
-	// for _, v := range mimeTypes {
-	// 	if fileType == v {
-	// 		accepted = true
-	// 	}
-	// }
-	// if !accepted {
-	// 	err = errors.New("filetype not allowed")
-	// 	return uploadedFile, header, err
-	// }
+	if header.Size == 0 {
+		err = errors.New("empty file")
+		return uploadedFile, header, err
+	}
 
 	defer uploadedFile.Close()
+	if err := checkFileType(uploadedFile); err != nil {
+		return uploadedFile, header, err
+	}
+	header.Filename = uuid.New().String() + "-" + header.Filename
 	if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
 		return uploadedFile, header, err
 	}
@@ -657,15 +642,17 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
-		upload, header, err := r.FormFile("upload")
+		uploadedFile, header, err := r.FormFile("upload")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		defer upload.Close()
-		fmt.Println(r.FormValue("text"))
-		fmt.Println(header.Header.Get("Content-Type"))
-		if err := bc.UploadToBucket(upload, header.Filename); err != nil {
+		defer uploadedFile.Close()
+		if err := checkFileType(uploadedFile); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
 
@@ -675,6 +662,92 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 		}
 
 		TemplRender(w, r, templates.SuccessfulUpload(header.Filename))
+	})
+}
+
+func (k *keycloak) uploadTestFileHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Start uploading")
+		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
+		r.ParseMultipartForm(32 << 20)
+		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
+		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
+
+		uploadedFile, header, err := r.FormFile("upload")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer uploadedFile.Close()
+		if err := checkFileType(uploadedFile); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if err := upload.UploadToLocal(uploadedFile, header.Filename); err != nil {
+			fmt.Println("Upload issue!!! ", err)
+		}
+		if r.Header.Get("Hx-Request") == "" {
+			TemplRender(w, r, templates.Upload("testing upload", k.currentUser, nil))
+			return
+		}
+		TemplRender(w, r, templates.SuccessfulTestUpload(header.Filename))
+	})
+}
+
+var mimeTypes = []string{"image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"}
+
+func checkFileType(file multipart.File) error {
+	// Peek into first 512 bytes to get mime/type
+	buff := make([]byte, 512)
+	_, err := file.Read(buff)
+	if err != nil {
+		return err
+	}
+	fileType := http.DetectContentType(buff)
+	fmt.Println(fileType)
+	accepted := false
+	for _, v := range mimeTypes {
+		if strings.Contains(fileType, v) {
+			accepted = true
+			fmt.Println("Matched with ", v)
+		}
+	}
+	if !accepted {
+		return errors.New("filetype not allowed")
+	}
+	// Need to call Seek() to reset file pointer to beginning of file.
+	file.Seek(0, 0)
+	return nil
+}
+
+func (k *keycloak) viewDuplicateFilesHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		files, err := upload.GetOrphanFilesDB()
+		if err != nil {
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+
+		TemplRender(w, r, templates.ViewOrphanFiles("View Orphan Files", k.currentUser, files))
+	})
+}
+
+func (k *keycloak) deleteDuplicateFilesHandler(bc *upload.BucketConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		files, err := upload.GetOrphanFilesDB()
+		if err != nil {
+			http.Redirect(w, r, "/error", http.StatusSeeOther)
+		}
+		if err := bc.DeleteBucketFiles(files); err != nil {
+			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		if err := upload.DeleteOrphanFilesDB(files); err != nil {
+			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		TemplRender(w, r, templates.Toast("success", "Deleted successfully!"))
 	})
 }
 

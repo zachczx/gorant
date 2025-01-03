@@ -183,7 +183,6 @@ func ExcludeCompression(next http.Handler) http.Handler {
 
 		for _, v := range defaultCompressibleContentTypes {
 			if strings.Contains(ext, v) {
-				fmt.Println(r.RequestURI, "matched...", v)
 				ch := compress.Middleware(next)
 				ch.ServeHTTP(w, r)
 				return

@@ -136,3 +136,12 @@ window.addEventListener('htmx:validation:failed', ((evt: HtmxEvent) => {
 		}
 	}
 }) as EventListener);
+
+const commentFormFileInput = document.getElementById('comment-file-input') as HTMLInputElement;
+const commentFormFileMessage = document.getElementById('comment-file-message') as HTMLDivElement;
+commentFormFileInput.addEventListener('change', () => {
+	if (commentFormFileInput.files) {
+		const fileName = commentFormFileInput.files[0].name;
+		commentFormFileMessage.innerHTML = `<b>${fileName}</b>`;
+	}
+});
