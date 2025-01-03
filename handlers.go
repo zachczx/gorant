@@ -628,6 +628,10 @@ func (k *keycloak) editSettingsHandler() http.Handler {
 
 func (k *keycloak) viewUploadHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("DEV_ENV") != "TRUE" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		f, err := bc.ListBucket()
 		if err != nil {
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -725,6 +729,10 @@ func checkFileType(file multipart.File) error {
 
 func (k *keycloak) viewDuplicateFilesHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("DEV_ENV") != "TRUE" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		files, err := upload.GetOrphanFilesDB()
 		if err != nil {
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
@@ -736,6 +744,10 @@ func (k *keycloak) viewDuplicateFilesHandler() http.Handler {
 
 func (k *keycloak) deleteDuplicateFilesHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("DEV_ENV") != "TRUE" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		files, err := upload.GetOrphanFilesDB()
 		if err != nil {
 			http.Redirect(w, r, "/error", http.StatusSeeOther)

@@ -96,9 +96,6 @@ func main() {
 	mux.HandleFunc("GET /error", k.viewErrorHandler)
 	mux.HandleFunc("GET /error-unauthorized", k.viewErrorUnauthorizedHandler)
 	mux.HandleFunc("GET /admin/reset", resetAdmin)
-	mux.Handle("GET /testing", k.OnlyAuthenticated()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Protected route here!"))
-	})))
 
 	// Auth routes
 	mux.HandleFunc("GET /login", viewLoginHandler)
