@@ -31,13 +31,13 @@ const editor = new Editor({
 		OrderedList,
 		BubbleMenu.configure({
 			element: document.querySelector('.tiptap-editor-menu') as HTMLDivElement,
-			shouldShow: () => {
-				if (document.getElementById('show-formatting-bar').checked === false) {
-					return false;
-				} else {
-					return true;
-				}
-			},
+			// shouldShow: () => {
+			// 	if ((document.getElementById('show-formatting-bar') as HTMLInputElement).checked === false) {
+			// 		return false;
+			// 	} else {
+			// 		return true;
+			// 	}
+			// },
 		}),
 		Bold,
 		Italic,
@@ -62,26 +62,28 @@ const editor = new Editor({
 });
 
 window.addEventListener('click', (evt) => {
-	if (evt.target === document.getElementById('input-button-bold')) {
-		editor.chain().focus().toggleBold().run();
-	}
-	if (evt.target === document.getElementById('input-button-italic')) {
-		editor.chain().focus().toggleItalic().run();
-	}
-	if (evt.target === document.getElementById('input-button-underline')) {
-		editor.chain().focus().toggleUnderline().run();
-	}
-	if (evt.target === document.getElementById('input-button-strike')) {
-		editor.chain().focus().toggleStrike().run();
-	}
-	if (evt.target === document.getElementById('input-button-left')) {
-		editor.chain().focus().setTextAlign('left').run();
-	}
-	if (evt.target === document.getElementById('input-button-center')) {
-		editor.chain().focus().setTextAlign('center').run();
-	}
-	if (evt.target === document.getElementById('input-button-right')) {
-		editor.chain().focus().setTextAlign('right').run();
+	switch (evt.target) {
+		case document.getElementById('input-button-bold'):
+			editor.chain().focus().toggleBold().run();
+			break;
+		case document.getElementById('input-button-italic'):
+			editor.chain().focus().toggleItalic().run();
+			break;
+		case document.getElementById('input-button-underline'):
+			editor.chain().focus().toggleUnderline().run();
+			break;
+		case document.getElementById('input-button-strike'):
+			editor.chain().focus().toggleStrike().run();
+			break;
+		case document.getElementById('input-button-left'):
+			editor.chain().focus().setTextAlign('left').run();
+			break;
+		case document.getElementById('input-button-center'):
+			editor.chain().focus().setTextAlign('center').run();
+			break;
+		case document.getElementById('input-button-right'):
+			editor.chain().focus().setTextAlign('right').run();
+			break;
 	}
 });
 
