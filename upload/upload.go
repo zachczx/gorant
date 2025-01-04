@@ -58,6 +58,11 @@ type LookupFile struct {
 	FileBaseURL string
 }
 
+func (f *LookupFile) KeyStripUUID() string {
+	k := f.FileKey[37:]
+	return k
+}
+
 type NullFile struct {
 	File       multipart.File
 	FileID     uuid.NullUUID
@@ -170,7 +175,6 @@ func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 	if err != nil {
 		return files, err
 	}
-	fmt.Println(bc.BucketName)
 	op, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket:  &bc.BucketName,
 		MaxKeys: aws.Int32(100),
@@ -178,7 +182,6 @@ func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 	if err != nil {
 		return files, err
 	}
-
 	var f BucketFile
 	for _, v := range op.Contents {
 		f.Key = *v.Key
@@ -186,7 +189,6 @@ func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 		f.LastModified = *v.LastModified
 		files = append(files, f)
 	}
-
 	return files, nil
 }
 

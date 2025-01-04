@@ -636,8 +636,7 @@ func (k *keycloak) viewUploadHandler(bc *upload.BucketConfig) http.Handler {
 		if err != nil {
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
-
-		TemplRender(w, r, templates.Upload("testing upload", k.currentUser, f))
+		TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, f))
 	})
 }
 
@@ -664,7 +663,7 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 		}
 
 		if r.Header.Get("Hx-Request") == "" {
-			TemplRender(w, r, templates.Upload("testing upload", k.currentUser, nil))
+			TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, nil))
 			return
 		}
 
@@ -694,7 +693,7 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 			fmt.Println("Upload issue!!! ", err)
 		}
 		if r.Header.Get("Hx-Request") == "" {
-			TemplRender(w, r, templates.Upload("testing upload", k.currentUser, nil))
+			TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, nil))
 			return
 		}
 		TemplRender(w, r, templates.SuccessfulTestUpload(header.Filename))
