@@ -60,30 +60,30 @@ window.addEventListener('click', (evt) => {
 const commentFormMessageInput = document.getElementById('comment-form-message-input') as HTMLTextAreaElement; //as HTMLTextAreaElement;
 
 editor.on('create', () => {
-	calculateCharsRemaining();
+	showChars();
 });
 editor.on('update', ({ editor }) => {
 	commentFormMessageInput.value = editor.getHTML();
-	calculateCharsRemaining();
+	showChars();
 });
 
 /**
  * Post Form calculation feature for remaining chars.
  */
-function calculateCharsRemaining() {
+function showChars() {
 	const commentFormMessageInputEl = document.getElementById('comment-form-message-input') as HTMLInputElement;
-	const commentFormCharsRemainingEl = document.getElementById('form-message-chars-remaining') as HTMLSpanElement;
+	const commentFormCharsEl = document.getElementById('form-message-chars') as HTMLSpanElement;
 
-	if (commentFormMessageInputEl && commentFormCharsRemainingEl) {
-		const total = 2000;
-		commentFormCharsRemainingEl.innerHTML = String(total);
+	if (commentFormMessageInputEl && commentFormCharsEl) {
+		const empty = 0;
+		commentFormCharsEl.innerHTML = String(empty);
 
 		if (commentFormMessageInputEl.value) {
-			commentFormCharsRemainingEl.innerHTML = String(total - editor.storage.characterCount.characters());
+			commentFormCharsEl.innerHTML = String(editor.storage.characterCount.characters());
 		}
 
 		commentFormMessageInputEl.addEventListener('keyup', () => {
-			commentFormCharsRemainingEl.innerHTML = String(total - editor.storage.characterCount.characters());
+			commentFormCharsEl.innerHTML = String(editor.storage.characterCount.characters());
 		});
 	}
 }
