@@ -157,7 +157,6 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 
 		comments = append(comments, c)
 	}
-
 	return comments, nil
 }
 
@@ -178,7 +177,6 @@ func EditComment(commentID string, editedContent string, currentUser string) err
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -193,14 +191,11 @@ func Delete(commentID string, username string) error {
 
 func Validate(c Comment) map[string](string) {
 	v := govalidator.New()
-
 	// v.RequiredString(c.Name, "name", "Please enter a name")
 	v.RequiredString(c.Content, "content", "Please enter a message").MinString(c.Content, 10, "content", "Message needs to be at least 10 characters long.").MaxString(c.Content, 2000, "content", "Message is more than 2000 characters.")
-
 	if v.IsFailed() {
 		return v.Errors()
 	}
-
 	return nil
 }
 

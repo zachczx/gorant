@@ -31,6 +31,13 @@ const editor = new Editor({
 		OrderedList,
 		BubbleMenu.configure({
 			element: document.querySelector('.tiptap-editor-menu') as HTMLDivElement,
+			shouldShow: () => {
+				if (document.getElementById('show-formatting-bar').checked === false) {
+					return false;
+				} else {
+					return true;
+				}
+			},
 		}),
 		Bold,
 		Italic,

@@ -444,14 +444,27 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					rows="7"
 					required
 				></textarea>
+				<div class="grid content-center grid-cols-2 -mt-1">
+					<button class="text-xs text-base-content/70 flex items-center gap-2 grow" type="button" onclick="keyboard_shortcuts_modal.showModal()">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" class="material-symbols:keyboard-command-key" viewBox="0 0 24 24">
+							<path fill="currentColor" d="M6.5 21q-1.45 0-2.475-1.025T3 17.5t1.025-2.475T6.5 14H8v-4H6.5q-1.45 0-2.475-1.025T3 6.5t1.025-2.475T6.5 3t2.475 1.025T10 6.5V8h4V6.5q0-1.45 1.025-2.475T17.5 3t2.475 1.025T21 6.5t-1.025 2.475T17.5 10H16v4h1.5q1.45 0 2.475 1.025T21 17.5t-1.025 2.475T17.5 21t-2.475-1.025T14 17.5V16h-4v1.5q0 1.45-1.025 2.475T6.5 21m0-2q.625 0 1.063-.437T8 17.5V16H6.5q-.625 0-1.062.438T5 17.5t.438 1.063T6.5 19m11 0q.625 0 1.063-.437T19 17.5t-.437-1.062T17.5 16H16v1.5q0 .625.438 1.063T17.5 19M10 14h4v-4h-4zM6.5 8H8V6.5q0-.625-.437-1.062T6.5 5t-1.062.438T5 6.5t.438 1.063T6.5 8M16 8h1.5q.625 0 1.063-.437T19 6.5t-.437-1.062T17.5 5t-1.062.438T16 6.5z"></path>
+						</svg><u>Keyboard Shortcuts</u>
+					</button>
+					<div class="form-control justify-self-end">
+						<label class="cursor-pointer label gap-2">
+							<span class="label-text text-xs text-base-content/70">Show formatting bar</span>
+							<input type="checkbox" id="show-formatting-bar" checked="checked" class="toggle toggle-xs checkbox-accent"/>
+						</label>
+					</div>
+				</div>
 			</label>
 			@TiptapMenu()
-			<div class="collapse rounded-lg border border-base-content/20 text-base-content/70">
+			<div class="collapse mt-4 rounded-lg border border-base-content/20 text-base-content/70">
 				// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
 				<input type="checkbox" class="min-h-10"/>
 				<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
 					<div class="flex items-center">
-						<div class="grow font-medium">Upload File</div>
+						<div class="grow font-medium flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:upload" viewBox="0 0 24 24"><path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z"></path></svg>Upload File</div>
 						<div>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 								<path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path>
@@ -472,6 +485,66 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 			<button id="comment-submit-button" class="btn btn-accent w-full rounded-lg text-lg">Add Comment</button>
 		</form>
 		<script src="/static/js/output/tiptap.js"></script>
+		<dialog id="keyboard_shortcuts_modal" class="modal">
+			<div class="modal-box overflow-y-auto">
+				<h3 class="text-lg font-bold">Keyboard Shortcuts</h3>
+				<div class="py-4 grid grid-cols-8 text-base gap-4 max-w-[1600px]">
+					<!-- Header Row -->
+					<div class="col-span-2 font-semibold">Command</div>
+					<div class="col-span-3 font-semibold">Windows/Linux</div>
+					<div class="col-span-3 font-semibold">macOS</div>
+					<!-- Bold -->
+					<div class="col-span-2">Bold</div>
+					<div class="col-span-3"><kbd>Ctrl</kbd> + <kbd>B</kbd></div>
+					<div class="col-span-3"><kbd>Cmd</kbd> + <kbd>B</kbd></div>
+					<!-- Italicize -->
+					<div class="col-span-2">Italicize</div>
+					<div class="col-span-3"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
+					<div class="col-span-3"><kbd>Cmd</kbd> + <kbd>I</kbd></div>
+					<!-- Underline -->
+					<div class="col-span-2">Underline</div>
+					<div class="col-span-3"><kbd>Ctrl</kbd> + <kbd>U</kbd></div>
+					<div class="col-span-3"><kbd>Cmd</kbd> + <kbd>U</kbd></div>
+					<!-- Strikethrough -->
+					<div class="col-span-2">Strikethrough</div>
+					<div class="col-span-3">
+						<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
+					</div>
+					<div class="col-span-3">
+						<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
+					</div>
+					<!-- Left align -->
+					<div class="col-span-2">Left align</div>
+					<div class="col-span-3">
+						<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
+					</div>
+					<div class="col-span-3">
+						<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
+					</div>
+					<!-- Center align -->
+					<div class="col-span-2">Center align</div>
+					<div class="col-span-3">
+						<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
+					</div>
+					<div class="col-span-3">
+						<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
+					</div>
+					<!-- Right align -->
+					<div class="col-span-2">Right align</div>
+					<div class="col-span-3">
+						<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
+					</div>
+					<div class="col-span-3">
+						<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
+					</div>
+				</div>
+				<div class="modal-action">
+					<form method="dialog">
+						<button class="btn">Close</button>
+					</form>
+				</div>
+			</div>
+		</dialog>
 	} else {
 		<div id="form-message-error">
 			<div class="my-4 flex items-center justify-center text-accent">

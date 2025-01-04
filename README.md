@@ -30,7 +30,7 @@
 
 ## TODO
 
-1. Option for markdown formatting/processing for posts
+1. Add Tiptap functionality for post edit
 2. Need a way to disconnect live clients (remnant browser tabs causing panics)
 
 ## Notes for Choice of Auth
