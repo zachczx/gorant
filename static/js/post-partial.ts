@@ -1,7 +1,9 @@
-/**
+import { getWordCount } from './tiptap';
+
+/* *
  * Post Form calculation feature for remaining chars.
  */
-function calculateCharsRemaining() {
+/* function calculateCharsRemaining() {
 	const commentFormMessageInputEl = document.getElementById('comment-form-message-input') as HTMLInputElement;
 	const commentFormCharsRemainingEl = document.getElementById('form-message-chars-remaining') as HTMLSpanElement;
 
@@ -29,7 +31,7 @@ function calculate(value: string, total: number) {
 	const count = value.trim().length;
 	const remaining = total - count;
 	return remaining;
-}
+} */
 
 // Comment Delete Animation
 

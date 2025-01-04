@@ -427,17 +427,35 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					<div class="grow text-sm font-medium">Message</div>
 					<div class="text-sm italic"><span id="form-message-chars-remaining"></span>/2000</div>
 				</div>
+				<div class="element" id="element"></div>
 				<textarea
 					name="message"
 					id="comment-form-message-input"
 					placeholder="Enter a message of at least 10 chars"
-					class="textarea textarea-bordered min-h-24 bg-white/70"
+					class="textarea textarea-bordered hidden min-h-24 bg-white/70"
 					minlength="10"
 					maxlength="2000"
 					rows="7"
 					required
 				></textarea>
 			</label>
+			<div class="tiptap-editor-menu grid grid-cols-3 gap-2 rounded-lg bg-gray-50 p-2 shadow shadow-neutral/50">
+				<button id="input-button-bold" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-bold pointer-events-none" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M6.8 19V5h5.525q1.625 0 3 1T16.7 8.775q0 1.275-.575 1.963t-1.075.987q.625.275 1.388 1.025T17.2 15q0 2.225-1.625 3.113t-3.05.887zm3.025-2.8h2.6q1.2 0 1.463-.612t.262-.888t-.262-.887t-1.538-.613H9.825zm0-5.7h2.325q.825 0 1.2-.425t.375-.95q0-.6-.425-.975t-1.1-.375H9.825z"></path>
+					</svg>
+				</button>
+				<button id="input-button-italic" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-italic pointer-events-none" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M5 19v-2.5h4l3-9H8V5h10v2.5h-3.5l-3 9H15V19z"></path>
+					</svg>
+				</button>
+				<button id="input-button-underline" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-underlined pointer-events-none" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M5 21v-2h14v2zm7-4q-2.525 0-3.925-1.575t-1.4-4.175V3H9.25v8.4q0 1.4.7 2.275t2.05.875t2.05-.875t.7-2.275V3h2.575v8.25q0 2.6-1.4 4.175T12 17"></path>
+					</svg>
+				</button>
+			</div>
 			<div class="collapse border border-base-content/20 text-base-content/70">
 				// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
 				<input type="checkbox" class="min-h-10"/>
@@ -463,6 +481,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 			<div id="comment-form-error-message" class="text-sm text-error"></div>
 			<button id="comment-submit-button" class="btn btn-accent w-full rounded-lg text-lg">Add Comment</button>
 		</form>
+		<script src="/static/js/output/tiptap.js"></script>
 	} else {
 		<div id="form-message-error">
 			<div class="my-4 flex items-center justify-center text-accent">

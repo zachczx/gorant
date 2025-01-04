@@ -286,6 +286,10 @@
 		@apply rounded-lg border border-neutral/30 p-4;
 	}
 
+	.tiptap.ProseMirror {
+		min-height: 10rem;
+	}
+
 	.tiptap {
 		h1 {
 			@apply text-lg font-bold;
@@ -295,6 +299,13 @@
 		}
 		p {
 			@apply text-sm;
+		}
+		p.is-editor-empty:first-child::before {
+			color: #adb5bd;
+			content: attr(data-placeholder);
+			float: left;
+			height: 0;
+			pointer-events: none;
 		}
 	}
 }
