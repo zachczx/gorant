@@ -163,12 +163,10 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 
 func GetComment(commentID string, currentUser string) (Comment, error) {
 	var c Comment
-
-	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID)
+	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID)
 	if err != nil {
 		return c, err
 	}
-
 	return c, nil
 }
 
