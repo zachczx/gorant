@@ -55,7 +55,6 @@ const editor = new Editor({
 });
 
 window.addEventListener('click', (evt) => {
-	console.log(evt.target);
 	if (evt.target === document.getElementById('input-button-bold')) {
 		editor.chain().focus().toggleBold().run();
 	}
