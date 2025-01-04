@@ -285,14 +285,20 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 								}
 							</div>
 						</div>
-						<div id={ "post-" + comments[i].ID.String() + "-content" } class="hyphenate whitespace-pre-line pt-4 text-base">{ comments[i].Content }</div>
+						<div id={ "post-" + comments[i].ID.String() + "-content" } class="pt-4 text-base">
+							// Previously used for <textarea> input
+							// hyphenate whitespace-pre-line 
+							@templ.Raw(comments[i].Content)
+						</div>
 						if len(comments[i].File.FileKey) > 0 {
-							<div class="flex pt-12">
+							<div class="mt-8 grid gap-1 border-t border-t-neutral/20 pt-4">
+								<h4 class="font-medium">
+									Attachment
+								</h4>
 								<a href={ templ.URL(fmt.Sprintf("/view/%s", comments[i].File.FileKey)) } class="flex items-center text-sm text-base-content/70 underline hover:text-accent">
 									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
 										<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
-									</svg>
-									{ comments[i].File.KeyStripUUID() }
+									</svg>{ comments[i].File.KeyStripUUID() }
 								</a>
 							</div>
 						}
@@ -439,24 +445,8 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					required
 				></textarea>
 			</label>
-			<div class="tiptap-editor-menu grid grid-cols-3 gap-2 rounded-lg bg-gray-50 p-2 shadow shadow-neutral/50">
-				<button id="input-button-bold" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-bold pointer-events-none" viewBox="0 0 24 24">
-						<path fill="currentColor" d="M6.8 19V5h5.525q1.625 0 3 1T16.7 8.775q0 1.275-.575 1.963t-1.075.987q.625.275 1.388 1.025T17.2 15q0 2.225-1.625 3.113t-3.05.887zm3.025-2.8h2.6q1.2 0 1.463-.612t.262-.888t-.262-.887t-1.538-.613H9.825zm0-5.7h2.325q.825 0 1.2-.425t.375-.95q0-.6-.425-.975t-1.1-.375H9.825z"></path>
-					</svg>
-				</button>
-				<button id="input-button-italic" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-italic pointer-events-none" viewBox="0 0 24 24">
-						<path fill="currentColor" d="M5 19v-2.5h4l3-9H8V5h10v2.5h-3.5l-3 9H15V19z"></path>
-					</svg>
-				</button>
-				<button id="input-button-underline" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-underlined pointer-events-none" viewBox="0 0 24 24">
-						<path fill="currentColor" d="M5 21v-2h14v2zm7-4q-2.525 0-3.925-1.575t-1.4-4.175V3H9.25v8.4q0 1.4.7 2.275t2.05.875t2.05-.875t.7-2.275V3h2.575v8.25q0 2.6-1.4 4.175T12 17"></path>
-					</svg>
-				</button>
-			</div>
-			<div class="collapse border border-base-content/20 text-base-content/70">
+			@TiptapMenu()
+			<div class="collapse rounded-lg border border-base-content/20 text-base-content/70">
 				// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
 				<input type="checkbox" class="min-h-10"/>
 				<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
@@ -493,6 +483,46 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 		</div>
 		<a href="/login" class="btn btn-accent w-full rounded-lg text-lg">Login to Comment</a>
 	}
+}
+
+templ TiptapMenu() {
+	<div class="tiptap-editor-menu grid grid-cols-7 gap-1 rounded-lg bg-gray-50 p-1 shadow shadow-neutral/50">
+		<button id="input-button-bold" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-bold pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M6.8 19V5h5.525q1.625 0 3 1T16.7 8.775q0 1.275-.575 1.963t-1.075.987q.625.275 1.388 1.025T17.2 15q0 2.225-1.625 3.113t-3.05.887zm3.025-2.8h2.6q1.2 0 1.463-.612t.262-.888t-.262-.887t-1.538-.613H9.825zm0-5.7h2.325q.825 0 1.2-.425t.375-.95q0-.6-.425-.975t-1.1-.375H9.825z"></path>
+			</svg>
+		</button>
+		<button id="input-button-italic" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-italic pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M5 19v-2.5h4l3-9H8V5h10v2.5h-3.5l-3 9H15V19z"></path>
+			</svg>
+		</button>
+		<button id="input-button-underline" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-underlined pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M5 21v-2h14v2zm7-4q-2.525 0-3.925-1.575t-1.4-4.175V3H9.25v8.4q0 1.4.7 2.275t2.05.875t2.05-.875t.7-2.275V3h2.575v8.25q0 2.6-1.4 4.175T12 17"></path>
+			</svg>
+		</button>
+		<button id="input-button-strike" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-strikethrough pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M2 14v-2h20v2zm8.5-4V7H5V4h14v3h-5.5v3zm0 10v-4h3v4z"></path>
+			</svg>
+		</button>
+		<button id="input-button-left" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-left pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M3 21v-2h18v2zm0-4v-2h12v2zm0-4v-2h18v2zm0-4V7h12v2zm0-4V3h18v2z"></path>
+			</svg>
+		</button>
+		<button id="input-button-center" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-center pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M3 21v-2h18v2zm4-4v-2h10v2zm-4-4v-2h18v2zm4-4V7h10v2zM3 5V3h18v2z"></path>
+			</svg>
+		</button>
+		<button id="input-button-right" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/10 p-1 hover:bg-primary/30">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-right pointer-events-none" viewBox="0 0 24 24">
+				<path fill="currentColor" d="M3 5V3h18v2zm6 4V7h12v2zm-6 4v-2h18v2zm6 4v-2h12v2zm-6 4v-2h18v2z"></path>
+			</svg>
+		</button>
+	</div>
 }
 
 templ MoodMapper(currentUser *users.User, postID string, postUserID string, mood string) {

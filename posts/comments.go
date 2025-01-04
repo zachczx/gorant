@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rezakhademix/govalidator/v2"
+	"github.com/sym01/htmlsanitizer"
 )
 
 type Comment struct {
@@ -55,7 +56,30 @@ func Insert(c Comment) (string, error) {
 	var returnFileID uuid.UUID
 	var returnCommentID uuid.UUID
 	var insertedCommentID string
-
+	var err error
+	fmt.Println(c.Content)
+	sanitizer := htmlsanitizer.NewHTMLSanitizer()
+	sanitizer.AllowList.Tags = []*htmlsanitizer.Tag{
+		{"a", nil, []string{"href"}},
+		{"h1", []string{}, []string{}},
+		{"h2", []string{}, []string{}},
+		{"li", []string{}, []string{}},
+		{"strong", []string{}, []string{}},
+		{"li", []string{}, []string{}},
+		{"ol", []string{}, []string{}},
+		{"p", []string{}, []string{}},
+		{"ul", []string{}, []string{}},
+		{"b", []string{}, []string{}},
+		{"span", []string{}, []string{}},
+		{"i", []string{}, []string{}},
+		{"u", []string{}, []string{}},
+		// {}
+	}
+	c.Content, err = sanitizer.SanitizeString(c.Content)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(c.Content)
 	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
 	if c.File.File == nil && c.File.FileKey == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
@@ -66,7 +90,7 @@ func Insert(c Comment) (string, error) {
 		return insertedCommentID, err
 	}
 
-	err := database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
+	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
 	if err != nil {
 		return insertedCommentID, err
 	}

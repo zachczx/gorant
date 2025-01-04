@@ -12,10 +12,13 @@ import Italic from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
 import Gapcursor from '@tiptap/extension-gapcursor';
 import Placeholder from '@tiptap/extension-placeholder';
+import Link from '@tiptap/extension-link';
+import Strike from '@tiptap/extension-strike';
+import TextAlign from '@tiptap/extension-text-align';
 import CharacterCount from '@tiptap/extension-character-count';
 
 const editor = new Editor({
-	element: document.querySelector('.element'),
+	element: document.querySelector('.element') as HTMLDivElement,
 	extensions: [
 		Document,
 		Paragraph,
@@ -27,14 +30,22 @@ const editor = new Editor({
 		BulletList,
 		OrderedList,
 		BubbleMenu.configure({
-			element: document.querySelector('.tiptap-editor-menu'),
+			element: document.querySelector('.tiptap-editor-menu') as HTMLDivElement,
 		}),
 		Bold,
 		Italic,
 		Underline,
 		Gapcursor,
+		Link.configure({
+			openOnClick: false,
+		}),
 		Placeholder.configure({
 			placeholder: 'Write something here…',
+		}),
+		Strike,
+		TextAlign.configure({
+			alignments: ['left', 'center', 'right'],
+			types: ['heading', 'paragraph'],
 		}),
 		CharacterCount.configure({
 			limit: 2000,
@@ -44,6 +55,7 @@ const editor = new Editor({
 });
 
 window.addEventListener('click', (evt) => {
+	console.log(evt.target);
 	if (evt.target === document.getElementById('input-button-bold')) {
 		editor.chain().focus().toggleBold().run();
 	}
@@ -52,6 +64,18 @@ window.addEventListener('click', (evt) => {
 	}
 	if (evt.target === document.getElementById('input-button-underline')) {
 		editor.chain().focus().toggleUnderline().run();
+	}
+	if (evt.target === document.getElementById('input-button-strike')) {
+		editor.chain().focus().toggleStrike().run();
+	}
+	if (evt.target === document.getElementById('input-button-left')) {
+		editor.chain().focus().setTextAlign('left').run();
+	}
+	if (evt.target === document.getElementById('input-button-center')) {
+		editor.chain().focus().setTextAlign('center').run();
+	}
+	if (evt.target === document.getElementById('input-button-right')) {
+		editor.chain().focus().setTextAlign('right').run();
 	}
 });
 
