@@ -20,6 +20,9 @@
 	},
 	"dependencies": {
 		"@tiptap/core": "^2.11.0",
+		"@tiptap/extension-bubble-menu": "^2.11.0",
+		"@tiptap/extension-italic": "^2.11.0",
+		"@tiptap/extension-underline": "^2.11.0",
 		"@tiptap/pm": "^2.11.0",
 		"@tiptap/starter-kit": "^2.11.0",
 		"brotli-cli": "^2.1.0",
