@@ -17,62 +17,77 @@ templ Settings(currentUser *users.User, avatars []string) {
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
 					<form
 						method="post"
-						class="grid gap-4"
+						class="grid gap-4 lg:grid-cols-2"
 						hx-post="/settings/edit"
 						hx-target="#settings-message"
 						hx-swap="outerHTML"
 						hx-target-error="#toast"
 						id="settings-form"
 					>
-						<label class="form-control">
-							<div class="label">
-								<span class="label-text font-medium">Email</span>
+						<div>
+							<label class="form-control">
+								<div class="label">
+									<span class="label-text font-medium">Email</span>
+								</div>
+								<input type="text" name="username" value={ currentUser.Email } class="input input-bordered w-full" disabled/>
+							</label>
+							<label class="form-control w-full">
+								<div class="label">
+									<span class="label-text font-medium">Display Name</span>
+								</div>
+								<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
+								<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
+							</label>
+							<label class="form-control w-full">
+								<div class="label">
+									<span class="label-text font-medium">Sort Comments</span>
+								</div>
+								<select class="select select-bordered w-full" name="sort-comments">
+									<option
+										value="date;desc"
+										if currentUser.SortComments == "date;desc" {
+											selected
+										}
+									>Upvotes (highest first)</option>
+									<option
+										value="upvote;asc"
+										if currentUser.SortComments == "upvote;asc" {
+											selected
+										}
+									>Upvotes (lowest first)</option>
+									<option
+										value="date;desc"
+										if currentUser.SortComments == "date;desc" {
+											selected
+										}
+									>Date (latest first)</option>
+									<option
+										value="date;asc"
+										if currentUser.SortComments == "date;asc" {
+											selected
+										}
+									>Date (oldest first)</option>
+								</select>
+							</label>
+							<div class="form-control">
+								<label class="label cursor-pointer">
+									<span class="label-text me-4 font-medium">Only send me essential emails.</span>
+									<input
+										name="contact-me"
+										type="checkbox"
+										if currentUser.ContactMeString == "0" {
+											checked="checked"
+										}
+										class="checkbox-accent checkbox"
+									/>
+								</label>
 							</div>
-							<input type="text" name="username" value={ currentUser.Email } class="input input-bordered w-full" disabled/>
-						</label>
-						<label class="form-control w-full">
-							<div class="label">
-								<span class="label-text font-medium">Display Name</span>
-							</div>
-							<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
-							<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
-						</label>
-						<label class="form-control w-full">
-							<div class="label">
-								<span class="label-text font-medium">Sort Comments</span>
-							</div>
-							<select class="select select-bordered w-full" name="sort-comments">
-								<option
-									value="date;desc"
-									if currentUser.SortComments == "date;desc" {
-										selected
-									}
-								>Upvotes (highest first)</option>
-								<option
-									value="upvote;asc"
-									if currentUser.SortComments == "upvote;asc" {
-										selected
-									}
-								>Upvotes (lowest first)</option>
-								<option
-									value="date;desc"
-									if currentUser.SortComments == "date;desc" {
-										selected
-									}
-								>Date (latest first)</option>
-								<option
-									value="date;asc"
-									if currentUser.SortComments == "date;asc" {
-										selected
-									}
-								>Date (oldest first)</option>
-							</select>
-						</label>
+						</div>
 						<div class="form-control">
 							<div class="label">
 								<div class="label-text font-medium">Choose an Avatar</div>
 							</div>
-							<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-y-auto px-4 md:grid-cols-3 lg:grid-cols-5">
+							<div id="avatar-grid" class="grid max-h-56 lg:max-h-64 gap-4 overflow-auto px-4 md:grid-cols-3 lg:grid-cols-5">
 								for i := 0; i < len(avatars); i ++ {
 									<label
 										id={ avatars[i] }
@@ -97,21 +112,10 @@ templ Settings(currentUser *users.User, avatars []string) {
 								}
 							</div>
 						</div>
-						<div class="form-control mt-4">
-							<label class="label cursor-pointer">
-								<span class="label-text me-4 font-medium">Only send me essential emails.</span>
-								<input
-									name="contact-me"
-									type="checkbox"
-									if currentUser.ContactMeString == "0" {
-										checked="checked"
-									}
-									class="checkbox-accent checkbox"
-								/>
-							</label>
+						<div class="lg:col-span-2 w-full gap-y-2 grid pt-8 justify-items-center">
+							<button class="btn btn-accent mt-4 w-full rounded-lg text-lg lg:max-w-[400px]">Save</button>
+							<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
 						</div>
-						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Save</button>
-						<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
 					</form>
 				</div>
 			</div>
