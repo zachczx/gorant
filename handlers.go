@@ -482,8 +482,7 @@ func (k *keycloak) editCommentSaveHandler() http.Handler {
 
 		// postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
-		e := r.FormValue("edit-content")
-
+		e := r.FormValue("message")
 		if err := posts.EditComment(commentID, e, k.currentUser.UserID); err != nil {
 			fmt.Println(err)
 			return
@@ -494,7 +493,6 @@ func (k *keycloak) editCommentSaveHandler() http.Handler {
 			fmt.Println(err)
 			return
 		}
-
 		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
 	})
 }

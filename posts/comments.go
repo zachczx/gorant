@@ -52,34 +52,41 @@ type CommentStats struct {
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
 }
 
+func sanitizeHTML(HTML string) (string, error) {
+	sanitizer := htmlsanitizer.NewHTMLSanitizer()
+	sanitizer.AllowList.Tags = allowedHTMLTags
+	sHTML, err := sanitizer.SanitizeString(HTML)
+	if err != nil {
+		return "", err
+	}
+	return sHTML, err
+}
+
+var allowedHTMLTags = []*htmlsanitizer.Tag{
+	{"a", nil, []string{"href"}},
+	{"h1", []string{"style"}, []string{}},
+	{"h2", []string{"style"}, []string{}},
+	{"li", []string{"style"}, []string{}},
+	{"strong", []string{}, []string{}},
+	{"li", []string{"style"}, []string{}},
+	{"ol", []string{"style"}, []string{}},
+	{"p", []string{"style"}, []string{}},
+	{"ul", []string{"style"}, []string{}},
+	{"b", []string{}, []string{}},
+	{"span", []string{"style"}, []string{}},
+	{"i", []string{}, []string{}},
+	{"u", []string{}, []string{}},
+}
+
 func Insert(c Comment) (string, error) {
 	var returnFileID uuid.UUID
 	var returnCommentID uuid.UUID
 	var insertedCommentID string
 	var err error
-	fmt.Println(c.Content)
-	sanitizer := htmlsanitizer.NewHTMLSanitizer()
-	sanitizer.AllowList.Tags = []*htmlsanitizer.Tag{
-		{"a", nil, []string{"href"}},
-		{"h1", []string{}, []string{}},
-		{"h2", []string{}, []string{}},
-		{"li", []string{}, []string{}},
-		{"strong", []string{}, []string{}},
-		{"li", []string{}, []string{}},
-		{"ol", []string{}, []string{}},
-		{"p", []string{}, []string{}},
-		{"ul", []string{}, []string{}},
-		{"b", []string{}, []string{}},
-		{"span", []string{}, []string{}},
-		{"i", []string{}, []string{}},
-		{"u", []string{}, []string{}},
-		// {}
-	}
-	c.Content, err = sanitizer.SanitizeString(c.Content)
+	c.Content, err = sanitizeHTML(c.Content)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(c.Content)
 	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
 	if c.File.File == nil && c.File.FileKey == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
@@ -170,10 +177,12 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 }
 
 func EditComment(commentID string, editedContent string, currentUser string) error {
-	/////////////////////
-	// TODO Need to add validation before saving into DB
-	/////////////////////
-	_, err := database.DB.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", editedContent, commentID, currentUser)
+	sanitizedHTML, err := sanitizeHTML(editedContent)
+	if err != nil {
+		return err
+	}
+
+	_, err = database.DB.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", sanitizedHTML, commentID, currentUser)
 	if err != nil {
 		return err
 	}

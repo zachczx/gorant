@@ -64,7 +64,6 @@ func main() {
 	mux.Handle("POST /posts/new", k.CheckAuthentication()(k.newPostHandler()))
 	mux.Handle("GET /posts/{postID}", k.CheckAuthentication()(k.viewPostHandler()))
 	mux.Handle("POST /posts/{postID}", k.CheckAuthentication()(k.filterSortPostHandler()))
-	mux.HandleFunc("GET /posts/{postID}/new", newPostWrongMethodHandler)
 	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication()(k.deletePostHandler()))
 	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
 	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication()(k.editTagsHandler()))
@@ -73,6 +72,7 @@ func main() {
 
 	// Comment routes
 	mux.Handle("POST /posts/{postID}/new", k.RequireAuthentication()(k.newCommentHandler(r2)))
+	mux.HandleFunc("GET /posts/{postID}/new", newPostWrongMethodHandler)
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/upvote", k.CheckAuthentication()(k.upvoteCommentHandler()))
 	mux.Handle("GET /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentViewHandler()))
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/edit", k.CheckAuthentication()(k.editCommentSaveHandler()))
