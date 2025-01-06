@@ -144,10 +144,12 @@ function uploadInputSelectionText() {
 	// console.log('triggered commentformfileinput listener');
 	const commentFormFileInput = document.getElementById('comment-file-input') as HTMLInputElement;
 	const commentFormFileMessage = document.getElementById('comment-file-message') as HTMLDivElement;
-	commentFormFileInput.addEventListener('change', () => {
-		if (commentFormFileInput.files) {
-			const fileName = commentFormFileInput.files[0].name;
-			commentFormFileMessage.innerHTML = `<b>${fileName}</b>`;
-		}
-	});
+	if (commentFormFileInput) {
+		commentFormFileInput.addEventListener('change', () => {
+			if (commentFormFileInput.files) {
+				const fileName = commentFormFileInput.files[0].name;
+				commentFormFileMessage.innerHTML = `<b>${fileName}</b>`;
+			}
+		});
+	}
 }
