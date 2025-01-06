@@ -561,6 +561,38 @@ func (k *keycloak) editPostDescriptionHandler() http.Handler {
 	})
 }
 
+func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		commentID := r.PathValue("commentID")
+		// Verify if currentUser is owner of comment
+		c, err := posts.GetComment(commentID, k.currentUser.UserID)
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if !c.NullFile.FileID.Valid {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		files := []upload.BucketFile{{Key: c.NullFile.FileKey.String}}
+		if err := bc.DeleteBucketFiles(files); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if err := upload.DeleteDBFileRecord(c.NullFile.FileKey.String); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		// Get the comment again, since the deletion would have cascaded onto the comments table row.
+		c, err = posts.GetComment(commentID, k.currentUser.UserID)
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		TemplRender(w, r, templates.PartialAttachmentDeleteSuccess(c, bc.PublicAccessDomain))
+	})
+}
+
 func (k *keycloak) viewSettingsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")

@@ -232,7 +232,14 @@ func (bc *BucketConfig) DeleteBucketFiles(files []BucketFile) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
+func DeleteDBFileRecord(key string) error {
+	_, err := database.DB.Exec(`DELETE FROM files WHERE file_key=$1`, key)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

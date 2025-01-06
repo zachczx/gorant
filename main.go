@@ -80,6 +80,8 @@ func main() {
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/delete", k.CheckAuthentication()(k.deleteCommentHandler()))
 	mux.Handle("POST /posts/{postID}/description/edit", k.CheckAuthentication()(k.editPostDescriptionHandler()))
 	mux.Handle("POST /posts/{postID}/like", k.CheckAuthentication()(k.likePostHandler()))
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/attachment/delete", k.CheckAuthentication()(k.deleteCommentAttachmentHandler(r2)))
+
 	// Live
 	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
 	mux.Handle("POST /live/new", k.CheckAuthentication()(k.newInstantPostHandler()))
