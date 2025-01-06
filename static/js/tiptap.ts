@@ -2,7 +2,7 @@ import { Editor } from '@tiptap/core';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
-import Heading from '@tiptap/extension-heading';
+// import Heading from '@tiptap/extension-heading';
 import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -14,7 +14,7 @@ import Gapcursor from '@tiptap/extension-gapcursor';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
 import Strike from '@tiptap/extension-strike';
-import TextAlign, { TextAlignOptions } from '@tiptap/extension-text-align';
+// import TextAlign, { TextAlignOptions } from '@tiptap/extension-text-align';
 import CharacterCount from '@tiptap/extension-character-count';
 
 window.addEventListener('load', () => {
@@ -31,9 +31,9 @@ function initTiptap() {
 			Document,
 			Paragraph,
 			Text,
-			Heading.configure({
-				levels: [1],
-			}),
+			// Heading.configure({
+			// 	levels: [1],
+			// }),
 			ListItem,
 			BulletList,
 			OrderedList,
@@ -55,10 +55,10 @@ function initTiptap() {
 				placeholder: 'Write something here…',
 			}),
 			Strike,
-			TextAlign.configure({
-				alignments: ['left', 'center', 'right'],
-				types: ['heading', 'paragraph'],
-			}),
+			// TextAlign.configure({
+			// 	alignments: ['left', 'center', 'right'],
+			// 	types: ['heading', 'paragraph'],
+			// }),
 			CharacterCount.configure({
 				limit: 2000,
 			}),
@@ -89,34 +89,34 @@ function initTiptap() {
 				editor.chain().focus().toggleStrike().run();
 				setBubbleMenuButtonColor(editor, 'strike', document.getElementById('input-button-strike') as HTMLButtonElement);
 				break;
-			case document.getElementById('input-button-h1'):
-				editor.chain().focus().toggleHeading({ level: 1 }).run();
-				setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
-				break;
-			case document.getElementById('input-button-left'):
-				editor.chain().focus().setTextAlign('left').run();
-				setBubbleMenuButtonColor(
-					editor,
-					{ textAlign: 'left' },
-					document.getElementById('input-button-left') as HTMLButtonElement,
-				);
-				break;
-			case document.getElementById('input-button-center'):
-				editor.chain().focus().setTextAlign('center').run();
-				setBubbleMenuButtonColor(
-					editor,
-					{ textAlign: 'center' },
-					document.getElementById('input-button-center') as HTMLButtonElement,
-				);
-				break;
-			case document.getElementById('input-button-right'):
-				editor.chain().focus().setTextAlign('right').run();
-				setBubbleMenuButtonColor(
-					editor,
-					{ textAlign: 'right' },
-					document.getElementById('input-button-right') as HTMLButtonElement,
-				);
-				break;
+			// case document.getElementById('input-button-h1'):
+			// 	editor.chain().focus().toggleHeading({ level: 1 }).run();
+			// 	setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
+			// 	break;
+			// case document.getElementById('input-button-left'):
+			// 	editor.chain().focus().setTextAlign('left').run();
+			// 	setBubbleMenuButtonColor(
+			// 		editor,
+			// 		{ textAlign: 'left' },
+			// 		document.getElementById('input-button-left') as HTMLButtonElement,
+			// 	);
+			// 	break;
+			// case document.getElementById('input-button-center'):
+			// 	editor.chain().focus().setTextAlign('center').run();
+			// 	setBubbleMenuButtonColor(
+			// 		editor,
+			// 		{ textAlign: 'center' },
+			// 		document.getElementById('input-button-center') as HTMLButtonElement,
+			// 	);
+			// 	break;
+			// case document.getElementById('input-button-right'):
+			// 	editor.chain().focus().setTextAlign('right').run();
+			// 	setBubbleMenuButtonColor(
+			// 		editor,
+			// 		{ textAlign: 'right' },
+			// 		document.getElementById('input-button-right') as HTMLButtonElement,
+			// 	);
+			// 	break;
 		}
 	});
 
@@ -189,22 +189,22 @@ function setMultipleListenersBubbleMenuButtonColor(editor: Editor) {
 	setBubbleMenuButtonColor(editor, 'italic', document.getElementById('input-button-italic') as HTMLButtonElement);
 	setBubbleMenuButtonColor(editor, 'underline', document.getElementById('input-button-underline') as HTMLButtonElement);
 	setBubbleMenuButtonColor(editor, 'strike', document.getElementById('input-button-strike') as HTMLButtonElement);
-	setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
-	setBubbleMenuButtonColor(
-		editor,
-		{ textAlign: 'left' },
-		document.getElementById('input-button-left') as HTMLButtonElement,
-	);
-	setBubbleMenuButtonColor(
-		editor,
-		{ textAlign: 'center' },
-		document.getElementById('input-button-center') as HTMLButtonElement,
-	);
-	setBubbleMenuButtonColor(
-		editor,
-		{ textAlign: 'right' },
-		document.getElementById('input-button-right') as HTMLButtonElement,
-	);
+	// setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
+	// setBubbleMenuButtonColor(
+	// 	editor,
+	// 	{ textAlign: 'left' },
+	// 	document.getElementById('input-button-left') as HTMLButtonElement,
+	// );
+	// setBubbleMenuButtonColor(
+	// 	editor,
+	// 	{ textAlign: 'center' },
+	// 	document.getElementById('input-button-center') as HTMLButtonElement,
+	// );
+	// setBubbleMenuButtonColor(
+	// 	editor,
+	// 	{ textAlign: 'right' },
+	// 	document.getElementById('input-button-right') as HTMLButtonElement,
+	// );
 }
 
 /**

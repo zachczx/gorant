@@ -575,7 +575,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 				</button>
 			</label>
 			@TiptapMenu()
-			<div class="collapse mt-4 rounded-lg border border-base-content/20 text-base-content/70">
+			<div id="comment-form-attachment-accordion" class="collapse mt-4 rounded-lg border border-base-content/20 text-base-content/70">
 				// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
 				<input type="checkbox" class="min-h-10"/>
 				<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
@@ -614,7 +614,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 }
 
 templ TiptapMenu() {
-	<div class="tiptap-editor-menu grid grid-cols-8 gap-2 rounded-lg bg-gray-50 p-2 shadow-lg">
+	<div class="tiptap-editor-menu grid grid-cols-4 gap-2 rounded-lg bg-gray-50 border border-neutral/10 p-2 shadow-lg">
 		<button id="input-button-bold" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-bold pointer-events-none" viewBox="0 0 24 24">
 				<path fill="currentColor" d="M6.8 19V5h5.525q1.625 0 3 1T16.7 8.775q0 1.275-.575 1.963t-1.075.987q.625.275 1.388 1.025T17.2 15q0 2.225-1.625 3.113t-3.05.887zm3.025-2.8h2.6q1.2 0 1.463-.612t.262-.888t-.262-.887t-1.538-.613H9.825zm0-5.7h2.325q.825 0 1.2-.425t.375-.95q0-.6-.425-.975t-1.1-.375H9.825z"></path>
@@ -635,24 +635,24 @@ templ TiptapMenu() {
 				<path fill="currentColor" d="M2 14v-2h20v2zm8.5-4V7H5V4h14v3h-5.5v3zm0 10v-4h3v4z"></path>
 			</svg>
 		</button>
-		<button id="input-button-h1" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-h1 pointer-events-none" viewBox="0 0 24 24"><path fill="currentColor" d="M5 17V7h2v4h4V7h2v10h-2v-4H7v4zm12 0V9h-2V7h4v10z"></path></svg>
-		</button>
-		<button id="input-button-left" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-left pointer-events-none" viewBox="0 0 24 24">
-				<path fill="currentColor" d="M3 21v-2h18v2zm0-4v-2h12v2zm0-4v-2h18v2zm0-4V7h12v2zm0-4V3h18v2z"></path>
-			</svg>
-		</button>
-		<button id="input-button-center" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-center pointer-events-none" viewBox="0 0 24 24">
-				<path fill="currentColor" d="M3 21v-2h18v2zm4-4v-2h10v2zm-4-4v-2h18v2zm4-4V7h10v2zM3 5V3h18v2z"></path>
-			</svg>
-		</button>
-		<button id="input-button-right" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-right pointer-events-none" viewBox="0 0 24 24">
-				<path fill="currentColor" d="M3 5V3h18v2zm6 4V7h12v2zm-6 4v-2h18v2zm6 4v-2h12v2zm-6 4v-2h18v2z"></path>
-			</svg>
-		</button>
+		// <button id="input-button-h1" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
+		// 	<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-h1 pointer-events-none" viewBox="0 0 24 24"><path fill="currentColor" d="M5 17V7h2v4h4V7h2v10h-2v-4H7v4zm12 0V9h-2V7h4v10z"></path></svg>
+		// </button>
+		// <button id="input-button-left" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
+		// 	<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-left pointer-events-none" viewBox="0 0 24 24">
+		// 		<path fill="currentColor" d="M3 21v-2h18v2zm0-4v-2h12v2zm0-4v-2h18v2zm0-4V7h12v2zm0-4V3h18v2z"></path>
+		// 	</svg>
+		// </button>
+		// <button id="input-button-center" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
+		// 	<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-center pointer-events-none" viewBox="0 0 24 24">
+		// 		<path fill="currentColor" d="M3 21v-2h18v2zm4-4v-2h10v2zm-4-4v-2h18v2zm4-4V7h10v2zM3 5V3h18v2z"></path>
+		// 	</svg>
+		// </button>
+		// <button id="input-button-right" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/5 p-1 hover:bg-primary/20">
+		// 	<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-right pointer-events-none" viewBox="0 0 24 24">
+		// 		<path fill="currentColor" d="M3 5V3h18v2zm6 4V7h12v2zm-6 4v-2h18v2zm6 4v-2h12v2zm-6 4v-2h18v2z"></path>
+		// 	</svg>
+		// </button>
 	</div>
 }
 
