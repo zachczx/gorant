@@ -6,17 +6,16 @@
 	const postBodyClasses = ['bg-red-400/20', 'transition-all', 'opacity-40', 'duration-1000', 'ease-out'];
 	for (const button of deleteButtons) {
 		button.addEventListener('click', () => {
-			const parentCommentId = 'post-' + button.dataset.parentCommentId;
-
+			const parentCommentId = 'comment-' + button.dataset.parentCommentId;
 			const parentComment = document.getElementById(parentCommentId);
 			if (parentComment?.classList.contains('animate-highlight-border')) {
 				parentComment.classList.remove('animate-highlight-border');
 			}
 
-			const postUpvote = document.getElementById('post-upvote-' + button.dataset.parentCommentId) as HTMLDivElement;
-			const postBody = document.getElementById('post-body-' + button.dataset.parentCommentId) as HTMLDivElement;
+			const postUpvote = document.getElementById('comment-upvote-' + button.dataset.parentCommentId) as HTMLDivElement;
+			const postBody = document.getElementById('comment-body-' + button.dataset.parentCommentId) as HTMLDivElement;
 			const deleteLoader = document.getElementById(
-				'post-delete-loader-' + button.dataset.parentCommentId,
+				'comment-delete-loader-' + button.dataset.parentCommentId,
 			) as HTMLDivElement;
 
 			deleteLoader?.classList.remove('hidden');
