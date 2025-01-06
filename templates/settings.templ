@@ -87,7 +87,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 							<div class="label">
 								<div class="label-text font-medium">Choose an Avatar</div>
 							</div>
-							<div id="avatar-grid" class="grid max-h-56 lg:max-h-64 gap-4 overflow-auto px-4 md:grid-cols-3 lg:grid-cols-5">
+							<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-auto px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
 								for i := 0; i < len(avatars); i ++ {
 									<label
 										id={ avatars[i] }
@@ -112,7 +112,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 								}
 							</div>
 						</div>
-						<div class="lg:col-span-2 w-full gap-y-2 grid pt-8 justify-items-center">
+						<div class="grid w-full justify-items-center gap-y-2 pt-8 lg:col-span-2">
 							<button class="btn btn-accent mt-4 w-full rounded-lg text-lg lg:max-w-[400px]">Save</button>
 							<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
 						</div>

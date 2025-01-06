@@ -453,7 +453,7 @@ func (k *keycloak) upvoteCommentHandler() http.Handler {
 	})
 }
 
-func (k *keycloak) editCommentViewHandler() http.Handler {
+func (k *keycloak) editCommentViewHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if k.currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -462,6 +462,7 @@ func (k *keycloak) editCommentViewHandler() http.Handler {
 
 		// postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
+		domain := bc.PublicAccessDomain
 
 		c, err := posts.GetComment(commentID, k.currentUser.UserID)
 		if err != nil {
@@ -469,7 +470,7 @@ func (k *keycloak) editCommentViewHandler() http.Handler {
 			return
 		}
 
-		TemplRender(w, r, templates.PartialCommentEdit(c))
+		TemplRender(w, r, templates.PartialCommentEdit(c, domain))
 	})
 }
 

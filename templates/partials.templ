@@ -195,7 +195,7 @@ templ PartialSettingsEditSuccess(s users.User) {
 	<div id="first-login-message" hx-swap-oob="true" class=""></div>
 }
 
-templ PartialCommentEdit(c posts.Comment) {
+templ PartialCommentEdit(c posts.Comment, domain string) {
 	<form
 		id="comment-form"
 		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.ID.String()))) }
@@ -236,21 +236,63 @@ templ PartialCommentEdit(c posts.Comment) {
 			<input type="checkbox" class="min-h-10"/>
 			<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
 				<div class="flex items-center">
-					<div class="flex grow items-center gap-2 font-medium"><svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:upload" viewBox="0 0 24 24"><path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z"></path></svg>Upload File</div>
-					<div>
-						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-							<path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path>
-						</svg>
-					</div>
+					if c.NullFile.FileKey.String != "" {
+						<div class="flex items-center text-sm text-base-content/70 hover:text-accent grow">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="inline material-symbols:attachment me-2" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
+							</svg>
+							<div class="truncate max-w-96">1 attachment</div>
+						</div>
+						<div>
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+								<path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path>
+							</svg>
+						</div>
+					} else {
+						<div class="flex grow items-center gap-2 font-medium">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:upload" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z"></path>
+							</svg>Upload File
+						</div>
+					}
 				</div>
 			</div>
 			<div class="collapse-content space-y-2">
-				<label class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
-					<input id="comment-file-input" type="file" name="file" class="file-input file-input-bordered file-input-accent hidden w-full" accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/svg+xml"/>
-					<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="material-symbols:upload-file" viewBox="0 0 24 24"><path fill="currentColor" d="M11 19h2v-4.175l1.6 1.6L16 15l-4-4l-4 4l1.425 1.4L11 14.825zm-5 3q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
-					<div id="comment-file-message" class="break-all px-2 text-base font-medium"><b>Select a file</b> to upload</div>
-				</label>
-				<div class="text-xs">Allowed: .jpg, .gif, .png, .webp, .avif</div>
+				if c.NullFile.FileKey.String != "" {
+					<div class="grid grid-cols-2 content-center py-2 text-base-content/70">
+						<div class="flex justify-center placeholder-image-icon rounded-lg bg-gray-900">
+							// <svg xmlns="http://www.w3.org/2000/svg" width="3rem" height="3rem" class="material-symbols:imagesmode-outline" viewBox="0 0 24 24">
+							// 	<path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zm1-2h12l-3.75-5l-3 4L9 13zm-1 2V5zm3.5-9q.625 0 1.063-.437T10 8.5t-.437-1.062T8.5 7t-1.062.438T7 8.5t.438 1.063T8.5 10"></path>
+							// </svg>
+							<a href={ templ.URL(fmt.Sprintf("/view/%s", c.NullFile.FileKey.String)) } target="_blank">
+								<img src={ string(templ.URL(fmt.Sprintf("%s/%s", domain, c.NullFile.FileKey.String))) } alt="Uploaded image" class="w-24"/>
+							</a>
+						</div>
+						<div class="px-4 text-sm grid content-start gap-2">
+							<div class="text-xs">{ c.NullFile.FileKey.String }</div>
+							<div class="flex gap-2 items-center">
+								<a href={ templ.URL(fmt.Sprintf("/view/%s", c.NullFile.FileKey.String)) } class="min-w-20 btn btn-xs btn-accent btn-outline flex items-center gap-1" target="_blank">
+									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="radix-icons:open-in-new-window" viewBox="0 0 15 15">
+										<path fill="currentColor" fill-rule="evenodd" d="M12 13a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v3.5a.5.5 0 0 0 1 0V3h9v9H8.5a.5.5 0 0 0 0 1zM9 6.5v3a.5.5 0 0 1-1 0V7.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 7H5.5a.5.5 0 0 1 0-1h3a.5.5 0 0 1 .5.497" clip-rule="evenodd"></path>
+									</svg>View
+								</a>
+								<a class="min-w-20 btn btn-xs btn-error flex items-center gap-1">
+									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-error-content material-symbols:delete-outline" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"></path>
+									</svg>
+									Delete
+								</a>
+							</div>
+						</div>
+					</div>
+				} else {
+					<label class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
+						<input id="comment-file-input" type="file" name="file" class="file-input file-input-bordered file-input-accent hidden w-full" accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/svg+xml"/>
+						<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="material-symbols:upload-file" viewBox="0 0 24 24"><path fill="currentColor" d="M11 19h2v-4.175l1.6 1.6L16 15l-4-4l-4 4l1.425 1.4L11 14.825zm-5 3q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
+						<div id="comment-file-message" class="break-all px-2 text-base font-medium"><b>Select a file</b> to upload</div>
+					</label>
+					<div class="text-xs">Allowed: .jpg, .gif, .png, .webp, .avif</div>
+				}
 			</div>
 		</div>
 		<div id="comment-form-error-message" class="text-sm text-error"></div>

@@ -189,10 +189,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 							</svg>
 						</button>
 					</form>
-					<h3 class="py-8 px-8 text-xl font-bold">
+					<h3 class="px-8 py-8 text-xl font-bold">
 						Keyboard Shortcuts
 					</h3>
-					<div class="grid max-w-[1600px] grid-cols-8 gap-4 py-4 px-8 text-base">
+					<div class="grid max-w-[1600px] grid-cols-8 gap-4 px-8 py-4 text-base">
 						<!-- Header Row -->
 						<div class="col-span-2 font-semibold">Command</div>
 						<div class="col-span-3 font-semibold">Windows/Linux</div>
@@ -205,8 +205,8 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Bold
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Ctrl</kbd> + <kbd>B</kbd></div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Cmd</kbd> + <kbd>B</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Ctrl</kbd> + <kbd>B</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Cmd</kbd> + <kbd>B</kbd></div>
 						<!-- Italicize -->
 						<div class="col-span-2 flex items-center gap-2">
 							<button id="input-button-italic" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
@@ -215,8 +215,8 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Italicize
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Cmd</kbd> + <kbd>I</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Cmd</kbd> + <kbd>I</kbd></div>
 						<!-- Underline -->
 						<div class="col-span-2 flex items-center gap-2">
 							<button id="input-button-underline" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
@@ -225,8 +225,8 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Underline
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Ctrl</kbd> + <kbd>U</kbd></div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1"><kbd>Cmd</kbd> + <kbd>U</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Ctrl</kbd> + <kbd>U</kbd></div>
+						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Cmd</kbd> + <kbd>U</kbd></div>
 						<!-- Strikethrough -->
 						<div class="col-span-2 flex items-center gap-2">
 							<button id="input-button-strike" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
@@ -235,10 +235,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Strikethrough
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
 						</div>
 						<!-- Apply heading style 1 -->
@@ -247,10 +247,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-h1 pointer-events-none" viewBox="0 0 24 24"><path fill="currentColor" d="M5 17V7h2v4h4V7h2v10h-2v-4H7v4zm12 0V9h-2V7h4v10z"></path></svg>
 							</button>Heading
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>
 						</div>
 						<!-- Left align -->
@@ -261,10 +261,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Left align
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
 						</div>
 						<!-- Center align -->
@@ -275,10 +275,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Center align
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
 						</div>
 						<!-- Right align -->
@@ -289,10 +289,10 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								</svg>
 							</button>Right align
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
 						</div>
-						<div class="col-span-3 flex items-center flex-wrap gap-1">
+						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
 						</div>
 					</div>

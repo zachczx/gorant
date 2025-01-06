@@ -169,10 +169,19 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 
 func GetComment(commentID string, currentUser string) (Comment, error) {
 	var c Comment
-	err := database.DB.QueryRow("SELECT * FROM comments WHERE comment_id=$1 AND user_id=$2", commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID)
+
+	// Protection is at 2 levels, if I wonder again in future.
+	// 1) The UI conditional doesn't show the edit comment link if the comment owner is not currentUser.
+	// 2) This SQL returns nothing found if the currentUser is not the owner of the comment.
+	err := database.DB.QueryRow(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, files.file_id, files.file_key, files.file_store, files.file_bucket
+								FROM(SELECT *
+									FROM comments
+									WHERE comment_id=$1 AND user_id=$2) as comments
+									LEFT JOIN files ON files.file_id=comments.file_id;`, commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID, &c.NullFile.FileKey, &c.NullFile.FileStore, &c.NullFile.FileBucket)
 	if err != nil {
 		return c, err
 	}
+	fmt.Println(c)
 	return c, nil
 }
 
