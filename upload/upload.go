@@ -58,6 +58,10 @@ type LookupFile struct {
 	FileBaseURL string
 }
 
+type UUIDStripper interface {
+	KeyStripperUUID() string
+}
+
 func (f *LookupFile) KeyStripUUID() string {
 	k := f.FileKey[37:]
 	return k
@@ -69,6 +73,11 @@ type NullFile struct {
 	FileKey    sql.NullString
 	FileStore  sql.NullString
 	FileBucket sql.NullString
+}
+
+func (f *NullFile) KeyStripUUID() string {
+	k := f.FileKey.String[37:]
+	return k
 }
 
 func NewBucketConfig(options ...func(*BucketConfig)) *BucketConfig {

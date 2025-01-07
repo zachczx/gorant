@@ -199,13 +199,13 @@ templ PartialCommentEdit(c posts.Comment, domain string) {
 	<form
 		id="comment-form"
 		hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", c.PostID, c.ID.String()))) }
-		hx-target={ string(templ.URL(fmt.Sprintf("#post-%s-content", c.ID.String()))) }
+		hx-target={ string(templ.URL(fmt.Sprintf("#comment-%s-content", c.ID.String()))) }
 		hx-swap="outerHTML"
 		hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#comment-submit-button"
 		hx-encoding="multipart/form-data"
-		hx-target-error="#toast"
 		class="w-full space-y-4"
 	>
+		// hx-target-error="#toast"
 		<h2 class="text-xl font-bold text-base-content/70">Edit Comment</h2>
 		<label class="form-control">
 			<div id="form-message-label" class="label flex text-base-content/70">
@@ -304,10 +304,20 @@ templ PartialCommentEdit(c posts.Comment, domain string) {
 }
 
 templ PartialCommentEditSuccess(c posts.Comment) {
-	<div id={ "post-" + c.ID.String() + "-content" } class="post-content pt-4 text-base">
-		// Previously used for <textarea> input
-		// hyphenate whitespace-pre-line 
+	<div id={ "comment-" + c.ID.String() + "-content" } class="comment-content pt-4 text-base">
 		@templ.Raw(c.Content)
+		if c.NullFile.FileKey.Valid {
+			<div class="mt-8 grid gap-1 border-t border-t-neutral/20 pt-4">
+				<h4 class="font-medium">
+					Attachment
+				</h4>
+				<a href={ templ.URL(fmt.Sprintf("/view/%s", c.NullFile.FileKey.String)) } class="flex items-center text-sm text-base-content/70 underline hover:text-accent">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
+					</svg>{ c.NullFile.KeyStripUUID() }
+				</a>
+			</div>
+		}
 	</div>
 }
 

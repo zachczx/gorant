@@ -474,26 +474,63 @@ func (k *keycloak) editCommentViewHandler(bc *upload.BucketConfig) http.Handler 
 	})
 }
 
-func (k *keycloak) editCommentSaveHandler() http.Handler {
+func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if k.currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
+		postID := r.PathValue("postID")
+		commentID, err := uuid.Parse(r.PathValue("commentID"))
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+		}
 
-		// postID := r.PathValue("postID")
-		commentID := r.PathValue("commentID")
-		e := r.FormValue("message")
-		if err := posts.EditComment(commentID, e, k.currentUser.UserID); err != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
+		r.ParseMultipartForm(32 << 20)
+
+		var c posts.Comment
+		uploadedFile, header, err := uploaderHandler(r, bc)
+		if err != nil {
+			fmt.Println(err)
+			if err.Error() == "http: no such file" || err.Error() == "empty file" {
+				c = posts.Comment{
+					UserID:  k.currentUser.UserID,
+					Content: r.FormValue("message"),
+					PostID:  postID,
+				}
+			} else if err.Error() == "filetype not allowed" {
+				w.WriteHeader(http.StatusForbidden)
+				TemplRender(w, r, templates.Toast("error", "Uploaded file type not allowed!"))
+				return
+			} else {
+				w.Header().Set("Hx-Redirect", "/error")
+				return
+			}
+		} else {
+			// File was uploaded
+			c = posts.Comment{
+				ID:      commentID,
+				UserID:  k.currentUser.UserID,
+				Content: r.FormValue("message"),
+				PostID:  postID,
+				File: upload.LookupFile{
+					File: uploadedFile, FileKey: header.Filename, FileStore: bc.Store, FileBucket: bc.BucketName,
+				},
+			}
+		}
+
+		if err := posts.EditComment(c); err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		c, err := posts.GetComment(commentID, k.currentUser.UserID)
+		c, err = posts.GetComment(r.PathValue("commentID"), k.currentUser.UserID)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+		fmt.Println(c)
 		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
 	})
 }

@@ -181,21 +181,59 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 	if err != nil {
 		return c, err
 	}
-	fmt.Println(c)
 	return c, nil
 }
 
-func EditComment(commentID string, editedContent string, currentUser string) error {
-	sanitizedHTML, err := sanitizeHTML(editedContent)
+func EditComment(c Comment) error {
+	var err error
+	var returnFileID uuid.UUID
+	sanitizedHTML, err := sanitizeHTML(c.Content)
 	if err != nil {
 		return err
 	}
 
-	_, err = database.DB.Exec("UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3", sanitizedHTML, commentID, currentUser)
+	if c.File.File == nil && c.File.FileKey == "" {
+		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, sanitizedHTML, c.ID, c.UserID)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Successfully edited!")
+		return nil
+	}
+	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
 	if err != nil {
 		return err
 	}
+	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, sanitizedHTML, returnFileID.String(), c.ID, c.UserID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully edited and updated files table!")
 	return nil
+
+	////////////////////////////////////////////////////////////
+	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
+	/* if c.File.File == nil && c.File.FileKey == "" {
+		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
+		if err != nil {
+			return insertedCommentID, err
+		}
+		insertedCommentID = returnCommentID.String()
+		return insertedCommentID, err
+	}
+
+	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
+	if err != nil {
+		return insertedCommentID, err
+	}
+	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, returnFileID.String()).Scan(&returnCommentID)
+	if err != nil {
+		return insertedCommentID, err
+	}
+
+	insertedCommentID = returnCommentID.String()
+	fmt.Println("Successfully inserted!") */
 }
 
 func Delete(commentID string, username string) error {
