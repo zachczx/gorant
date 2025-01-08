@@ -1,14 +1,18 @@
-FROM golang:1.23.4 AS first
+# FROM golang:1.23.4 AS first
+FROM golang:alpine AS first
 ENV GO111MODULE=on
+# Changed to CGO_ENABLED=1 for C, so that I can run webp conversion. 
+ENV CGO_ENABLED=1
+RUN apk add build-base
 WORKDIR /app
 COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
-COPY ./posts ./posts
-COPY ./templates ./templates
-COPY ./upload ./upload
-COPY ./database ./database
-COPY ./live ./live
-COPY ./users ./users
-COPY ./static ./static
+COPY ./posts/ ./posts/
+COPY ./templates/ ./templates/
+COPY ./upload/ ./upload/
+COPY ./database/ ./database/
+COPY ./live/ ./live/
+COPY ./users/ ./users/
+COPY ./static/ ./static/
 RUN go mod download
 
 # Removed this command because the @latest one suffices. The version variable one looks more complicated than necessary.
@@ -26,7 +30,7 @@ ENV LISTEN_ADDR={$LISTEN_ADDR}
 
 # Build
 RUN templ generate && \
-    CGO_ENABLED=0 GOOS=linux go build -o /app/gorant
+    GOOS=linux go build -o /app/gorant
 
 ####################################################################################
 
@@ -43,7 +47,8 @@ RUN npx esbuild ./static/js/admin/upload.ts ./static/js/index.ts ./static/js/sse
 
 ####################################################################################
 
-FROM alpine:3.20.3
+# Only the builder requires golang:alpine (410mb+) vs alpine (50mb)
+FROM alpine
 WORKDIR /app
 COPY --from=second /app/gorant ./gorant
 COPY --from=second /app/static ./static

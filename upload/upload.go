@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"image/jpeg"
 	"io"
 	"log"
 	"mime/multipart"
@@ -20,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/chai2010/webp"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -158,6 +160,30 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string) err
 		return err
 	}
 	return nil
+}
+
+func UploadToLocalWebp(file multipart.File, fileName string) (string, error) {
+	var buf bytes.Buffer
+	localDir := "./static/uploads/"
+	newFileName := uuid.NewString() + ".webp"
+	img, err := jpeg.Decode(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// output, err := os.Create(localDir + uuid.NewString())
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// defer output.Close()
+
+	if err = webp.Encode(&buf, img, &webp.Options{Lossless: false, Quality: 75}); err != nil {
+		log.Println(err)
+	}
+	if err = os.WriteFile(localDir+newFileName, buf.Bytes(), 0o666); err != nil {
+		log.Println(err)
+	}
+
+	return newFileName, nil
 }
 
 func UploadToLocal(file multipart.File, fileName string) error {

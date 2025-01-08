@@ -295,7 +295,7 @@
 	}
 
 	.tiptap,
-	.post-content {
+	.comment-content {
 		h1 {
 			@apply text-xl font-bold;
 		}

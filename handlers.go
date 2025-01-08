@@ -757,14 +757,15 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		if err := upload.UploadToLocal(uploadedFile, header.Filename); err != nil {
+		fileName, err := upload.UploadToLocalWebp(uploadedFile, header.Filename)
+		if err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
 		if r.Header.Get("Hx-Request") == "" {
 			TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, nil))
 			return
 		}
-		TemplRender(w, r, templates.SuccessfulTestUpload(header.Filename))
+		TemplRender(w, r, templates.SuccessfulTestUpload(fileName))
 	})
 }
 

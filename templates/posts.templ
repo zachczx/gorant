@@ -409,7 +409,7 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 								}
 							</div>
 						</div>
-						<div id={ "comment-" + comments[i].ID.String() + "-content" } class="post-content pt-4 text-base">
+						<div id={ "comment-" + comments[i].ID.String() + "-content" } class="comment-content pt-4 text-base">
 							// Previously used for <textarea> input
 							// hyphenate whitespace-pre-line 
 							@templ.Raw(comments[i].Content)

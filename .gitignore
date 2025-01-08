@@ -2,6 +2,7 @@
 *templ.txt
 static/css/output
 static/js/output
+static/uploads
 node_modules/
 bin/
 .env
@@ -12,3 +13,4 @@ handlers/
 *.code-workspace
 templates/landing.templ
 bfg.jar
+
