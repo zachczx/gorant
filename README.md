@@ -27,6 +27,7 @@
 3. Local mail testing - Maildev (Dev-only)
 4. Terminal formatting - PTerm | Pretty Terminal Printer (Dev-only)
 5. Auth/auth - Stytch (swapped out)
+6. MinGW & libwebp - Encoding webp
 
 ## TODO
 

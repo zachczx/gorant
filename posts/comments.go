@@ -36,6 +36,11 @@ func (c *Comment) IDString() string {
 	return c.ID.String()
 }
 
+func (c *Comment) FileURL() string {
+	k := c.File.BaseURL + "/" + c.File.ID.String() + "-" + c.File.Key
+	return k
+}
+
 type CommentVote struct {
 	VoteID    uuid.UUID `db:"vote_id"`
 	UserID    string    `db:"user_id"`
@@ -79,7 +84,6 @@ var allowedHTMLTags = []*htmlsanitizer.Tag{
 }
 
 func Insert(c Comment) (string, error) {
-	var returnFileID uuid.UUID
 	var returnCommentID uuid.UUID
 	var insertedCommentID string
 	var err error
@@ -88,7 +92,7 @@ func Insert(c Comment) (string, error) {
 		fmt.Println(err)
 	}
 	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
-	if c.File.File == nil && c.File.FileKey == "" {
+	if c.File.File == nil && c.File.Key == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
 		if err != nil {
 			return insertedCommentID, err
@@ -97,11 +101,11 @@ func Insert(c Comment) (string, error) {
 		return insertedCommentID, err
 	}
 
-	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
+	_, err = database.DB.Exec(`INSERT INTO files (file_id, user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`, c.File.ID, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now())
 	if err != nil {
 		return insertedCommentID, err
 	}
-	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, returnFileID.String()).Scan(&returnCommentID)
+	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, c.File.ID).Scan(&returnCommentID)
 	if err != nil {
 		return insertedCommentID, err
 	}
@@ -120,7 +124,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 	// Decided to just do a separate query for that instead.
 	//
 	// This is not being used, everything is using FilterSort variant.
-	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_store, files.file_bucket, cnt, ids_voted, users.preferred_name, users.avatar FROM comments
+	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, cnt, ids_voted, users.preferred_name, users.avatar FROM comments
 
 									LEFT JOIN files
 									ON comments.file_id=files.file_id
@@ -142,7 +146,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 	for rows.Next() {
 		var c Comment
 
-		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID, &c.NullFile.FileKey, &c.NullFile.FileStore, &c.NullFile.FileBucket, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -154,11 +158,12 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 		} else {
 			c.CommentStats.CurrentUserVoted = "false"
 		}
-		if c.NullFile.FileID.Valid {
-			c.File.FileID = c.NullFile.FileID.UUID
-			c.File.FileKey = c.NullFile.FileKey.String
-			c.File.FileStore = c.NullFile.FileStore.String
-			c.File.FileBucket = c.NullFile.FileBucket.String
+		if c.NullFile.ID.Valid {
+			c.File.ID = c.NullFile.ID.UUID
+			c.File.Key = c.NullFile.Key.String
+			c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
+			c.File.Store = c.NullFile.Store.String
+			c.File.Bucket = c.NullFile.Bucket.String
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
@@ -173,26 +178,34 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 	// Protection is at 2 levels, if I wonder again in future.
 	// 1) The UI conditional doesn't show the edit comment link if the comment owner is not currentUser.
 	// 2) This SQL returns nothing found if the currentUser is not the owner of the comment.
-	err := database.DB.QueryRow(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, files.file_id, files.file_key, files.file_store, files.file_bucket
+	err := database.DB.QueryRow(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, files.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, files.file_base_url
 								FROM(SELECT *
 									FROM comments
 									WHERE comment_id=$1 AND user_id=$2) as comments
-									LEFT JOIN files ON files.file_id=comments.file_id;`, commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID, &c.NullFile.FileKey, &c.NullFile.FileStore, &c.NullFile.FileBucket)
+									LEFT JOIN files ON files.file_id=comments.file_id;`, commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.NullFile.BaseURL)
 	if err != nil {
 		return c, err
+	}
+	if c.NullFile.ID.Valid {
+		c.File.ID = c.NullFile.ID.UUID
+		c.File.Key = c.NullFile.Key.String
+		c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
+		c.File.Store = c.NullFile.Store.String
+		c.File.Bucket = c.NullFile.Bucket.String
+		c.File.BaseURL = c.NullFile.BaseURL.String
 	}
 	return c, nil
 }
 
 func EditComment(c Comment) error {
 	var err error
-	var returnFileID uuid.UUID
+	var returnID uuid.UUID
 	sanitizedHTML, err := sanitizeHTML(c.Content)
 	if err != nil {
 		return err
 	}
 
-	if c.File.File == nil && c.File.FileKey == "" {
+	if c.File.File == nil && c.File.Key == "" {
 		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, sanitizedHTML, c.ID, c.UserID)
 		if err != nil {
 			return err
@@ -200,11 +213,11 @@ func EditComment(c Comment) error {
 		fmt.Println("Successfully edited!")
 		return nil
 	}
-	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
+	err = database.DB.QueryRow(`INSERT INTO files (user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING file_id`, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now()).Scan(&returnID)
 	if err != nil {
 		return err
 	}
-	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, sanitizedHTML, returnFileID.String(), c.ID, c.UserID)
+	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, sanitizedHTML, returnID.String(), c.ID, c.UserID)
 	if err != nil {
 		return err
 	}
@@ -214,7 +227,7 @@ func EditComment(c Comment) error {
 
 	////////////////////////////////////////////////////////////
 	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
-	/* if c.File.File == nil && c.File.FileKey == "" {
+	/* if c.File.File == nil && c.File.Key == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
 		if err != nil {
 			return insertedCommentID, err
@@ -223,11 +236,11 @@ func EditComment(c Comment) error {
 		return insertedCommentID, err
 	}
 
-	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.FileKey, c.File.FileStore, c.File.FileBucket).Scan(&returnFileID)
+	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.Key, c.File.Store, c.File.Bucket).Scan(&returnID)
 	if err != nil {
 		return insertedCommentID, err
 	}
-	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, returnFileID.String()).Scan(&returnCommentID)
+	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, returnID.String()).Scan(&returnCommentID)
 	if err != nil {
 		return insertedCommentID, err
 	}
@@ -241,7 +254,6 @@ func Delete(commentID string, username string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -323,7 +335,7 @@ func ConvertDate(date string) (string, error) {
 
 func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]Comment, error) {
 	var comments []Comment
-	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_store, files.file_bucket, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
+	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, files.file_base_url, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
 
 					LEFT JOIN files
 					ON comments.file_id=files.file_id
@@ -374,7 +386,7 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	for rows.Next() {
 		var c Comment
 
-		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.FileID, &c.NullFile.FileKey, &c.NullFile.FileStore, &c.NullFile.FileBucket, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.NullFile.BaseURL, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
 			fmt.Println("Scanning error: ", err)
 			return comments, err
 		}
@@ -386,11 +398,13 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 		} else {
 			c.CommentStats.CurrentUserVoted = "false"
 		}
-		if c.NullFile.FileID.Valid {
-			c.File.FileID = c.NullFile.FileID.UUID
-			c.File.FileKey = c.NullFile.FileKey.String
-			c.File.FileStore = c.NullFile.FileStore.String
-			c.File.FileBucket = c.NullFile.FileBucket.String
+		if c.NullFile.ID.Valid {
+			c.File.ID = c.NullFile.ID.UUID
+			c.File.Key = c.NullFile.Key.String
+			c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
+			c.File.Store = c.NullFile.Store.String
+			c.File.Bucket = c.NullFile.Bucket.String
+			c.File.BaseURL = c.NullFile.BaseURL.String
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 

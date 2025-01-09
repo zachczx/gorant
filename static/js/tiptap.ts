@@ -20,13 +20,23 @@ import CharacterCount from '@tiptap/extension-character-count';
 window.addEventListener('load', () => {
 	initTiptap();
 });
-window.addEventListener('htmx:afterSwap', () => {
-	initTiptap();
+window.addEventListener('htmx:afterRequest', (evt) => {
+	//This needs to be afterRequest to init tiptap. Otherwise, there'll either be 2 element boxes if it's afterSettle (first one will work, second one doesn't),
+	// 	or no tiptap initialized if I remove this eventlistener ().
+
+	if (evt.detail.elt.classList.contains('delete-button')) {
+		console.log('from a delete button');
+		setTimeout(() => {
+			initTiptap();
+		}, 1000);
+	} else {
+		initTiptap();
+	}
 });
 
 function initTiptap() {
 	const editor = new Editor({
-		element: document.querySelector('#element') as HTMLDivElement,
+		element: document.getElementById('element') as HTMLDivElement,
 		extensions: [
 			Document,
 			Paragraph,
@@ -139,6 +149,7 @@ function initTiptap() {
 	window.addEventListener('htmx:afterSwap', () => {
 		// Destroy the instance after the swap, else there'll be 2 Tiptap editors.
 		editor.destroy();
+		// console.log('Editor destroyed: ', editor.isDestroyed);
 	});
 }
 

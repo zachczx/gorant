@@ -88,7 +88,7 @@ func Reset() error {
 
 	// Files
 
-	_, err = DB.Exec(`CREATE TABLE files (file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), file_key VARCHAR(2000), file_store VARCHAR(255),file_bucket VARCHAR(255));`)
+	_, err = DB.Exec(`CREATE TABLE files (file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, file_key VARCHAR(2000) NOT NULL, file_thumbnail_key VARCHAR(2000), file_store VARCHAR(255) NOT NULL, file_bucket VARCHAR(255) NOT NULL, file_base_url VARCHAR(2000) NOT NULL, uploaded_at TIMESTAMPTZ);`)
 	if err != nil {
 		fmt.Println("Error creating table: files")
 		return err

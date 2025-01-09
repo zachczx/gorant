@@ -5,13 +5,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"image"
+	_ "image/gif"
 	"image/jpeg"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorant/database"
@@ -52,34 +57,27 @@ type BucketConfig struct {
 }
 
 type LookupFile struct {
-	File        multipart.File
-	FileID      uuid.UUID
-	FileKey     string
-	FileStore   string
-	FileBucket  string
-	FileBaseURL string
-}
-
-type UUIDStripper interface {
-	KeyStripperUUID() string
-}
-
-func (f *LookupFile) KeyStripUUID() string {
-	k := f.FileKey[37:]
-	return k
+	File         multipart.File
+	ID           uuid.UUID
+	UserID       string
+	Key          string
+	ThumbnailKey string
+	Store        string
+	Bucket       string
+	BaseURL      string
+	UploadedAt   time.Time
 }
 
 type NullFile struct {
-	File       multipart.File
-	FileID     uuid.NullUUID
-	FileKey    sql.NullString
-	FileStore  sql.NullString
-	FileBucket sql.NullString
-}
-
-func (f *NullFile) KeyStripUUID() string {
-	k := f.FileKey.String[37:]
-	return k
+	File         multipart.File
+	ID           uuid.NullUUID
+	UserID       sql.NullString
+	Key          sql.NullString
+	ThumbnailKey sql.NullString
+	Store        sql.NullString
+	Bucket       sql.NullString
+	BaseURL      sql.NullString
+	UploadedAt   time.Time
 }
 
 func NewBucketConfig(options ...func(*BucketConfig)) *BucketConfig {
@@ -142,24 +140,69 @@ func (bc *BucketConfig) ConnectBucket() (*s3.Client, error) {
 	return client, nil
 }
 
-func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string) error {
+func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fileType string, currentUser string) (string, uuid.UUID, error) {
 	client, err := bc.ConnectBucket()
 	if err != nil {
 		log.Fatal(err)
 	}
+	uniqueKey := uuid.New()
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, file); err != nil {
-		return err
+	var fileNameNoExt string
+
+	switch fileType {
+	case "image/jpeg", "image/png":
+		buf, err = ImagetoWebp(file, fileType)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if strings.Contains(fileName, ".") {
+			// Has an extension in filename.
+			nm := strings.Split(fileName, ".")
+			fileName = nm[0] + ".webp"
+		} else {
+			// No extension in filename, just add a .webp suffix.
+			fileName = fileName + ".webp"
+		}
+		fileKey := uniqueKey.String() + "-" + fileNameNoExt
+		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &bc.BucketName,
+			Key:    aws.String(fileKey),
+			Body:   bytes.NewReader(buf.Bytes()),
+		})
+		if err != nil {
+			return fileName, uniqueKey, err
+		}
+	default:
+		fileKey := uniqueKey.String() + "-" + fileName
+		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &bc.BucketName,
+			Key:    aws.String(fileKey),
+			Body:   file,
+		})
+		if err != nil {
+			return fileName, uniqueKey, err
+		}
 	}
-	_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: &bc.BucketName,
-		Key:    aws.String(fileName),
-		Body:   bytes.NewReader(buf.Bytes()),
-	})
+	return fileName, uniqueKey, nil
+}
+
+func ImagetoWebp(file multipart.File, fileType string) (bytes.Buffer, error) {
+	var buf bytes.Buffer
+	var img image.Image
+	var err error
+	var format string
+
+	img, format, err = image.Decode(file)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
-	return nil
+	fmt.Println("Image format fallen to default: ", format)
+
+	if err = webp.Encode(&buf, img, &webp.Options{Lossless: false, Quality: 70}); err != nil {
+		log.Println(err)
+	}
+	p := &buf
+	return *p, nil
 }
 
 func UploadToLocalWebp(file multipart.File, fileName string) (string, error) {

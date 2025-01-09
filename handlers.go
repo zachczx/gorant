@@ -271,7 +271,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
 		var c posts.Comment
-		uploadedFile, header, err := uploaderHandler(r, bc)
+		uploadedFile, fileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == "http: no such file" || err.Error() == "empty file" {
@@ -295,7 +295,12 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 				Content: r.FormValue("message"),
 				PostID:  postID,
 				File: upload.LookupFile{
-					File: uploadedFile, FileKey: header.Filename, FileStore: bc.Store, FileBucket: bc.BucketName,
+					ID:      uniqueKey,
+					File:    uploadedFile,
+					Key:     fileName,
+					Store:   bc.Store,
+					Bucket:  bc.BucketName,
+					BaseURL: bc.PublicAccessDomain,
 				},
 			}
 		}
@@ -330,25 +335,28 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 	})
 }
 
-func uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, *multipart.FileHeader, error) {
+func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, string, uuid.UUID, error) {
+	var uniqueKey uuid.UUID
+	var fileName string
 	uploadedFile, header, err := r.FormFile("file")
 	if err != nil {
-		return uploadedFile, header, err
+		return uploadedFile, fileName, uniqueKey, err
 	}
 	if header.Size == 0 {
 		err = errors.New("empty file")
-		return uploadedFile, header, err
+		return uploadedFile, fileName, uniqueKey, err
 	}
 
 	defer uploadedFile.Close()
-	if err := checkFileType(uploadedFile); err != nil {
-		return uploadedFile, header, err
+	fileType, err := checkFileType(uploadedFile)
+	if err != nil {
+		return uploadedFile, fileName, uniqueKey, err
 	}
-	header.Filename = uuid.New().String() + "-" + header.Filename
-	if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
-		return uploadedFile, header, err
+	fileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+	if err != nil {
+		return uploadedFile, fileName, uniqueKey, err
 	}
-	return uploadedFile, header, nil
+	return uploadedFile, fileName, uniqueKey, nil
 }
 
 func getTagsHandler(w http.ResponseWriter, r *http.Request) {
@@ -453,24 +461,21 @@ func (k *keycloak) upvoteCommentHandler() http.Handler {
 	})
 }
 
-func (k *keycloak) editCommentViewHandler(bc *upload.BucketConfig) http.Handler {
+func (k *keycloak) editCommentViewHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if k.currentUser.UserID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
 		// postID := r.PathValue("postID")
 		commentID := r.PathValue("commentID")
-		domain := bc.PublicAccessDomain
-
 		c, err := posts.GetComment(commentID, k.currentUser.UserID)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		TemplRender(w, r, templates.PartialCommentEdit(c, domain))
+		TemplRender(w, r, templates.PartialCommentEdit(c))
 	})
 }
 
@@ -490,7 +495,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 		r.ParseMultipartForm(32 << 20)
 
 		var c posts.Comment
-		uploadedFile, header, err := uploaderHandler(r, bc)
+		uploadedFile, fileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == "http: no such file" || err.Error() == "empty file" {
@@ -515,7 +520,12 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 				Content: r.FormValue("message"),
 				PostID:  postID,
 				File: upload.LookupFile{
-					File: uploadedFile, FileKey: header.Filename, FileStore: bc.Store, FileBucket: bc.BucketName,
+					ID:      uniqueKey,
+					File:    uploadedFile,
+					Key:     fileName,
+					Store:   bc.Store,
+					Bucket:  bc.BucketName,
+					BaseURL: bc.PublicAccessDomain,
 				},
 			}
 		}
@@ -607,16 +617,16 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		if !c.NullFile.FileID.Valid {
+		if !c.NullFile.ID.Valid {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		files := []upload.BucketFile{{Key: c.NullFile.FileKey.String}}
+		files := []upload.BucketFile{{Key: c.NullFile.Key.String}}
 		if err := bc.DeleteBucketFiles(files); err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		if err := upload.DeleteDBFileRecord(c.NullFile.FileKey.String); err != nil {
+		if err := upload.DeleteDBFileRecord(c.NullFile.Key.String); err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -708,6 +718,7 @@ func (k *keycloak) viewUploadHandler(bc *upload.BucketConfig) http.Handler {
 	})
 }
 
+// TODO: Rename this, since this only seems to be used in admin
 func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Start uploading")
@@ -722,20 +733,22 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 			return
 		}
 		defer uploadedFile.Close()
-		if err := checkFileType(uploadedFile); err != nil {
+		fileType, err := checkFileType(uploadedFile)
+		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		if err := bc.UploadToBucket(uploadedFile, header.Filename); err != nil {
+		fileName, uniqueKey, err := bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+		if err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
-
+		fmt.Println(uniqueKey)
 		if r.Header.Get("Hx-Request") == "" {
 			TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, nil))
 			return
 		}
 
-		TemplRender(w, r, templates.SuccessfulUpload(header.Filename))
+		TemplRender(w, r, templates.SuccessfulUpload(fileName))
 	})
 }
 
@@ -753,7 +766,8 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 			return
 		}
 		defer uploadedFile.Close()
-		if err := checkFileType(uploadedFile); err != nil {
+		_, err = checkFileType(uploadedFile)
+		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -771,14 +785,15 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 
 var mimeTypes = []string{"image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"}
 
-func checkFileType(file multipart.File) error {
+func checkFileType(file multipart.File) (string, error) {
+	var fileType string
 	// Peek into first 512 bytes to get mime/type
 	buff := make([]byte, 512)
 	_, err := file.Read(buff)
 	if err != nil {
-		return err
+		return fileType, err
 	}
-	fileType := http.DetectContentType(buff)
+	fileType = http.DetectContentType(buff)
 	fmt.Println(fileType)
 	accepted := false
 	for _, v := range mimeTypes {
@@ -788,11 +803,11 @@ func checkFileType(file multipart.File) error {
 		}
 	}
 	if !accepted {
-		return errors.New("filetype not allowed")
+		return fileType, errors.New("filetype not allowed")
 	}
 	// Need to call Seek() to reset file pointer to beginning of file.
 	file.Seek(0, 0)
-	return nil
+	return fileType, nil
 }
 
 func (k *keycloak) viewDuplicateFilesHandler() http.Handler {
