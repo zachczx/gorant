@@ -256,7 +256,6 @@ func ImagetoWebp(file multipart.File, fileType string) (bytes.Buffer, error) {
 func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
 	var err error
 	var buf bytes.Buffer
-
 	src, format, err := image.Decode(file)
 	if err != nil {
 		return buf, err
@@ -265,12 +264,10 @@ func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
 
 	ratio := (float64)(src.Bounds().Max.Y) / (float64)(src.Bounds().Max.X)
 	height := int(math.Round(float64(width) * ratio))
-
 	dst := image.NewRGBA(image.Rect(0, 0, width, height))
-
 	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
 
-	if err = webp.Encode(&buf, dst, &webp.Options{Lossless: false, Quality: 70}); err != nil {
+	if err = webp.Encode(&buf, dst, &webp.Options{Lossless: false, Quality: 60}); err != nil {
 		log.Println(err)
 	}
 	p := &buf

@@ -544,7 +544,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 			return
 		}
 		fmt.Println(c)
-		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
+		TemplRender(w, r, templates.PartialCommentEditSuccess(k.currentUser, c))
 	})
 }
 
@@ -563,7 +563,7 @@ func (k *keycloak) editCommentCancelHandler() http.Handler {
 			return
 		}
 
-		TemplRender(w, r, templates.PartialCommentEditSuccess(c))
+		TemplRender(w, r, templates.PartialCommentEditSuccess(k.currentUser, c))
 	})
 }
 

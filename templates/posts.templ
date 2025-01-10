@@ -176,7 +176,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 					</div>
 				</form>
 				<div class="w-full px-1 lg:px-8">
-					@PartialPostNew(currentUser, comments, highlight)
+					@Comments(currentUser, comments, highlight)
 				</div>
 			</div>
 			<script src="/static/js/output/post.js"></script>
@@ -241,60 +241,6 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 						<div class="col-span-3 flex flex-wrap items-center gap-1">
 							<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
 						</div>
-						<!-- Apply heading style 1 -->
-						// <div class="col-span-2 flex items-center gap-2">
-						// 	<button id="input-button-h1" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
-						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-h1 pointer-events-none" viewBox="0 0 24 24"><path fill="currentColor" d="M5 17V7h2v4h4V7h2v10h-2v-4H7v4zm12 0V9h-2V7h4v10z"></path></svg>
-						// 	</button>Heading
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Cmd</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd>
-						// </div>
-						// <!-- Left align -->
-						// <div class="col-span-2 flex items-center gap-2">
-						// 	<button id="input-button-left" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
-						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-left pointer-events-none" viewBox="0 0 24 24">
-						// 			<path fill="currentColor" d="M3 21v-2h18v2zm0-4v-2h12v2zm0-4v-2h18v2zm0-4V7h12v2zm0-4V3h18v2z"></path>
-						// 		</svg>
-						// 	</button>Left align
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd>
-						// </div>
-						// <!-- Center align -->
-						// <div class="col-span-2 flex items-center gap-2">
-						// 	<button id="input-button-center" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
-						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-center pointer-events-none" viewBox="0 0 24 24">
-						// 			<path fill="currentColor" d="M3 21v-2h18v2zm4-4v-2h10v2zm-4-4v-2h18v2zm4-4V7h10v2zM3 5V3h18v2z"></path>
-						// 		</svg>
-						// 	</button>Center align
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd>
-						// </div>
-						// <!-- Right align -->
-						// <div class="col-span-2 flex items-center gap-2">
-						// 	<button id="input-button-right" type="button" class="flex items-center gap-2 rounded-lg border border-neutral/15 p-1 hover:bg-primary/20">
-						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-align-right pointer-events-none" viewBox="0 0 24 24">
-						// 			<path fill="currentColor" d="M3 5V3h18v2zm6 4V7h12v2zm-6 4v-2h18v2zm6 4v-2h12v2zm-6 4v-2h18v2z"></path>
-						// 		</svg>
-						// 	</button>Right align
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
-						// </div>
-						// <div class="col-span-3 flex flex-wrap items-center gap-1">
-						// 	<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
-						// </div>
 					</div>
 					<div class="modal-action">
 						<form method="dialog">
@@ -308,7 +254,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 	}
 }
 
-templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highlight string) {
+templ Comments(currentUser *users.User, comments []posts.Comment, highlight string) {
 	<article id="posts" class="w-full space-y-2" hx-ext="response-targets">
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
@@ -324,9 +270,9 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 					<div
 						id={ "comment-upvote-" + comments[i].ID.String() }
 						if comments[i].ID.String() == highlight {
-							class="grid animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-20"
+							class="grid animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-16"
 						} else {
-							class="grid content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-20"
+							class="grid content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-16"
 						}
 					>
 						<button
