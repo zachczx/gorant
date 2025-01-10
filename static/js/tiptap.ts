@@ -24,8 +24,9 @@ window.addEventListener('load', () => {
  * (first one will work, second one doesn't), or no tiptap initialized if I remove this eventlistener ().
  */
 window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
+	console.log(evt.detail.requestConfig.verb);
 	// Adding a delay because I added a delay for the delete handler to swap new comment list.
-	if (evt.detail.requestConfig.verb === 'post') {
+	if (evt.detail.requestConfig.verb === 'post' || evt.detail.requestConfig.verb === 'get') {
 		initTiptap();
 	}
 }) as EventListener);
