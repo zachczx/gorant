@@ -12,6 +12,7 @@ import (
 	_ "image/png"
 	"io"
 	"log"
+	"math"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ import (
 	"github.com/chai2010/webp"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/image/draw"
 )
 
 type BucketFile struct {
@@ -140,37 +142,58 @@ func (bc *BucketConfig) ConnectBucket() (*s3.Client, error) {
 	return client, nil
 }
 
-func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fileType string, currentUser string) (string, uuid.UUID, error) {
+func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fileType string, currentUser string) (string, string, uuid.UUID, error) {
 	client, err := bc.ConnectBucket()
 	if err != nil {
 		log.Fatal(err)
 	}
 	uniqueKey := uuid.New()
 	var buf bytes.Buffer
-	var fileNameNoExt string
-
+	var bufThumb bytes.Buffer
+	var thumbnailFileName string
+	maxWidthThumbnail := 100
 	switch fileType {
 	case "image/jpeg", "image/png":
 		buf, err = ImagetoWebp(file, fileType)
 		if err != nil {
+			fmt.Println("Failed at image to webp step")
+			log.Fatal(err)
+		}
+
+		// reset this since NewReader doesn't reset position to beginning of file.
+		file.Seek(0, 0)
+		bufThumb, err = GenerateThumbnail(file, maxWidthThumbnail)
+		if err != nil {
+			fmt.Println("Failed at image to thumbnail step")
 			log.Fatal(err)
 		}
 		if strings.Contains(fileName, ".") {
 			// Has an extension in filename.
 			nm := strings.Split(fileName, ".")
 			fileName = nm[0] + ".webp"
+			thumbnailFileName = nm[0] + "-tn.webp"
 		} else {
 			// No extension in filename, just add a .webp suffix.
 			fileName = fileName + ".webp"
+			thumbnailFileName = fileName + "-tn.webp"
 		}
-		fileKey := uniqueKey.String() + "-" + fileNameNoExt
+		fileKey := uniqueKey.String() + "-" + fileName
 		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
 			Bucket: &bc.BucketName,
 			Key:    aws.String(fileKey),
 			Body:   bytes.NewReader(buf.Bytes()),
 		})
 		if err != nil {
-			return fileName, uniqueKey, err
+			return fileName, thumbnailFileName, uniqueKey, err
+		}
+		fileKey = uniqueKey.String() + "-" + thumbnailFileName
+		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &bc.BucketName,
+			Key:    aws.String(fileKey),
+			Body:   bytes.NewReader(bufThumb.Bytes()),
+		})
+		if err != nil {
+			return fileName, thumbnailFileName, uniqueKey, err
 		}
 	default:
 		fileKey := uniqueKey.String() + "-" + fileName
@@ -180,10 +203,34 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			Body:   file,
 		})
 		if err != nil {
-			return fileName, uniqueKey, err
+			return fileName, thumbnailFileName, uniqueKey, err
+		}
+
+		if strings.Contains(fileName, ".") {
+			// Has an extension in filename.
+			nm := strings.Split(fileName, ".")
+			thumbnailFileName = nm[0] + "-tn.webp"
+		} else {
+			// No extension in filename, just add a .webp suffix.
+			thumbnailFileName = fileName + "-tn.webp"
+		}
+		fileKey = uniqueKey.String() + "-" + thumbnailFileName
+		file.Seek(0, 0)
+		bufThumb, err = GenerateThumbnail(file, maxWidthThumbnail)
+		if err != nil {
+			fmt.Println("Failed at image to thumbnail step")
+			log.Fatal(err)
+		}
+		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &bc.BucketName,
+			Key:    aws.String(fileKey),
+			Body:   bytes.NewReader(bufThumb.Bytes()),
+		})
+		if err != nil {
+			return fileName, thumbnailFileName, uniqueKey, err
 		}
 	}
-	return fileName, uniqueKey, nil
+	return fileName, thumbnailFileName, uniqueKey, nil
 }
 
 func ImagetoWebp(file multipart.File, fileType string) (bytes.Buffer, error) {
@@ -194,14 +241,40 @@ func ImagetoWebp(file multipart.File, fileType string) (bytes.Buffer, error) {
 
 	img, format, err = image.Decode(file)
 	if err != nil {
+		fmt.Println("Failed at image to webp step")
 		log.Fatalln(err)
 	}
-	fmt.Println("Image format fallen to default: ", format)
+	fmt.Println("Image format: ", format)
 
 	if err = webp.Encode(&buf, img, &webp.Options{Lossless: false, Quality: 70}); err != nil {
 		log.Println(err)
 	}
 	p := &buf
+	return *p, nil
+}
+
+func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
+	var err error
+	var buf bytes.Buffer
+
+	src, format, err := image.Decode(file)
+	if err != nil {
+		return buf, err
+	}
+	fmt.Println(format)
+
+	ratio := (float64)(src.Bounds().Max.Y) / (float64)(src.Bounds().Max.X)
+	height := int(math.Round(float64(width) * ratio))
+
+	dst := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
+
+	if err = webp.Encode(&buf, dst, &webp.Options{Lossless: false, Quality: 70}); err != nil {
+		log.Println(err)
+	}
+	p := &buf
+
 	return *p, nil
 }
 

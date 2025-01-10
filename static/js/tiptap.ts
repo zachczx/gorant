@@ -2,7 +2,6 @@ import { Editor } from '@tiptap/core';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
-// import Heading from '@tiptap/extension-heading';
 import ListItem from '@tiptap/extension-list-item';
 import OrderedList from '@tiptap/extension-ordered-list';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -14,25 +13,23 @@ import Gapcursor from '@tiptap/extension-gapcursor';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
 import Strike from '@tiptap/extension-strike';
-// import TextAlign, { TextAlignOptions } from '@tiptap/extension-text-align';
 import CharacterCount from '@tiptap/extension-character-count';
 
 window.addEventListener('load', () => {
 	initTiptap();
 });
-window.addEventListener('htmx:afterRequest', (evt) => {
-	//This needs to be afterRequest to init tiptap. Otherwise, there'll either be 2 element boxes if it's afterSettle (first one will work, second one doesn't),
-	// 	or no tiptap initialized if I remove this eventlistener ().
 
-	if (evt.detail.elt.classList.contains('delete-button')) {
-		console.log('from a delete button');
-		setTimeout(() => {
-			initTiptap();
-		}, 1000);
-	} else {
+/**
+ * This needs to be afterRequest to init tiptap. Otherwise, there'll either be 2 element boxes if it's afterSettle
+ * (first one will work, second one doesn't), or no tiptap initialized if I remove this eventlistener ().
+ */
+
+window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
+	// Adding a delay because I added a delay for the delete handler to swap new comment list.
+	if (evt.detail.requestConfig.verb === 'post') {
 		initTiptap();
 	}
-});
+}) as EventListener);
 
 function initTiptap() {
 	const editor = new Editor({
@@ -41,18 +38,12 @@ function initTiptap() {
 			Document,
 			Paragraph,
 			Text,
-			// Heading.configure({
-			// 	levels: [1],
-			// }),
 			ListItem,
 			BulletList,
 			OrderedList,
 			BubbleMenu.configure({
 				element: document.querySelector('.tiptap-editor-menu') as HTMLDivElement,
 				updateDelay: 0,
-				// shouldShow: () => {
-				// 	return true;
-				// },
 			}),
 			Bold,
 			Italic,
@@ -65,10 +56,6 @@ function initTiptap() {
 				placeholder: 'Write something here…',
 			}),
 			Strike,
-			// TextAlign.configure({
-			// 	alignments: ['left', 'center', 'right'],
-			// 	types: ['heading', 'paragraph'],
-			// }),
 			CharacterCount.configure({
 				limit: 2000,
 			}),
@@ -99,34 +86,6 @@ function initTiptap() {
 				editor.chain().focus().toggleStrike().run();
 				setBubbleMenuButtonColor(editor, 'strike', document.getElementById('input-button-strike') as HTMLButtonElement);
 				break;
-			// case document.getElementById('input-button-h1'):
-			// 	editor.chain().focus().toggleHeading({ level: 1 }).run();
-			// 	setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
-			// 	break;
-			// case document.getElementById('input-button-left'):
-			// 	editor.chain().focus().setTextAlign('left').run();
-			// 	setBubbleMenuButtonColor(
-			// 		editor,
-			// 		{ textAlign: 'left' },
-			// 		document.getElementById('input-button-left') as HTMLButtonElement,
-			// 	);
-			// 	break;
-			// case document.getElementById('input-button-center'):
-			// 	editor.chain().focus().setTextAlign('center').run();
-			// 	setBubbleMenuButtonColor(
-			// 		editor,
-			// 		{ textAlign: 'center' },
-			// 		document.getElementById('input-button-center') as HTMLButtonElement,
-			// 	);
-			// 	break;
-			// case document.getElementById('input-button-right'):
-			// 	editor.chain().focus().setTextAlign('right').run();
-			// 	setBubbleMenuButtonColor(
-			// 		editor,
-			// 		{ textAlign: 'right' },
-			// 		document.getElementById('input-button-right') as HTMLButtonElement,
-			// 	);
-			// 	break;
 		}
 	});
 
@@ -135,6 +94,16 @@ function initTiptap() {
 	editor.on('create', ({ editor }) => {
 		showChars(editor);
 		populateExistingContentForEdit(editor);
+
+		const commentFormTiptapPlaceholder = document.getElementById('comment-form-tiptap-placeholder') as HTMLDivElement;
+		const delayForBubbleMenuDomCreation = 10;
+		if (commentFormTiptapPlaceholder) {
+			// Either set this or set another eventlistener for htmx:afterSettle to add .hidden to the div.
+			// But this will increase the redundant number of things firing off.
+			setTimeout(() => {
+				commentFormTiptapPlaceholder.classList.add('hidden');
+			}, delayForBubbleMenuDomCreation);
+		}
 	});
 	editor.on('update', ({ editor }) => {
 		commentFormMessageInput.value = editor.getHTML();
@@ -146,11 +115,13 @@ function initTiptap() {
 		showChars(editor);
 		setMultipleListenersBubbleMenuButtonColor(editor);
 	});
-	window.addEventListener('htmx:afterSwap', () => {
+	window.addEventListener('htmx:afterSwap', ((evt: HtmxAfterSwap) => {
 		// Destroy the instance after the swap, else there'll be 2 Tiptap editors.
-		editor.destroy();
-		// console.log('Editor destroyed: ', editor.isDestroyed);
-	});
+		// But there's no need to destroy it if we're deleting stuff, because there won't be text in the editor.
+		if (evt.detail.requestConfig.verb === 'post') {
+			editor.destroy();
+		}
+	}) as EventListener);
 }
 
 /**
@@ -200,22 +171,6 @@ function setMultipleListenersBubbleMenuButtonColor(editor: Editor) {
 	setBubbleMenuButtonColor(editor, 'italic', document.getElementById('input-button-italic') as HTMLButtonElement);
 	setBubbleMenuButtonColor(editor, 'underline', document.getElementById('input-button-underline') as HTMLButtonElement);
 	setBubbleMenuButtonColor(editor, 'strike', document.getElementById('input-button-strike') as HTMLButtonElement);
-	// setBubbleMenuButtonColor(editor, 'heading', document.getElementById('input-button-h1') as HTMLButtonElement);
-	// setBubbleMenuButtonColor(
-	// 	editor,
-	// 	{ textAlign: 'left' },
-	// 	document.getElementById('input-button-left') as HTMLButtonElement,
-	// );
-	// setBubbleMenuButtonColor(
-	// 	editor,
-	// 	{ textAlign: 'center' },
-	// 	document.getElementById('input-button-center') as HTMLButtonElement,
-	// );
-	// setBubbleMenuButtonColor(
-	// 	editor,
-	// 	{ textAlign: 'right' },
-	// 	document.getElementById('input-button-right') as HTMLButtonElement,
-	// );
 }
 
 /**

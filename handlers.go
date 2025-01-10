@@ -271,7 +271,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
 		var c posts.Comment
-		uploadedFile, fileName, uniqueKey, err := k.uploaderHandler(r, bc)
+		uploadedFile, fileName, thumbnailFileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == "http: no such file" || err.Error() == "empty file" {
@@ -295,12 +295,13 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 				Content: r.FormValue("message"),
 				PostID:  postID,
 				File: upload.LookupFile{
-					ID:      uniqueKey,
-					File:    uploadedFile,
-					Key:     fileName,
-					Store:   bc.Store,
-					Bucket:  bc.BucketName,
-					BaseURL: bc.PublicAccessDomain,
+					ID:           uniqueKey,
+					File:         uploadedFile,
+					Key:          fileName,
+					ThumbnailKey: thumbnailFileName,
+					Store:        bc.Store,
+					Bucket:       bc.BucketName,
+					BaseURL:      bc.PublicAccessDomain,
 				},
 			}
 		}
@@ -335,28 +336,29 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 	})
 }
 
-func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, string, uuid.UUID, error) {
+func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (multipart.File, string, string, uuid.UUID, error) {
 	var uniqueKey uuid.UUID
 	var fileName string
+	var thumbnailFileName string
 	uploadedFile, header, err := r.FormFile("file")
 	if err != nil {
-		return uploadedFile, fileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
 	}
 	if header.Size == 0 {
 		err = errors.New("empty file")
-		return uploadedFile, fileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
 	}
 
 	defer uploadedFile.Close()
 	fileType, err := checkFileType(uploadedFile)
 	if err != nil {
-		return uploadedFile, fileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
 	}
-	fileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+	fileName, thumbnailFileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
 	if err != nil {
-		return uploadedFile, fileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
 	}
-	return uploadedFile, fileName, uniqueKey, nil
+	return uploadedFile, fileName, thumbnailFileName, uniqueKey, nil
 }
 
 func getTagsHandler(w http.ResponseWriter, r *http.Request) {
@@ -495,7 +497,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 		r.ParseMultipartForm(32 << 20)
 
 		var c posts.Comment
-		uploadedFile, fileName, uniqueKey, err := k.uploaderHandler(r, bc)
+		uploadedFile, fileName, thumbnailFileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == "http: no such file" || err.Error() == "empty file" {
@@ -520,12 +522,13 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 				Content: r.FormValue("message"),
 				PostID:  postID,
 				File: upload.LookupFile{
-					ID:      uniqueKey,
-					File:    uploadedFile,
-					Key:     fileName,
-					Store:   bc.Store,
-					Bucket:  bc.BucketName,
-					BaseURL: bc.PublicAccessDomain,
+					ID:           uniqueKey,
+					File:         uploadedFile,
+					Key:          fileName,
+					ThumbnailKey: thumbnailFileName,
+					Store:        bc.Store,
+					Bucket:       bc.BucketName,
+					BaseURL:      bc.PublicAccessDomain,
 				},
 			}
 		}
@@ -738,11 +741,11 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		fileName, uniqueKey, err := bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+		fileName, thumbnailFileName, uniqueKey, err := bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
 		if err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
-		fmt.Println(uniqueKey)
+		fmt.Println(uniqueKey, thumbnailFileName)
 		if r.Header.Get("Hx-Request") == "" {
 			TemplRender(w, r, templates.UploadAdmin("testing upload", k.currentUser, nil))
 			return

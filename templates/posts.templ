@@ -127,7 +127,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 						<div class="p-4" hx-ext="response-targets">
 							@PostForm(currentUser, post.ID, "false")
 						</div>
-						<script src="/static/js/output/tiptap.js"></script>
+						<script src="/static/js/output/tiptap.js" defer></script>
 					</div>
 				</div>
 			</div>
@@ -213,7 +213,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:format-italic pointer-events-none" viewBox="0 0 24 24">
 									<path fill="currentColor" d="M5 19v-2.5h4l3-9H8V5h10v2.5h-3.5l-3 9H15V19z"></path>
 								</svg>
-							</button>Italicize
+							</button>Italic
 						</div>
 						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
 						<div class="col-span-3 flex flex-wrap items-center gap-1"><kbd>Cmd</kbd> + <kbd>I</kbd></div>
@@ -395,7 +395,7 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 												hx-trigger="click"
 												hx-swap="outerHTML swap:1s"
 												hx-target-403="#toast"
-												hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", comments[i].PostID, comments[i].ID.String()))) }
+												hx-delete={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", comments[i].PostID, comments[i].ID.String()))) }
 												class="delete-button rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content"
 											>
 												<button class="flex">
@@ -416,13 +416,14 @@ templ PartialPostNew(currentUser *users.User, comments []posts.Comment, highligh
 							@templ.Raw(comments[i].Content)
 							if len(comments[i].File.Key) > 0 {
 								<div class="mt-8 grid gap-1 border-t border-t-neutral/20 pt-4">
-									<h4 class="font-medium">
+									<h4 class="flex items-center font-medium">
+										// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
+										// 	<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
+										// </svg>
 										Attachment
 									</h4>
-									<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="flex items-center text-sm text-base-content/70 underline hover:text-accent">
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
-										</svg>{ comments[i].File.Key }
+									<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="flex max-h-36 max-w-36 items-center justify-center overflow-hidden rounded-lg border border-neutral/30 bg-neutral/90 text-sm text-base-content/70 underline hover:text-accent">
+										<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].ThumbnailURL()))) } alt="Uploaded image" class="object-fit"/>
 									</button>
 								</div>
 								// Modal for each attachment
@@ -582,7 +583,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					<div class="grow text-sm font-medium">Message</div>
 					<div class="text-sm italic"><span id="form-message-chars"></span>/2000</div>
 				</div>
-				<div class="element" id="element"></div>
+				<div class="element" id="element"><div id="comment-form-tiptap-placeholder" class="grid h-40 w-full place-items-center rounded-lg border border-base-content/20"><span class="loading loading-spinner loading-md text-accent"></span></div></div>
 				<textarea
 					name="message"
 					id="comment-form-message-input"

@@ -41,6 +41,18 @@ func (c *Comment) FileURL() string {
 	return k
 }
 
+func (c *Comment) ThumbnailURL() string {
+	// Trying to guess the thumbnail just in case something went wrong (e.g. didn't save successfully or accidentally deleted)
+	if c.File.ThumbnailKey == "" {
+		var fn []string
+		if strings.Contains(c.File.Key, ".") {
+			fn = strings.Split(c.File.Key, ".")
+		}
+		return c.File.BaseURL + "/" + c.File.ID.String() + "-" + fn[0] + "-tn." + fn[1]
+	}
+	return c.File.BaseURL + "/" + c.File.ID.String() + "-" + c.File.ThumbnailKey
+}
+
 type CommentVote struct {
 	VoteID    uuid.UUID `db:"vote_id"`
 	UserID    string    `db:"user_id"`

@@ -45,7 +45,6 @@ templ PartialPostNewErrorLogin(currentUser *users.User, comments []posts.Comment
 
 templ PartialPostDelete(currentUser *users.User, comments []posts.Comment) {
 	@PartialPostNew(currentUser, comments, "")
-	@PostForm(currentUser, comments[0].PostID, "true")
 }
 
 templ PartialPostErrorMessage(message string) {

@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.28.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.48
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.1
+	github.com/chai2010/webp v1.1.1
 	github.com/go-swiss/compress v0.0.0-20231015173048-c7b565746931
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/sessions v1.4.0
@@ -18,6 +19,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pterm/pterm v0.12.80
 	github.com/rezakhademix/govalidator/v2 v2.1.0
+	github.com/sym01/htmlsanitizer v1.1.0
 )
 
 require (
@@ -38,7 +40,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
-	github.com/chai2010/webp v1.1.1 // indirect
 	github.com/containerd/console v1.0.4 // indirect
 	github.com/go-resty/resty/v2 v2.16.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
@@ -54,14 +55,13 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
-	github.com/sizeofint/webpanimation v0.0.0-20210809145948-1d2b32119882 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	github.com/sym01/htmlsanitizer v1.1.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/image v0.23.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )

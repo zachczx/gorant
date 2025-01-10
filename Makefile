@@ -41,7 +41,10 @@ dev/eslint:
 # prettier screws up the minification if last
 # esbuild needs to be before tailwind to generate the proper classes, e.g. keeps generating spinner instead of dots even with correct classes
 dev: 
-	make -j5 dev/keycloak dev/templ dev/prettier dev/esbuild dev/tailwind 
+	make -j4 dev/templ dev/prettier dev/esbuild dev/tailwind 
+
+key: 
+	make dev/keycloak 
 
 
 ############################
