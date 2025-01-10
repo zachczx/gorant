@@ -23,7 +23,6 @@ window.addEventListener('load', () => {
  * This needs to be afterRequest to init tiptap. Otherwise, there'll either be 2 element boxes if it's afterSettle
  * (first one will work, second one doesn't), or no tiptap initialized if I remove this eventlistener ().
  */
-
 window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
 	// Adding a delay because I added a delay for the delete handler to swap new comment list.
 	if (evt.detail.requestConfig.verb === 'post') {
@@ -95,7 +94,7 @@ function initTiptap() {
 		showChars(editor);
 		populateExistingContentForEdit(editor);
 
-		const commentFormTiptapPlaceholder = document.getElementById('comment-form-tiptap-placeholder') as HTMLDivElement;
+		/* 		const commentFormTiptapPlaceholder = document.getElementById('comment-form-tiptap-placeholder') as HTMLDivElement;
 		const delayForBubbleMenuDomCreation = 10;
 		if (commentFormTiptapPlaceholder) {
 			// Either set this or set another eventlistener for htmx:afterSettle to add .hidden to the div.
@@ -103,7 +102,7 @@ function initTiptap() {
 			setTimeout(() => {
 				commentFormTiptapPlaceholder.classList.add('hidden');
 			}, delayForBubbleMenuDomCreation);
-		}
+		} */
 	});
 	editor.on('update', ({ editor }) => {
 		commentFormMessageInput.value = editor.getHTML();

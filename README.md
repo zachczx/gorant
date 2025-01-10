@@ -12,8 +12,9 @@
 ## JS tools
 
 1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets, SSE)
-2. Formatting - Prettier
-3. Bundling - ESBuild
+2. WYSIWYG Editor - Tiptap Editor
+3. Formatting - Prettier
+4. Bundling - ESBuild
 
 ## CSS tools
 
@@ -27,12 +28,12 @@
 3. Local mail testing - Maildev (Dev-only)
 4. Terminal formatting - PTerm | Pretty Terminal Printer (Dev-only)
 5. Auth/auth - Stytch (swapped out)
-6. MinGW & libwebp - Encoding webp
+6. Webp encoding/decoding - MinGW & libwebp wrapper
+7. S3 compatible object storage - Cloudflare R2
 
 ## TODO
 
-1. Add Tiptap functionality for post edit
-2. Need a way to disconnect live clients (remnant browser tabs causing panics)
+1. Need a way to disconnect live clients (remnant browser tabs causing panics)
 
 ## Notes for Choice of Auth
 
