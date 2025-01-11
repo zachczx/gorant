@@ -1,5 +1,8 @@
+import daisyui from 'daisyui';
+// import themes from 'daisyui/src/theming/themes';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
 	content: ['./templates/*.{templ,txt}', './static/js/output/*.js'],
 	theme: {
 		fontFamily: {
@@ -160,7 +163,7 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [require('daisyui')],
+	plugins: [daisyui],
 	daisyui: {
 		themes: [
 			{
