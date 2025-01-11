@@ -140,6 +140,9 @@ window.addEventListener('htmx:validation:failed', ((evt: HtmxEvent) => {
 window.addEventListener('load', uploadInputSelectionText);
 window.addEventListener('htmx:afterSwap', uploadInputSelectionText);
 
+/**
+ * Replaces the text of the file input droparea with name of file.
+ */
 function uploadInputSelectionText() {
 	// console.log('triggered commentformfileinput listener');
 	const commentFormFileInput = document.getElementById('comment-file-input') as HTMLInputElement;
@@ -152,4 +155,34 @@ function uploadInputSelectionText() {
 			}
 		});
 	}
+}
+
+/**
+ * Handles the drag and drop of files, to then populate the file input for eventual upload only on form submission.
+ */
+function handleDrop(evt: DragEvent) {
+	evt.preventDefault();
+	// stopPropagation() is needed otherwise browser complains:
+	// 		Uncaught TypeError: n.drop is not a function "content.js"
+	evt.stopPropagation();
+	// DataTransfer() needed to convert file to a FileList,
+	// otherwise browser complains the input value is not a FileList.
+	const dataTransfer = new DataTransfer();
+	const commentFormFileInput = document.getElementById('comment-file-input') as HTMLInputElement;
+	const commentFormFileMessage = document.getElementById('comment-file-message') as HTMLDivElement;
+	if (evt.dataTransfer?.files[0]) {
+		dataTransfer.items.add(evt.dataTransfer.files[0]);
+		commentFormFileInput.files = dataTransfer.files;
+		commentFormFileMessage.innerHTML = `<b>${evt.dataTransfer.files[0].name}</b>`;
+	}
+}
+const commentFileInputDroparea = document.getElementById('comment-file-input-droparea');
+commentFileInputDroparea?.addEventListener('dragenter', preventDefault);
+commentFileInputDroparea?.addEventListener('dragover', preventDefault);
+commentFileInputDroparea?.addEventListener('dragleave', preventDefault);
+commentFileInputDroparea?.addEventListener('drop', handleDrop);
+
+function preventDefault(evt: DragEvent) {
+	evt.preventDefault();
+	evt.stopPropagation();
 }

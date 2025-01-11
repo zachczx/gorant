@@ -261,19 +261,15 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 				<div
 					id={ "comment-" + comments[i].ID.String() }
 					if comments[i].ID.String() == highlight {
-						class="relative flex h-auto w-full animate-highlight-border rounded-lg border border-neutral/10 transition-all duration-1000"
+						class="relative flex h-auto w-full animate-highlight-border rounded-xl border border-neutral/10 transition-all duration-1000"
 					} else {
-						class="relative flex h-auto w-full rounded-lg border border-neutral/10 transition-all duration-1000"
+						class="relative flex h-auto w-full rounded-xl border border-neutral/10 transition-all duration-1000"
 					}
 				>
 					<div id={ "comment-delete-loader-" + comments[i].ID.String() } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
 					<div
 						id={ "comment-upvote-" + comments[i].ID.String() }
-						if comments[i].ID.String() == highlight {
-							class="grid animate-highlight-comment-side content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-16"
-						} else {
-							class="grid content-center rounded-l-lg bg-primary/30 p-2 text-center text-xl font-bold lg:w-16"
-						}
+						class="grid content-center rounded-l-xl bg-white/70 p-2 text-center text-xl font-bold lg:w-16"
 					>
 						<button
 							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/upvote", comments[i].PostID, comments[i].ID.String()))) }
@@ -281,9 +277,9 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							hx-swap="outerHTML"
 							hx-target-403="#toast"
 							if comments[i].CommentStats.CurrentUserVoted == "true" {
-								class="inline-block h-auto text-4xl text-orange-600"
+								class="inline-block h-auto text-4xl text-secondary"
 							} else {
-								class="inline-block h-auto text-4xl hover:text-orange-600 active:-translate-y-1"
+								class="inline-block h-auto text-4xl hover:text-secondary active:-translate-y-1"
 							}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
@@ -298,11 +294,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 					</div>
 					<div
 						id={ "comment-body-" + comments[i].ID.String() }
-						if comments[i].ID.String() == highlight {
-							class="w-full grow animate-highlight-comment-main rounded-r-lg bg-white/70 p-4"
-						} else {
-							class="w-full grow rounded-r-lg bg-white/70 p-4"
-						}
+						class="w-full grow rounded-r-xl bg-white/70 p-4"
 					>
 						<div class="flex">
 							<div class="flex grow items-center">
@@ -565,7 +557,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					</div>
 				</div>
 				<div class="collapse-content space-y-2">
-					<label class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
+					<label id="comment-file-input-droparea" class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
 						<input id="comment-file-input" type="file" name="file" class="file-input file-input-bordered file-input-accent hidden w-full" accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/svg+xml"/>
 						<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="material-symbols:upload-file" viewBox="0 0 24 24"><path fill="currentColor" d="M11 19h2v-4.175l1.6 1.6L16 15l-4-4l-4 4l1.425 1.4L11 14.825zm-5 3q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
 						<div id="comment-file-message" class="break-all px-2 text-base font-medium"><b>Select a file</b> to upload</div>
