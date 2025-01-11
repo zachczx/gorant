@@ -261,7 +261,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 				<div
 					id={ "comment-" + comments[i].ID.String() }
 					if comments[i].ID.String() == highlight {
-						class="relative flex h-auto w-full animate-highlight-border rounded-xl border border-neutral/10 transition-all duration-1000"
+						class="relative flex h-auto w-full animate-highlight-comment-main rounded-xl border border-neutral/10 transition-all duration-1000"
 					} else {
 						class="relative flex h-auto w-full rounded-xl border border-neutral/10 transition-all duration-1000"
 					}
@@ -279,7 +279,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							if comments[i].CommentStats.CurrentUserVoted == "true" {
 								class="inline-block h-auto text-4xl text-secondary"
 							} else {
-								class="inline-block h-auto text-4xl hover:text-secondary active:-translate-y-1"
+								class="inline-block h-auto text-4xl hover:text-secondary active:-translate-y-5 transition-all duration-300 ease-out"
 							}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
