@@ -157,6 +157,34 @@ function uploadInputSelectionText() {
 	}
 }
 
+window.addEventListener('load', commentUploadDragAndDrop);
+window.addEventListener('htmx:afterSwap', commentUploadDragAndDrop);
+
+/**
+ * Handles the drag and drop of files for all possible eventListeners (dragenter, dragover, dragleave, drop).
+ */
+function commentUploadDragAndDrop() {
+	const commentFileInputDroparea = document.getElementById('comment-file-input-droparea');
+	commentFileInputDroparea?.addEventListener('dragenter', (evt) => {
+		evt.preventDefault();
+		evt.stopPropagation();
+		commentFileInputDroparea?.classList.add('bg-primary/30');
+	});
+	commentFileInputDroparea?.addEventListener('dragover', (evt) => {
+		evt.preventDefault();
+		evt.stopPropagation();
+		if (!commentFileInputDroparea.classList.contains('bg-primary/30')) {
+			commentFileInputDroparea?.classList.add('bg-primary/30');
+		}
+	});
+	commentFileInputDroparea?.addEventListener('dragleave', (evt) => {
+		evt.preventDefault();
+		evt.stopPropagation();
+		commentFileInputDroparea?.classList.remove('bg-primary/30');
+	});
+	commentFileInputDroparea?.addEventListener('drop', handleDrop);
+}
+
 /**
  * Handles the drag and drop of files, to then populate the file input for eventual upload only on form submission.
  */
@@ -175,14 +203,8 @@ function handleDrop(evt: DragEvent) {
 		commentFormFileInput.files = dataTransfer.files;
 		commentFormFileMessage.innerHTML = `<b>${evt.dataTransfer.files[0].name}</b>`;
 	}
-}
-const commentFileInputDroparea = document.getElementById('comment-file-input-droparea');
-commentFileInputDroparea?.addEventListener('dragenter', preventDefault);
-commentFileInputDroparea?.addEventListener('dragover', preventDefault);
-commentFileInputDroparea?.addEventListener('dragleave', preventDefault);
-commentFileInputDroparea?.addEventListener('drop', handleDrop);
-
-function preventDefault(evt: DragEvent) {
-	evt.preventDefault();
-	evt.stopPropagation();
+	const commentFileInputDroparea = document.getElementById('comment-file-input-droparea');
+	if (commentFileInputDroparea?.classList.contains('bg-primary/30')) {
+		commentFileInputDroparea?.classList.remove('bg-primary/30');
+	}
 }
