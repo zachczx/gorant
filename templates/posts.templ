@@ -69,7 +69,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 				</div>
 			</div>
 			<div class="relative w-full">
-				<div class="sticky top-2 z-[1] grid justify-items-center backdrop-blur max-h-[90dvh] overflow-y-auto">
+				<div class="sticky top-2 z-[1] grid max-h-[90dvh] justify-items-center overflow-y-auto backdrop-blur">
 					<div class="grid w-full content-center rounded-lg border border-neutral/10 bg-white/70 shadow-lg lg:max-w-2xl">
 						<button id="post-title-truncated" class="rounded-t-lg border-t-8 border-t-primary/70 p-4">
 							<h1 class="line-clamp-2 max-h-[6.3rem] overflow-hidden text-center text-3xl font-extrabold capitalize">
@@ -127,7 +127,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 						<div class="p-4" hx-ext="response-targets">
 							@PostForm(currentUser, post.ID, "false")
 						</div>
-						<script src="/static/js/output/tiptap.js" defer></script>
+						<script src="/static/js/output/post-form.js" defer></script>
 					</div>
 				</div>
 			</div>
@@ -163,7 +163,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 							</button>
 						</label>
 						<button
-							class="btn btn-accent join-item btn-sm"
+							class="btn join-item btn-sm bg-neutral/90 text-neutral-content hover:bg-neutral/90"
 							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s", post.ID))) }
 							hx-target="#posts"
 							hx-swap="outerHTML"
@@ -279,7 +279,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							if comments[i].CommentStats.CurrentUserVoted == "true" {
 								class="inline-block h-auto text-4xl text-secondary"
 							} else {
-								class="inline-block h-auto text-4xl hover:text-secondary active:-translate-y-5 transition-all duration-300 ease-out"
+								class="inline-block h-auto text-4xl transition-all duration-300 ease-out hover:text-secondary active:-translate-y-5"
 							}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
@@ -547,7 +547,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 				<div class="collapse-title min-h-10 content-center px-4 py-1 text-sm">
 					<div class="flex items-center">
 						<div class="flex grow items-center gap-2 font-medium">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:upload" viewBox="0 0 24 24"><path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z"></path></svg>Upload File
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:upload" viewBox="0 0 24 24"><path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z"></path></svg>Upload Image
 						</div>
 						<div>
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
