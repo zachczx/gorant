@@ -56,14 +56,14 @@ type Post struct {
 	UserID        string `db:"user_id"`
 	Description   string `db:"description"`
 	Protected     int    `db:"protected"`
-	CreatedAt     NewCreatedAt
+	CreatedAt     CreatedAt
 	Mood          string `db:"mood"`
 	Tags          Tags
 	PostStats     PostStats
 	PreferredName string // PreferredName of Author
 }
 
-type NewCreatedAt struct {
+type CreatedAt struct {
 	Time time.Time
 }
 
@@ -96,7 +96,7 @@ var allowedMoods = [6]string{"Elated", "Happy", "Neutral", "Sad", "Upset", "Angr
 
 const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+\-,"]+$`
 
-func (c *NewCreatedAt) Process() string {
+func (c *CreatedAt) Process() string {
 	var s string
 	var suffix string
 

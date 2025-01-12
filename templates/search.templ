@@ -1,0 +1,26 @@
+package templates
+
+import "gorant/posts"
+
+templ FullSearchResults(query string, results []posts.Comment) {
+	@SearchResults(query, results)
+}
+
+templ SearchResults(query string, results []posts.Comment) {
+	<main class="mt-12 grid w-full content-start justify-items-center gap-4 justify-self-center lg:max-w-[1600px]">
+		<div
+			id="search-results"
+			class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
+		>
+			<div class="flex items-center">
+				<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
+			</div>
+			<div>{ query }</div>
+			<div>
+				for i := 0; i < len(results); i++ {
+					<li>{ results[i].IDString() } - { results[i].Content }</li>
+				}
+			</div>
+		</div>
+	</main>
+}

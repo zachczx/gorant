@@ -97,7 +97,7 @@ func Reset() error {
 
 	// Comments
 
-	_, err = DB.Exec(`CREATE TABLE comments (comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, file_id UUID REFERENCES files(file_id) ON DELETE SET NULL);`)
+	_, err = DB.Exec(`CREATE TABLE comments (comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, file_id UUID REFERENCES files(file_id) ON DELETE SET NULL, ts tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED);`)
 	if err != nil {
 		fmt.Println("Error creating table: comments")
 		return err
@@ -110,6 +110,14 @@ func Reset() error {
 		return err
 	}
 	fmt.Println("Created index: comments")
+
+	// Comments ts/tsvector GIN index
+	_, err = DB.Exec(`CREATE INDEX idx_comments_ts ON comments USING GIN (ts);`)
+	if err != nil {
+		fmt.Println("Error creating index: comments.ts ")
+		return err
+	}
+	fmt.Println("Created index: Comments ts/tsvector GIN index")
 
 	// Posts Likes
 

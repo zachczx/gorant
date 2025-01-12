@@ -17,11 +17,11 @@ import (
 )
 
 type Comment struct {
-	ID                 uuid.UUID    `db:"comment_id"`
-	UserID             string       `db:"user_id"`
-	Content            string       `db:"content"`
-	CreatedAt          NewCreatedAt `db:"created_at"`
-	PostID             string       `db:"post_id"`
+	ID                 uuid.UUID `db:"comment_id"`
+	UserID             string    `db:"user_id"`
+	Content            string    `db:"content"`
+	CreatedAt          CreatedAt `db:"created_at"`
+	PostID             string    `db:"post_id"`
 	Initials           string
 	PreferredName      string `db:"preferred_name"`
 	Avatar             string `db:"avatar"`
@@ -424,4 +424,24 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	}
 
 	return comments, nil
+}
+
+func SearchComments(query string) ([]Comment, error) {
+	var results []Comment
+	rows, err := database.DB.Query(`SELECT comment_id, user_id, content, created_at, post_id, file_id FROM comments WHERE ts @@ to_tsquery('english', $1)`, query)
+	if err != nil {
+		return results, err
+	}
+	defer rows.Close()
+	var row Comment
+	for rows.Next() {
+		if err := rows.Scan(&row.ID, &row.UserID, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.NullFile.ID); err != nil {
+			return results, err
+		}
+		if row.NullFile.ID.Valid {
+			row.File.ID = row.NullFile.ID.UUID
+		}
+		results = append(results, row)
+	}
+	return results, nil
 }

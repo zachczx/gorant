@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"gorant/database"
-	"gorant/templates"
 	"gorant/upload"
 	"gorant/users"
 
@@ -116,10 +115,9 @@ func main() {
 	mux.Handle("POST /upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
 	mux.Handle("GET /upload/duplicates", k.CheckAuthentication()(k.viewDuplicateFilesHandler()))
 	mux.Handle("POST /upload/duplicates/delete", k.CheckAuthentication()(k.deleteDuplicateFilesHandler(r2)))
-	mux.HandleFunc("GET /tiptap", func(w http.ResponseWriter, r *http.Request) {
-		TemplRender(w, r, templates.TipTap())
-	})
 
+	// Search routes
+	mux.HandleFunc("GET /search", searchHandler)
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
