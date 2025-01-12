@@ -69,6 +69,27 @@ type CommentStats struct {
 	CurrentUserVoted string         // Returns a true or false for use in Templ template
 }
 
+type SearchComment struct {
+	ID                 uuid.UUID `db:"comment_id"`
+	UserID             string    `db:"user_id"`
+	Content            string    `db:"content"`
+	CreatedAt          CreatedAt `db:"created_at"`
+	PostID             string    `db:"post_id"`
+	PostTitle          string    `db:"post_title"`
+	Initials           string
+	PreferredName      string `db:"preferred_name"`
+	Avatar             string `db:"avatar"`
+	CommentStats       CommentStats
+	CreatedAtProcessed string
+	AvatarPath         string
+	File               upload.LookupFile
+	NullFile           upload.NullFile
+}
+
+func (c *SearchComment) IDString() string {
+	return c.ID.String()
+}
+
 func sanitizeHTML(HTML string) (string, error) {
 	sanitizer := htmlsanitizer.NewHTMLSanitizer()
 	sanitizer.AllowList.Tags = allowedHTMLTags
@@ -426,16 +447,19 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	return comments, nil
 }
 
-func SearchComments(query string) ([]Comment, error) {
-	var results []Comment
-	rows, err := database.DB.Query(`SELECT comment_id, user_id, content, created_at, post_id, file_id FROM comments WHERE ts @@ to_tsquery('english', $1)`, query)
+func SearchComments(query string) ([]SearchComment, error) {
+	var results []SearchComment
+	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
+									LEFT JOIN posts
+									ON posts.post_id = comments.post_id
+									WHERE ts @@ websearch_to_tsquery('english', $1)`, query)
 	if err != nil {
 		return results, err
 	}
 	defer rows.Close()
-	var row Comment
+	var row SearchComment
 	for rows.Next() {
-		if err := rows.Scan(&row.ID, &row.UserID, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.NullFile.ID); err != nil {
+		if err := rows.Scan(&row.ID, &row.UserID, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
 			return results, err
 		}
 		if row.NullFile.ID.Valid {

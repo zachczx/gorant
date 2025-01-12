@@ -860,15 +860,21 @@ func (k *keycloak) viewErrorUnauthorizedHandler(w http.ResponseWriter, r *http.R
 	TemplRender(w, r, templates.ErrorUnauthorized(k.currentUser, "You'll need to login to do that."))
 }
 
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query().Get("q")
-	fmt.Println(q)
-	results, err := posts.SearchComments(q)
-	if err != nil {
-		fmt.Println(err)
-		w.Header().Set("Hx-Redirect", "/error")
-	}
-	TemplRender(w, r, templates.SearchResults(q, results))
+func (k *keycloak) searchHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query().Get("q")
+		fmt.Println(q)
+		results, err := posts.SearchComments(q)
+		if err != nil {
+			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+		}
+		if r.Header.Get("Hx-Request") == "" {
+			TemplRender(w, r, templates.FullSearchResults(k.currentUser, q, results))
+			return
+		}
+		TemplRender(w, r, templates.SearchResults(q, results))
+	})
 }
 
 func resetAdmin(w http.ResponseWriter, r *http.Request) {

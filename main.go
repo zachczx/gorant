@@ -117,7 +117,7 @@ func main() {
 	mux.Handle("POST /upload/duplicates/delete", k.CheckAuthentication()(k.deleteDuplicateFilesHandler(r2)))
 
 	// Search routes
-	mux.HandleFunc("GET /search", searchHandler)
+	mux.Handle("GET /search", k.CheckAuthentication()(k.searchHandler()))
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 

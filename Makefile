@@ -18,7 +18,7 @@ dev/tailwind:
 
 # only difference here with the Dockerfile one is sourcemap 
 dev/esbuild:
-	npx esbuild ./static/js/admin/upload.ts ./static/js/index.ts ./static/js/sse.ts ./static/js/post.ts ./static/js/post-partial.ts ./static/js/settings.ts ./static/js/register-login.ts ./static/js/htmx-bundle.ts ./static/js/post-form.ts --bundle --sourcemap --outdir=./static/js/output --minify --watch
+	npx esbuild ./static/js/admin/upload.ts ./static/js/index.ts ./static/js/sse.ts ./static/js/post.ts ./static/js/post-partial.ts ./static/js/settings.ts ./static/js/search.ts ./static/js/register-login.ts ./static/js/htmx-bundle.ts ./static/js/post-form.ts --bundle --sourcemap --outdir=./static/js/output --minify --watch
 
 dev/templ:
 	templ generate --watch --cmd="go run ." --proxy="http://localhost:7000" --open-browser=false -v

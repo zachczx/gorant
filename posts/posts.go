@@ -355,7 +355,6 @@ func NewPost(p Post, tags []string) error {
 func GetTags(postID string) (Post, error) {
 	var t string
 	var p Post
-
 	rows, err := database.DB.Query(`SELECT tags.tag
 									FROM(SELECT posts_tags.post_id, posts_tags.tag_id
 										FROM posts_tags
@@ -364,9 +363,7 @@ func GetTags(postID string) (Post, error) {
 	if err != nil {
 		return p, err
 	}
-
 	defer rows.Close()
-
 	for rows.Next() {
 		if err = rows.Scan(&t); err != nil {
 			return p, err
@@ -374,7 +371,6 @@ func GetTags(postID string) (Post, error) {
 
 		p.Tags.Tags = append(p.Tags.Tags, t)
 	}
-
 	return p, nil
 }
 
