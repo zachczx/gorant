@@ -279,7 +279,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 		uploadedFile, fileName, thumbnailFileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
-			if err.Error() == "http: no such file" || err.Error() == "empty file" {
+			if err.Error() == "formfile error: http: no such file" || err.Error() == "error empty file: empty file" {
 				c = posts.Comment{
 					UserID:  k.currentUser.UserID,
 					Content: r.FormValue("message"),
