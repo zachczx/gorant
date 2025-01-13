@@ -32,14 +32,17 @@ func (k *keycloak) mainLivePageHandler() http.Handler {
 func (k *keycloak) newInstantPostHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("title")
-		new := live.InstantPost{UserID: k.currentUser.UserID, Title: title}
-		err := live.CreateInstantPost(new)
-		if err != nil {
+		newP := live.InstantPost{UserID: k.currentUser.UserID, Title: title}
+		if err := live.CreateInstantPost(newP); err != nil {
 			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
 		}
 		instP, err := live.ListLivePosts()
 		if err != nil {
 			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
 		}
 		TemplRender(w, r, templates.ListInstantPosts(instP))
 	})
