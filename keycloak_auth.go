@@ -54,11 +54,10 @@ func (k *keycloak) OnlyAuthenticated() func(http.Handler) http.Handler {
 					fmt.Println("Not authenticated, redirecting to error page.")
 					w.Header().Set("Hx-Redirect", "/error-unauthorized")
 					return
-				} else {
-					fmt.Println("Not authenticated, redirecting to error page.")
-					http.Redirect(w, r, "/error-unauthorized", http.StatusSeeOther)
-					return
 				}
+				fmt.Println("Not authenticated, redirecting to error page.")
+				http.Redirect(w, r, "/error-unauthorized", http.StatusSeeOther)
+				return
 			}
 			next.ServeHTTP(w, r)
 		}))
@@ -75,10 +74,9 @@ func (k *keycloak) RequireAuthentication() func(http.Handler) http.Handler {
 				if r.Header.Get("Hx-Request") != "" {
 					w.Header().Set("Hx-Redirect", "/error")
 					return
-				} else {
-					http.Redirect(w, r, "/error", http.StatusSeeOther)
-					return
 				}
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+				return
 			}
 			next.ServeHTTP(w, r)
 		})
@@ -201,7 +199,10 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 				}
 				fmt.Println("###################")
 				pterm.DefaultSection.Println("Benchmarks!")
-				pterm.DefaultBulletList.WithItems(bulletListItems).Render()
+				err := pterm.DefaultBulletList.WithItems(bulletListItems).Render()
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 			next.ServeHTTP(w, r)
 		})

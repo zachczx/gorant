@@ -2,17 +2,14 @@ import { keyboardShortcut } from './common';
 
 // const instantSSEEl = document.getElementById('instant-sse');
 
-// window.addEventListener('htmx:sseBeforeMessage', (evt) => {
-// 	console.log(evt);
+window.addEventListener('htmx:sseBeforeMessage', (evt) => {
+	console.log(evt.detail.elt);
+});
 
-// 	if (instantSSEEl.innerHTML) {
-// 		evt.preventDefault();
-// 		let newEl = document.createElement('li');
-// 		newEl.innerHTML = evt.detail.data;
-// 		newEl.classList.add('text-error');
-// 		instantSSEEl.appendChild(newEl);
-// 	}
-// });
+window.addEventListener('htmx:beforeRequest', (evt) => {
+	console.log(evt.detail);
+});
+
 const liveCommentForm = document.getElementById('live-comment-form') as HTMLFormElement;
 const contentInput = document.getElementById('content-input') as HTMLInputElement;
 const postButton = document.getElementById('post-button') as HTMLButtonElement;

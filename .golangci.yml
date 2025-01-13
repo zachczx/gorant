@@ -1,0 +1,9 @@
+linters:
+  enable:
+    - wrapcheck
+    # - revive
+    # - nilerr
+    # - gosec
+    # - gochecksumtype
+    # - exhaustruct
+    # - exhaustive

@@ -136,8 +136,10 @@ func (zrw *ZBrResponseWriter) Write(data []byte) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	err = zrw.BrWriter.Flush()
-	return n, err
+	if err := zrw.BrWriter.Flush(); err != nil {
+		return n, fmt.Errorf("brotli writer flushing error: %v", err)
+	}
+	return n, nil
 }
 
 func (zrw *ZBrResponseWriter) Flush() {

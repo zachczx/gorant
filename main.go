@@ -118,16 +118,23 @@ func main() {
 
 	// Search routes
 	mux.Handle("GET /search", k.CheckAuthentication()(k.searchHandler()))
+
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
-	var p string = os.Getenv("LISTEN_ADDR")
+	p := os.Getenv("LISTEN_ADDR")
 	wrappedMux := StatusLogger(ExcludeCompression(SetCacheControl(mux)))
-	http.ListenAndServe(p, wrappedMux)
+	err = http.ListenAndServe(p, wrappedMux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func TemplRender(w http.ResponseWriter, r *http.Request, c templ.Component) {
-	c.Render(r.Context(), w)
+	if err := c.Render(r.Context(), w); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // For chaining middleware.Iterating in reverse to start from the 2nd argument onwards.

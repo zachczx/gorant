@@ -161,7 +161,10 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 		}
 
 		// reset this since NewReader doesn't reset position to beginning of file.
-		file.Seek(0, 0)
+		_, err := file.Seek(0, 0)
+		if err != nil {
+			log.Fatal(err)
+		}
 		bufThumb, err = GenerateThumbnail(file, maxWidthThumbnail)
 		if err != nil {
 			fmt.Println("Failed at image to thumbnail step")
@@ -215,7 +218,10 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			thumbnailFileName = fileName + "-tn.webp"
 		}
 		fileKey = uniqueKey.String() + "-" + thumbnailFileName
-		file.Seek(0, 0)
+		_, err := file.Seek(0, 0)
+		if err != nil {
+			log.Fatal(err)
+		}
 		bufThumb, err = GenerateThumbnail(file, maxWidthThumbnail)
 		if err != nil {
 			fmt.Println("Failed at image to thumbnail step")

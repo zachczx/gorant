@@ -45,7 +45,10 @@ func (k *keycloak) viewNavbarProfileBadge() http.Handler {
 
 func postFilterHandler(w http.ResponseWriter, r *http.Request) {
 	// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		w.Header().Set("Hx-Redirect", "/error")
+		return
+	}
 	m := r.Form["mood"]
 	t := r.Form["tags"]
 	p, err := posts.ListPostsFilter(m, t)
@@ -60,9 +63,7 @@ func viewAnonymousHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
 	t := r.FormValue("post-title")
-
 	TemplRender(w, r, templates.AnonymousMode(t))
 }
 
@@ -266,7 +267,11 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
-		r.ParseMultipartForm(32 << 20)
+		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "An error occurred!"))
+			return
+		}
 		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
@@ -342,7 +347,7 @@ func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (mu
 	var thumbnailFileName string
 	uploadedFile, header, err := r.FormFile("file")
 	if err != nil {
-		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("formfile error: %v", err)
 	}
 	if header.Size == 0 {
 		err = errors.New("empty file")
@@ -492,16 +497,19 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 		}
-
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
-		r.ParseMultipartForm(32 << 20)
-
+		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "An error occurred!"))
+			return
+		}
 		var c posts.Comment
 		uploadedFile, fileName, thumbnailFileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == "http: no such file" || err.Error() == "empty file" {
 				c = posts.Comment{
+					ID:      commentID,
 					UserID:  k.currentUser.UserID,
 					Content: r.FormValue("message"),
 					PostID:  postID,
@@ -532,12 +540,10 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 				},
 			}
 		}
-
 		if err := posts.EditComment(c); err != nil {
 			fmt.Println(err)
 			return
 		}
-
 		c, err = posts.GetComment(r.PathValue("commentID"), k.currentUser.UserID)
 		if err != nil {
 			fmt.Println(err)
@@ -726,7 +732,11 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Start uploading")
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
-		r.ParseMultipartForm(32 << 20)
+		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "An error occurred!"))
+			return
+		}
 		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
@@ -759,7 +769,10 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Start uploading")
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
-		r.ParseMultipartForm(32 << 20)
+		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
 		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
 
@@ -797,7 +810,6 @@ func checkFileType(file multipart.File) (string, error) {
 		return fileType, err
 	}
 	fileType = http.DetectContentType(buff)
-	fmt.Println(fileType)
 	accepted := false
 	for _, v := range mimeTypes {
 		if strings.Contains(fileType, v) {
@@ -809,7 +821,9 @@ func checkFileType(file multipart.File) (string, error) {
 		return fileType, errors.New("filetype not allowed")
 	}
 	// Need to call Seek() to reset file pointer to beginning of file.
-	file.Seek(0, 0)
+	if _, err := file.Seek(0, 0); err != nil {
+		return fileType, err
+	}
 	return fileType, nil
 }
 
@@ -862,18 +876,27 @@ func (k *keycloak) viewErrorUnauthorizedHandler(w http.ResponseWriter, r *http.R
 
 func (k *keycloak) searchHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		q := r.URL.Query().Get("q")
-		fmt.Println(q)
-		results, err := posts.SearchComments(q)
+		fmt.Println("invoked handler")
+		query := r.URL.Query().Get("q")
+		sort := r.URL.Query().Get("s")
+		if sort != "relevance" && sort != "recent" {
+			if r.Header.Get("Hx-Request") == "" {
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+			} else {
+				w.Header().Set("Hx-Redirect", "/error")
+			}
+			return
+		}
+		results, err := posts.SearchComments(query, sort)
 		if err != nil {
 			fmt.Println(err)
 			w.Header().Set("Hx-Redirect", "/error")
 		}
 		if r.Header.Get("Hx-Request") == "" {
-			TemplRender(w, r, templates.FullSearchResults(k.currentUser, q, results))
+			TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, sort, results))
 			return
 		}
-		TemplRender(w, r, templates.SearchResults(q, results))
+		TemplRender(w, r, templates.ResultsList(results, query))
 	})
 }
 
@@ -882,9 +905,16 @@ func resetAdmin(w http.ResponseWriter, r *http.Request) {
 		err := database.Reset()
 		if err != nil {
 			fmt.Println(err)
-			w.Write([]byte("Reset failed, errored out\r\n"))
+			_, err := w.Write([]byte("Reset failed, errored out\r\n"))
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			msg := fmt.Sprintf("%v", err)
-			io.WriteString(w, msg)
+			if _, err := io.WriteString(w, msg); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -892,6 +922,9 @@ func resetAdmin(w http.ResponseWriter, r *http.Request) {
 
 		TemplRender(w, r, templates.Reset("", s))
 	} else {
-		w.Write([]byte("Not allowed!"))
+		if _, err := w.Write([]byte("Not allowed!")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 }
