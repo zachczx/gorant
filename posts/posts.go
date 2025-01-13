@@ -130,7 +130,6 @@ func (c *CreatedAt) Process() string {
 	default:
 		fmt.Println("Something went wrong")
 	}
-
 	return s
 }
 

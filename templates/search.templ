@@ -4,60 +4,116 @@ import (
 	"fmt"
 	"gorant/posts"
 	"gorant/users"
+	"strconv"
 )
 
-templ FullSearchResults(currentUser *users.User, query string, results []posts.SearchComment) {
+templ FullSearchResults(currentUser *users.User, query string, sort string, results []posts.SearchComment) {
 	@Base("Search Results - "+query, currentUser) {
-		@SearchResults(query, results)
-	}
-}
-
-templ SearchResults(query string, results []posts.SearchComment) {
-	<main class="mt-12 grid w-full content-start justify-items-center gap-4 justify-self-center lg:max-w-[1600px]">
-		<div
-			id="search-results"
-			class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-12 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
-		>
-			<div class="flex items-center">
-				<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
-			</div>
-			<div class="grid gap-8">
-				<div class="grid w-full justify-items-center px-8">
-					<label
+		<main class="mt-12 grid w-full content-start justify-items-center gap-4 justify-self-center lg:max-w-[1600px]">
+			<div
+				id="search-results"
+				class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-12 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
+			>
+				<div class="flex items-center">
+					<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
+				</div>
+				<div class="grid w-full px-8">
+					<form
+						class="grid gap-8"
 						id="search-label"
-						hx-include="#search-label"
+						hx-include="#search-label, #search-sort"
 						hx-get="/search"
 						hx-replace-url="true"
 						hx-target="#search-results-list"
-						hx-select="#search-results-list"
-						hx-trigger="keyup delay:0.5s"
+						hx-trigger="keyup delay:0.5s, change from:#search-sort"
 						hx-swap="outerHTML"
-						class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/70"
 					>
-						<input type="text" class="grow" name="q" value={ query } placeholder="Search"/>
-						<button class="-me-2.5 rounded-full bg-neutral/90 p-1.5 text-accent-content">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
-								<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
-							</svg>
-						</button>
-					</label>
-				</div>
-				<div id="search-results-list" class="px-8 grid gap-8" data-query={ query }>
-					if len(results) > 0 {
-						for i := 0; i < len(results); i++ {
-							<div class="grid">
-								<h3 class="text-xl font-medium underline"><a href={ templ.URL(fmt.Sprintf("/posts/%s", results[i].PostID)) }>{ results[i].PostTitle }</a></h3>
-								<div class="search-result-content">
-									@templ.Raw(results[i].Content)
-								</div>
-							</div>
-						}
-					} else {
-						Nothing found!
-					}
+						// 
+						<div class="grid w-full justify-items-center">
+							<label
+								class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/70"
+							>
+								<input type="text" class="grow" name="q" value={ query } placeholder="Search"/>
+								<button class="-me-2.5 rounded-full bg-neutral/90 p-1.5 text-accent-content">
+									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
+									</svg>
+								</button>
+							</label>
+						</div>
+						@SearchSort(sort)
+					</form>
+					@ResultsList(results, query)
 				</div>
 			</div>
+			<script src="/static/js/output/search.js"></script>
+		</main>
+	}
+}
+
+templ ResultsList(results []posts.SearchComment, query string) {
+	<div id="search-results-list" data-query={ query }>
+		<div>
+			<div class="my-4 text-base-content/70">
+				{ strconv.Itoa(len(results)) }
+				comments found
+			</div>
 		</div>
-		<script src="/static/js/output/search.js"></script>
-	</main>
+		<div class="grid gap-8">
+			if len(results) > 0 {
+				for i := 0; i < len(results); i++ {
+					<div class="grid">
+						<h3 class="text-xl font-medium text-accent underline"><a href={ templ.URL(fmt.Sprintf("/posts/%s", results[i].PostID)) }>{ results[i].PostTitle }</a></h3>
+						<div class="mt-1 text-base-content/50">{ results[i].CreatedAt.Process() } (by { results[i].PreferredName })</div>
+						<div class="search-result-content text-base-content/80">
+							@templ.Raw(results[i].Content)
+						</div>
+					</div>
+				}
+			} else {
+				<div class="grid justify-items-center">
+					<div class="my-12">
+						<img src="/static/images/cow-spaceship.svg" width="385" height="460" class="h-32 w-32 lg:h-72 lg:w-72" alt="Nothing!"/>
+					</div>
+					<h2 class="text-center text-xl font-bold">Nothing found!</h2>
+					<p class="justify-self-center text-base-content/80">Try using another search term</p>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ SearchSort(sort string) {
+	<div
+		id="search-sort"
+		class="flex items-start gap-8 border-b-2 border-b-neutral/10 text-base-content/100"
+	>
+		<div>Sort By:</div>
+		<div class="flex gap-2">
+			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+				<span class="search-sort-highlight">Relevance</span>
+				<input
+					type="radio"
+					value="relevance"
+					name="s"
+					class="hidden"
+					if sort != "recent" {
+						checked="checked"
+					}
+				/>
+			</label>
+			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+				<span class="search-sort-highlight">Most Recent</span>
+				<input
+					type="radio"
+					value="recent"
+					name="s"
+					class="hidden"
+					if sort == "recent" {
+						checked="checked"
+					}
+				/>
+			</label>
+		</div>
+	</div>
 }

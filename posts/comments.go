@@ -101,19 +101,18 @@ func sanitizeHTML(HTML string) (string, error) {
 }
 
 var allowedHTMLTags = []*htmlsanitizer.Tag{
-	{"a", nil, []string{"href"}},
-	{"h1", []string{"style"}, []string{}},
-	{"h2", []string{"style"}, []string{}},
-	{"li", []string{"style"}, []string{}},
-	{"strong", []string{}, []string{}},
-	{"li", []string{"style"}, []string{}},
-	{"ol", []string{"style"}, []string{}},
-	{"p", []string{"style"}, []string{}},
-	{"ul", []string{"style"}, []string{}},
-	{"b", []string{}, []string{}},
-	{"span", []string{"style"}, []string{}},
-	{"i", []string{}, []string{}},
-	{"u", []string{}, []string{}},
+	{Name: "a", Attr: nil, URLAttr: []string{"href"}},
+	{Name: "h1", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "h2", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "li", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "strong", Attr: nil, URLAttr: nil},
+	{Name: "ol", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "p", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "ul", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "b", Attr: nil, URLAttr: nil},
+	{Name: "span", Attr: []string{"style"}, URLAttr: nil},
+	{Name: "i", Attr: nil, URLAttr: nil},
+	{Name: "u", Attr: nil, URLAttr: nil},
 }
 
 func Insert(c Comment) (string, error) {
@@ -238,7 +237,7 @@ func EditComment(c Comment) error {
 		return err
 	}
 
-	if c.File.File == nil && c.File.Key == "" {
+	if c.File.Key == "" {
 		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, sanitizedHTML, c.ID, c.UserID)
 		if err != nil {
 			return err
@@ -257,29 +256,6 @@ func EditComment(c Comment) error {
 
 	fmt.Println("Successfully edited and updated files table!")
 	return nil
-
-	////////////////////////////////////////////////////////////
-	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
-	/* if c.File.File == nil && c.File.Key == "" {
-		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
-		if err != nil {
-			return insertedCommentID, err
-		}
-		insertedCommentID = returnCommentID.String()
-		return insertedCommentID, err
-	}
-
-	err = database.DB.QueryRow(`INSERT INTO files (file_key, file_store, file_bucket) VALUES($1, $2, $3) RETURNING file_id`, c.File.Key, c.File.Store, c.File.Bucket).Scan(&returnID)
-	if err != nil {
-		return insertedCommentID, err
-	}
-	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, returnID.String()).Scan(&returnCommentID)
-	if err != nil {
-		return insertedCommentID, err
-	}
-
-	insertedCommentID = returnCommentID.String()
-	fmt.Println("Successfully inserted!") */
 }
 
 func Delete(commentID string, username string) error {
@@ -447,19 +423,35 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	return comments, nil
 }
 
-func SearchComments(query string) ([]SearchComment, error) {
+func SearchComments(query string, sort string) ([]SearchComment, error) {
 	var results []SearchComment
-	rows, err := database.DB.Query(`SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
-									LEFT JOIN posts
-									ON posts.post_id = comments.post_id
-									WHERE ts @@ websearch_to_tsquery('english', $1)`, query)
+	var rows *sql.Rows
+	var err error
+	fmt.Println("Sort: .....", sort)
+
+	if sort == "recent" {
+		rows, err = database.DB.Query(`SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
+										LEFT JOIN users
+										ON comments.user_id = users.user_id
+										LEFT JOIN posts
+										ON posts.post_id = comments.post_id
+										WHERE ts @@ websearch_to_tsquery('english', $1)
+										ORDER BY comments.created_at DESC`, query)
+	} else {
+		rows, err = database.DB.Query(`SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
+										LEFT JOIN users
+										ON comments.user_id = users.user_id
+										LEFT JOIN posts
+										ON posts.post_id = comments.post_id
+										WHERE ts @@ websearch_to_tsquery('english', $1)`, query)
+	}
 	if err != nil {
 		return results, err
 	}
 	defer rows.Close()
 	var row SearchComment
 	for rows.Next() {
-		if err := rows.Scan(&row.ID, &row.UserID, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
+		if err := rows.Scan(&row.ID, &row.UserID, &row.PreferredName, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
 			return results, err
 		}
 		if row.NullFile.ID.Valid {

@@ -284,6 +284,26 @@
 		view-transition-name: navbar-line;
 	}
 
+	#search-sort {
+		view-transition-name: search-sort-line;
+	}
+
+	.search-sort-highlight:has(+ input:checked) {
+		font-weight: bold;
+
+		&::after {
+			content: '';
+			height: 0.15rem;
+			width: 100%;
+			background-color: #1b510f;
+			opacity: 0.5;
+			position: absolute;
+			bottom: -0.05rem;
+			left: 0;
+			transform: translate(0%, 0); /* translate(50%, 0) */
+		}
+	}
+
 	/* Tiptap */
 
 	.element > div.tiptap {

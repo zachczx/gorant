@@ -446,7 +446,7 @@ templ SortButton(currentUser *users.User, postID string, oob string) {
 					class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content"
 				}
 			>
-				<label id="more-actions-edit-button" class="flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
+				<label class="sort-button-menu flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
 					<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M18 21H8V8l7-7l1.25 1.25q.175.175.288.475t.112.575v.35L15.55 8H21q.8 0 1.4.6T23 10v2q0 .175-.037.375t-.113.375l-3 7.05q-.225.5-.75.85T18 21M6 8v13H2V8z"></path>
 					</svg>Upvotes (highest first)
@@ -460,7 +460,7 @@ templ SortButton(currentUser *users.User, postID string, oob string) {
 					class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content"
 				}
 			>
-				<label id="more-actions-copy-button" class="flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
+				<label class="sort-button-menu flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
 					<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M6 3h10v13l-7 7l-1.25-1.25q-.175-.175-.288-.475T7.35 20.7v-.35L8.45 16H3q-.8 0-1.4-.6T1 14v-2q0-.175.037-.375t.113-.375l3-7.05q.225-.5.75-.85T6 3m12 13V3h4v13z"></path>
 					</svg>Upvotes (lowest first)
@@ -474,7 +474,7 @@ templ SortButton(currentUser *users.User, postID string, oob string) {
 					class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content"
 				}
 			>
-				<label id="more-actions-copy-button" class="flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
+				<label class="sort-button-menu flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
 					<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12h-8V4Q8.65 4 6.325 6.325T4 12t2.325 5.675T12 20"></path>
 					</svg>Date (latest first)
@@ -488,7 +488,7 @@ templ SortButton(currentUser *users.User, postID string, oob string) {
 					class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content"
 				}
 			>
-				<label id="more-actions-copy-button" class="flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
+				<label class="sort-button-menu flex h-full w-full hover:bg-transparent" data-post-id={ "post-" + postID }>
 					<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22M6.325 6.325L12 12V4q-1.6 0-3.075.6t-2.6 1.725"></path>
 					</svg>Date (oldest first)

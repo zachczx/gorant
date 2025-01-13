@@ -98,12 +98,6 @@ templ NavProfileBadge(currentUser *users.User) {
 		<form method="get" action="/search">
 			<label
 				id="nav-search-label"
-				hx-include="#nav-search-label"
-				hx-get="/search"
-				hx-replace-url="/search"
-				hx-target="#container"
-				hx-trigger="keydown delay:0.5s"
-				hx-swap="innerHTML"
 				class="input input-bordered flex items-center gap-1 rounded-full bg-white/70"
 			>
 				<input type="text" class="grow" name="q" placeholder="Search"/>
