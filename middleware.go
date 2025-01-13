@@ -111,10 +111,10 @@ type ZResponseWriter struct {
 func (zrw *ZResponseWriter) Write(data []byte) (int, error) {
 	n, err := zrw.GzipWriter.Write(data)
 	if err != nil {
-		return n, fmt.Errorf("error: gzipwriter write: %v", err)
+		return n, fmt.Errorf("error: gzipwriter write: %w", err)
 	}
 	if err = zrw.GzipWriter.Flush(); err != nil {
-		return n, fmt.Errorf("error: gzipwriter flush: %v", err)
+		return n, fmt.Errorf("error: gzipwriter flush: %w", err)
 	}
 	return n, nil
 }
@@ -136,10 +136,10 @@ type ZBrResponseWriter struct {
 func (zrw *ZBrResponseWriter) Write(data []byte) (int, error) {
 	n, err := zrw.BrWriter.Write(data)
 	if err != nil {
-		return n, fmt.Errorf("error: brotli writer write: %v", err)
+		return n, fmt.Errorf("error: brotli writer write: %w", err)
 	}
 	if err := zrw.BrWriter.Flush(); err != nil {
-		return n, fmt.Errorf("error: brotli writer flush: %v", err)
+		return n, fmt.Errorf("error: brotli writer flush: %w", err)
 	}
 	return n, nil
 }

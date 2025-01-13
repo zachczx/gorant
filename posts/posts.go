@@ -148,7 +148,7 @@ func ListPosts() (PostCollection, error) {
 														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`)
 	if err != nil {
-		return nil, fmt.Errorf("error executing query: %v", err)
+		return nil, fmt.Errorf("error executing query: %w", err)
 	}
 
 	defer rows.Close()
@@ -159,7 +159,7 @@ func ListPosts() (PostCollection, error) {
 		var p Post
 
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
-			return nil, fmt.Errorf("error scanning: %v", err)
+			return nil, fmt.Errorf("error scanning: %w", err)
 		}
 
 		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
@@ -278,13 +278,13 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood, tags)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("error executing sqlx.In: %v", err)
+		return nil, fmt.Errorf("error executing sqlx.In: %w", err)
 	}
 	query = database.DB.Rebind(query)
 	fmt.Println("Query: ", query)
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("error executing list-post-filter query: %v", err)
+		return nil, fmt.Errorf("error executing list-post-filter query: %w", err)
 	}
 
 	defer rows.Close()
@@ -295,7 +295,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 		var p Post
 
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
-			return nil, fmt.Errorf("error scanning list-post-filter: %v", err)
+			return nil, fmt.Errorf("error scanning list-post-filter: %w", err)
 		}
 
 		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
@@ -319,7 +319,7 @@ func NewPost(p Post, tags []string) error {
 	err := database.DB.QueryRow(`INSERT INTO posts (post_id, post_title, user_id, created_at, mood) VALUES ($1, $2, $3, NOW(), $4) 
 						RETURNING post_id`, p.ID, p.Title, p.UserID, p.Mood).Scan(&postID)
 	if err != nil {
-		return fmt.Errorf("error inserting post: %v", err)
+		return fmt.Errorf("error inserting post: %w", err)
 	}
 
 	fmt.Println("Length: ", len(tags))
@@ -338,7 +338,7 @@ func NewPost(p Post, tags []string) error {
 		_, err = database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
 		if err != nil {
 			// this err needs to be returned because it's not normal
-			return fmt.Errorf("error inserting tags into post_tag table: %v", err)
+			return fmt.Errorf("error inserting tags into post_tag table: %w", err)
 		}
 	}
 
@@ -379,7 +379,7 @@ func EditTags(postID string, tags []string) error {
 
 	postsTags, err := GetPostIDTagIDTag(postID)
 	if err != nil {
-		return fmt.Errorf("error from GetPostIDTagIDTag() junction table: %v", err)
+		return fmt.Errorf("error from GetPostIDTagIDTag() junction table: %w", err)
 	}
 
 	if err := DeleteUnwantedTags(tags, postsTags); err != nil {
@@ -413,7 +413,7 @@ func InsertTags(tags []string) ([]Tag, error) {
 		// Reusing SanitizeTitleToID to sanitize input
 		tag.Tag, err = SanitizeTitleToID(v)
 		if err != nil {
-			return validTags, fmt.Errorf("error sanitizing tags: %v", err)
+			return validTags, fmt.Errorf("error sanitizing tags: %w", err)
 		}
 		validTags = append(validTags, tag)
 	}
@@ -423,7 +423,7 @@ func InsertTags(tags []string) ([]Tag, error) {
 
 	_, err = database.DB.NamedExec(`INSERT INTO tags (tag) VALUES (:tag) ON CONFLICT (tag) DO NOTHING`, validTags)
 	if err != nil {
-		return validTags, fmt.Errorf("error inserting tags: %v", err)
+		return validTags, fmt.Errorf("error inserting tags: %w", err)
 	}
 
 	return validTags, nil
@@ -445,7 +445,7 @@ func InsertPostTags(postID string, validTags []Tag, postsTags []JunctionPostTag)
 		for _, v := range tagsToInsert {
 			_, err := database.DB.Exec(`INSERT INTO posts_tags (post_id, tag_id) SELECT $1, tag_id FROM tags WHERE tag=$2`, postID, v)
 			if err != nil {
-				return fmt.Errorf("error inserting tags into posts_tags: %v", err)
+				return fmt.Errorf("error inserting tags into posts_tags: %w", err)
 			}
 			fmt.Printf("Successfully saved: \"%s\" into \"%s\"\n", v, postID)
 		}
@@ -513,7 +513,7 @@ var validTagCharacters string = `^[A-Za-z0-9-]+$`
 func ValidateTags(tag string) (passed bool, err error) {
 	regex, err := regexp.Compile(validTagCharacters)
 	if err != nil {
-		return false, fmt.Errorf("regexp compilation error: %v", err)
+		return false, fmt.Errorf("regexp compilation error: %w", err)
 	}
 
 	if !regex.MatchString(tag) {
@@ -540,7 +540,7 @@ func DeleteUnwantedTags(inputTags []string, postsTags []JunctionPostTag) error {
 			_, err := database.DB.Exec(`DELETE FROM posts_tags WHERE tag_id=$1`, v)
 			if err != nil {
 				fmt.Println("Error in deleting")
-				return fmt.Errorf("error deleting tags from posts_tags: %v", err)
+				return fmt.Errorf("error deleting tags from posts_tags: %w", err)
 			}
 		}
 	}
@@ -646,9 +646,8 @@ func LikePost(postID string, currentUser string) (int, error) {
 			}
 			score = 1
 			return score, nil
-		} else {
-			return score, fmt.Errorf("error querying row from posts_likes: %w", err)
 		}
+		return score, fmt.Errorf("error querying row from posts_likes: %w", err)
 	}
 	_, err = database.DB.Exec("DELETE FROM posts_likes WHERE post_id=$1 AND user_id=$2", postID, currentUser)
 	if err != nil {
@@ -661,7 +660,7 @@ func LikePost(postID string, currentUser string) (int, error) {
 func EditPostDescription(postID string, description string) error {
 	_, err := database.DB.Exec("UPDATE posts SET description=$1 WHERE post_id=$2", description, postID)
 	if err != nil {
-		return fmt.Errorf("error updating description in posts table: %v", err)
+		return fmt.Errorf("error updating description in posts table: %w", err)
 	}
 	return nil
 }
@@ -670,27 +669,27 @@ func DeletePost(postID string, username string) error {
 	var u string
 	if err := database.DB.QueryRow("SELECT user_id FROM posts WHERE post_id=$1", postID).Scan(&u); err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("error cannot find user_id with given postID: %v", err)
+			return fmt.Errorf("error cannot find user_id with given postID: %w", err)
 		}
-		return fmt.Errorf("error with querying user_id to delete post: %v", err)
+		return fmt.Errorf("error with querying user_id to delete post: %w", err)
 	}
 	if u != username {
 		return errors.New("error: logged in user is not owner of post")
 	}
 	if _, err := database.DB.Exec("DELETE FROM posts WHERE post_id=$1", postID); err != nil {
-		return fmt.Errorf("error deleting post: %v", err)
+		return fmt.Errorf("error deleting post: %w", err)
 	}
 	return nil
 }
 
 func EditMood(postID string, mood string) error {
 	if err := ValidateMood(mood); err != nil {
-		return fmt.Errorf("error from validate mood: %v", err)
+		return fmt.Errorf("error from validate mood: %w", err)
 	}
 
 	_, err := database.DB.Exec("UPDATE posts SET mood=$1 WHERE post_id=$2", mood, postID)
 	if err != nil {
-		return fmt.Errorf("error updating posts for edit mode: %v", err)
+		return fmt.Errorf("error updating posts for edit mode: %w", err)
 	}
 
 	return nil

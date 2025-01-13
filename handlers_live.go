@@ -58,12 +58,15 @@ func (k *keycloak) newInstantCommentHandler() http.Handler {
 		instPID, err := uuid.Parse(r.PathValue("instPID"))
 		if err != nil {
 			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
 		}
 		c := r.FormValue("content")
-		new := live.InstantComment{InstantPostID: instPID, Content: c, UserID: k.currentUser.UserID}
-		err = live.CreateInstantComment(new)
-		if err != nil {
+		newC := live.InstantComment{InstantPostID: instPID, Content: c, UserID: k.currentUser.UserID}
+		if err = live.CreateInstantComment(newC); err != nil {
 			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
 		}
 		// instC, err := live.ListLiveComments()
 		// if err != nil {

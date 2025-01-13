@@ -35,9 +35,9 @@ var avatars = []string{"bird", "bird2", "bulldog", "cat", "cat2", "cat3", "cat4"
 func (u *User) GetSettings(username string) error {
 	if err := database.DB.QueryRow("SELECT * FROM users WHERE user_id=$1", username).Scan(&u.UserID, &u.Email, &u.PreferredName, &u.ContactMe, &u.Avatar, &u.SortComments); err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("no user settings found: %v", err)
+			return fmt.Errorf("no user settings found: %w", err)
 		}
-		return fmt.Errorf("error fetching settings getsettings() from db: %v", err)
+		return fmt.Errorf("error fetching settings getsettings() from db: %w", err)
 	}
 	u.ContactMeString = strconv.Itoa(u.ContactMe)
 	u.AvatarPath = ChooseAvatar(u.Avatar)
@@ -79,7 +79,7 @@ func SaveSettings(username string, s Settings) error {
 
 	_, err := database.DB.Exec("UPDATE users SET preferred_name=$1, contact_me=$2, avatar=$3, sort_comments=$4 WHERE user_id=$5;", s.PreferredName, s.ContactMe, s.Avatar, s.SortComments, username)
 	if err != nil {
-		return fmt.Errorf("error updating users table to save settings: %v", err)
+		return fmt.Errorf("error updating users table to save settings: %w", err)
 	}
 
 	return nil

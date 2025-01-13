@@ -132,7 +132,7 @@ func (bc *BucketConfig) ConnectBucket() (*s3.Client, error) {
 		config.WithRegion("auto"),
 	)
 	if err != nil {
-		return client, fmt.Errorf("error connecting to bucket: %v", err)
+		return client, fmt.Errorf("error connecting to bucket: %w", err)
 	}
 
 	client = s3.NewFromConfig(cfg, func(o *s3.Options) {
@@ -141,7 +141,7 @@ func (bc *BucketConfig) ConnectBucket() (*s3.Client, error) {
 	return client, nil
 }
 
-func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fileType string, currentUser string) (string, string, uuid.UUID, error) {
+func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fileType string) (string, string, uuid.UUID, error) {
 	client, err := bc.ConnectBucket()
 	if err != nil {
 		log.Fatal(err)
@@ -153,12 +153,11 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 	maxWidthThumbnail := 100
 	switch fileType {
 	case "image/jpeg", "image/png":
-		buf, err = ImagetoWebp(file, fileType)
+		buf, err = ImagetoWebp(file)
 		if err != nil {
 			fmt.Println("Failed at image to webp step")
 			log.Fatal(err)
 		}
-
 		// reset this since NewReader doesn't reset position to beginning of file.
 		_, err := file.Seek(0, 0)
 		if err != nil {
@@ -186,7 +185,7 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			Body:   bytes.NewReader(buf.Bytes()),
 		})
 		if err != nil {
-			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp (from jpg/png) in bucket: %v", err)
+			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp (from jpg/png) in bucket: %w", err)
 		}
 		fileKey = uniqueKey.String() + "-" + thumbnailFileName
 		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -195,7 +194,7 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			Body:   bytes.NewReader(bufThumb.Bytes()),
 		})
 		if err != nil {
-			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp thumbnail (from jpg/png) in bucket: %v", err)
+			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp thumbnail (from jpg/png) in bucket: %w", err)
 		}
 	default:
 		fileKey := uniqueKey.String() + "-" + fileName
@@ -205,7 +204,7 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			Body:   file,
 		})
 		if err != nil {
-			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading non-jpg/png in bucket: %v", err)
+			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading non-jpg/png in bucket: %w", err)
 		}
 
 		if strings.Contains(fileName, ".") {
@@ -232,22 +231,20 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 			Body:   bytes.NewReader(bufThumb.Bytes()),
 		})
 		if err != nil {
-			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp thumbnail (non-jpg/png) in bucket: %v", err)
+			return fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error with uploading webp thumbnail (non-jpg/png) in bucket: %w", err)
 		}
 	}
 	return fileName, thumbnailFileName, uniqueKey, nil
 }
 
-func ImagetoWebp(file multipart.File, fileType string) (bytes.Buffer, error) {
+func ImagetoWebp(file multipart.File) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	var img image.Image
 	var err error
 	var format string
-
 	img, format, err = image.Decode(file)
 	if err != nil {
-		fmt.Println("Failed at image to webp step")
-		log.Fatalln(err)
+		return buf, fmt.Errorf("error: failed at image to webp: %w", err)
 	}
 	fmt.Println("Image format: ", format)
 
@@ -263,7 +260,7 @@ func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	src, format, err := image.Decode(file)
 	if err != nil {
-		return buf, fmt.Errorf("error decoding file for thumbnail: %v", err)
+		return buf, fmt.Errorf("error decoding file for thumbnail: %w", err)
 	}
 	fmt.Println(format)
 
@@ -280,7 +277,7 @@ func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
 	return *p, nil
 }
 
-func UploadToLocalWebp(file multipart.File, fileName string) (string, error) {
+func ToLocalWebp(file multipart.File) (string, error) {
 	var buf bytes.Buffer
 	localDir := "./static/uploads/"
 	newFileName := uuid.NewString() + ".webp"
@@ -303,16 +300,16 @@ func UploadToLocalWebp(file multipart.File, fileName string) (string, error) {
 	return newFileName, nil
 }
 
-func UploadToLocal(file multipart.File, fileName string) error {
+func ToLocal(file multipart.File, fileName string) error {
 	localDir := "./static/uploads"
 	dst, err := os.Create(filepath.Join(localDir, fileName))
 	if err != nil {
-		return fmt.Errorf("error creating destination file for upload: %v", err)
+		return fmt.Errorf("error creating destination file for upload: %w", err)
 	}
 	defer dst.Close()
 	bytes, err := io.Copy(dst, file)
 	if err != nil {
-		return fmt.Errorf("error copying multipart.File to destination file: %v", err)
+		return fmt.Errorf("error copying multipart.File to destination file: %w", err)
 	}
 	fmt.Printf("Filename: %s\r\nNumber of bytes written: %s", filepath.Join(localDir, fileName), strconv.FormatInt(bytes, 10))
 	return nil
@@ -322,14 +319,14 @@ func (bc *BucketConfig) ListBucket() ([]BucketFile, error) {
 	var files []BucketFile
 	client, err := bc.ConnectBucket()
 	if err != nil {
-		return files, fmt.Errorf("error connecting to bucket: %v", err)
+		return files, fmt.Errorf("error connecting to bucket: %w", err)
 	}
 	op, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket:  &bc.BucketName,
 		MaxKeys: aws.Int32(100),
 	})
 	if err != nil {
-		return files, fmt.Errorf("error listing objects in bucket: %v", err)
+		return files, fmt.Errorf("error listing objects in bucket: %w", err)
 	}
 	var f BucketFile
 	for _, v := range op.Contents {
@@ -349,12 +346,12 @@ func GetOrphanFilesDB() ([]BucketFile, error) {
 										FROM comments
 										WHERE comments.file_id IS NOT NULL);`)
 	if err != nil {
-		return files, fmt.Errorf("error querying file_key from files table: %v", err)
+		return files, fmt.Errorf("error querying file_key from files table: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		if err := rows.Scan(&f.Key); err != nil {
-			return files, fmt.Errorf("error scanning file_key from db: %v", err)
+			return files, fmt.Errorf("error scanning file_key from db: %w", err)
 		}
 		files = append(files, f)
 	}
@@ -364,7 +361,7 @@ func GetOrphanFilesDB() ([]BucketFile, error) {
 func (bc *BucketConfig) DeleteBucketFiles(files []BucketFile) error {
 	client, err := bc.ConnectBucket()
 	if err != nil {
-		return fmt.Errorf("error connecting to bucket: %v", err)
+		return fmt.Errorf("error connecting to bucket: %w", err)
 	}
 	var filesList []types.ObjectIdentifier
 	var f types.ObjectIdentifier
@@ -379,7 +376,7 @@ func (bc *BucketConfig) DeleteBucketFiles(files []BucketFile) error {
 		Delete: &types.Delete{Objects: filesList},
 	})
 	if err != nil {
-		return fmt.Errorf("error deleting from bucket: %v", err)
+		return fmt.Errorf("error deleting from bucket: %w", err)
 	}
 	return nil
 }
@@ -387,7 +384,7 @@ func (bc *BucketConfig) DeleteBucketFiles(files []BucketFile) error {
 func DeleteDBFileRecord(key string) error {
 	_, err := database.DB.Exec(`DELETE FROM files WHERE file_key=$1`, key)
 	if err != nil {
-		return fmt.Errorf("error deleting db file record: %v", err)
+		return fmt.Errorf("error deleting db file record: %w", err)
 	}
 	return nil
 }
@@ -401,13 +398,13 @@ func DeleteOrphanFilesDB(files []BucketFile) error {
 	// Bindvars only work with (?), not ($1)
 	query, args, err := sqlx.In("DELETE FROM files WHERE file_key IN (?);", keys)
 	if err != nil {
-		return fmt.Errorf("error using sqlx.In for deleting orphan files: %v", err)
+		return fmt.Errorf("error using sqlx.In for deleting orphan files: %w", err)
 	}
 	query = database.DB.Rebind(query)
 	fmt.Println(query)
 	_, err = database.DB.Exec(query, args...)
 	if err != nil {
-		return fmt.Errorf("error deleting from files table: %v", err)
+		return fmt.Errorf("error deleting from files table: %w", err)
 	}
 	return nil
 }

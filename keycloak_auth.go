@@ -216,14 +216,13 @@ func SyncUserLocalDB(username string) (bool, error) {
 		if err == sql.ErrNoRows {
 			_, err := database.DB.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES ($1, $2, $3);", username, username, username)
 			if err != nil {
-				return firstLogin, fmt.Errorf("error inserting new user into DB: %v", err)
+				return firstLogin, fmt.Errorf("error inserting new user into DB: %w", err)
 			}
 			fmt.Println("Successfully created new user in DB")
 			firstLogin = true
 			return firstLogin, nil
-		} else {
-			return firstLogin, fmt.Errorf("error: not issue with existing user being found: %w", err)
 		}
+		return firstLogin, fmt.Errorf("error: not issue with existing user being found: %w", err)
 	}
 	fmt.Println("User already exists, no DB action needed")
 	return false, nil
@@ -259,7 +258,7 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 	if refetch {
 		fmt.Println("Fetching from DB")
 		if err := currentUser.GetSettings(cookieUsername); err != nil {
-			return fmt.Errorf("error with getting settings from db: %v", err)
+			return fmt.Errorf("error with getting settings from db: %w", err)
 		}
 		// Once fetched, store inside cookies
 		session.Values["PreferredName"] = currentUser.PreferredName

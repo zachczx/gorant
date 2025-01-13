@@ -246,13 +246,13 @@ func (k *keycloak) UpdateSessionStore(w http.ResponseWriter, r *http.Request) er
 	// Err cannot be nil here since we're verifying token
 	if err != nil || session == nil {
 		*k.currentUser = users.User{}
-		return fmt.Errorf("error with getting gorilla session store: %v", err)
+		return fmt.Errorf("error with getting gorilla session store: %w", err)
 	}
 	if err := SetSettingsCookie(k.currentUser, session, k.currentUser.UserID, true); err != nil {
-		return fmt.Errorf("error with setting settings cookie: %v", err)
+		return fmt.Errorf("error with setting settings cookie: %w", err)
 	}
 	if err := session.Save(r, w); err != nil {
-		return fmt.Errorf("error with saving gorilla session: %v", err)
+		return fmt.Errorf("error with saving gorilla session: %w", err)
 	}
 	return nil
 }
@@ -347,7 +347,7 @@ func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (mu
 	var thumbnailFileName string
 	uploadedFile, header, err := r.FormFile("file")
 	if err != nil {
-		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("formfile error: %v", err)
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("formfile error: %w", err)
 	}
 	if header.Size == 0 {
 		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error empty file: %w", err)
@@ -358,7 +358,7 @@ func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (mu
 	if err != nil {
 		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error checkfiletype(): %w", err)
 	}
-	fileName, thumbnailFileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+	fileName, thumbnailFileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType)
 	if err != nil {
 		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error UploadToBucket(): %w", err)
 	}
@@ -750,7 +750,7 @@ func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		fileName, thumbnailFileName, uniqueKey, err := bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
+		fileName, thumbnailFileName, uniqueKey, err := bc.UploadToBucket(uploadedFile, header.Filename, fileType)
 		if err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
@@ -774,8 +774,7 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 		}
 		// Not using r.MultipartForm, because I've only 1 file for 1 input field. If I use r.MultipartForm, I'd need to do
 		// mpf.File["upload"][0].Filename, mpf.File["upload"][0].Open() etc.
-
-		uploadedFile, header, err := r.FormFile("upload")
+		uploadedFile, _, err := r.FormFile("upload")
 		if err != nil {
 			fmt.Println("form file error", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -788,7 +787,7 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		fileName, err := upload.UploadToLocalWebp(uploadedFile, header.Filename)
+		fileName, err := upload.ToLocalWebp(uploadedFile)
 		if err != nil {
 			fmt.Println("Upload issue!!! ", err)
 		}
@@ -911,7 +910,7 @@ func resetAdmin(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			msg := fmt.Sprintf("%v", err)
+			msg := fmt.Sprintf("%w", err)
 			if _, err := io.WriteString(w, msg); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

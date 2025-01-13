@@ -78,12 +78,12 @@ func ListLivePosts() ([]InstantPost, error) {
 	var instP InstantPost
 	rows, err := database.DB.Query(`SELECT * FROM instant_posts`)
 	if err != nil {
-		return instPosts, fmt.Errorf("error with querying for listlistposts(): %v", err)
+		return instPosts, fmt.Errorf("error with querying for listlistposts(): %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		if err := rows.Scan(&instP.ID, &instP.Title, &instP.UserID, &instP.CreatedAt); err != nil {
-			return instPosts, fmt.Errorf("error with scanning listlistposts(): %v", err)
+			return instPosts, fmt.Errorf("error with scanning listlistposts(): %w", err)
 		}
 		instPosts = append(instPosts, instP)
 	}
@@ -103,7 +103,7 @@ func ListLiveComments() ([]InstantComment, error) {
 
 	for rows.Next() {
 		if err := rows.Scan(&instC.ID, &instC.InstantPostID, &instC.Title, &instC.Content, &instC.UserID, &instC.CreatedAt); err != nil {
-			return instComments, fmt.Errorf("error with scanning listlivecomments(): %v", err)
+			return instComments, fmt.Errorf("error with scanning listlivecomments(): %w", err)
 		}
 		instComments = append(instComments, instC)
 	}
@@ -126,7 +126,7 @@ func ViewLivePost(id uuid.UUID) ([]InstantComment, error) {
 
 	for rows.Next() {
 		if err := rows.Scan(&instC.ID, &instC.InstantPostID, &instC.Title, &instC.Content, &instC.UserID, &instC.CreatedAt, &instC.PreferredName); err != nil {
-			return instComments, fmt.Errorf("error with scanning viewlivepost(): %v", err)
+			return instComments, fmt.Errorf("error with scanning viewlivepost(): %w", err)
 		}
 		instComments = append(instComments, instC)
 	}
@@ -136,7 +136,7 @@ func ViewLivePost(id uuid.UUID) ([]InstantComment, error) {
 func CreateInstantPost(instP InstantPost) error {
 	_, err := database.DB.Exec(`INSERT INTO instant_posts (title, user_id, created_at) VALUES ($1, $2, NOW())`, instP.Title, instP.UserID)
 	if err != nil {
-		return fmt.Errorf("error with inserting into instant_posts: %v", err)
+		return fmt.Errorf("error with inserting into instant_posts: %w", err)
 	}
 	return nil
 }
@@ -144,7 +144,7 @@ func CreateInstantPost(instP InstantPost) error {
 func CreateInstantComment(instC InstantComment) error {
 	_, err := database.DB.Exec(`INSERT INTO instant_comments (instant_post_id, content, user_id, created_at) VALUES ($1, $2, $3, NOW())`, instC.InstantPostID, instC.Content, instC.UserID)
 	if err != nil {
-		return fmt.Errorf("error with inserting into instant_comments: %v", err)
+		return fmt.Errorf("error with inserting into instant_comments: %w", err)
 	}
 	return nil
 }
