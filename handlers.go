@@ -910,7 +910,7 @@ func resetAdmin(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			msg := fmt.Sprintf("%w", err)
+			msg := fmt.Sprintf("%v", err)
 			if _, err := io.WriteString(w, msg); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

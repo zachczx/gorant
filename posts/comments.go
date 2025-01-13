@@ -341,21 +341,20 @@ func ConvertDate(date string) (string, error) {
 
 func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]Comment, error) {
 	var comments []Comment
-	var q string = `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, files.file_base_url, cnt, ids_voted, users.preferred_name, users.avatar FROM comments 
+	q := `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, files.file_base_url, cnt, ids_voted, users.preferred_name, users.avatar 
+			FROM comments 
+			LEFT JOIN files
+			ON comments.file_id=files.file_id
 
-					LEFT JOIN files
-					ON comments.file_id=files.file_id
-
-					LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
-					FROM comments_votes 
-					GROUP BY comments_votes.comment_id) AS comments_votes 
-					ON comments.comment_id = comments_votes.comment_id 
-					
-					LEFT JOIN (SELECT users.user_id, users.preferred_name, users.avatar FROM users) as users
-					ON comments.user_id = users.user_id
-					
-					WHERE comments.post_id=$1 ` // Still short of ORDER BY clause, deliberate space here
-
+			LEFT JOIN (SELECT comments_votes.comment_id, COUNT(1) AS cnt, string_agg(DISTINCT comments_votes.user_id, ',') AS ids_voted 
+			FROM comments_votes 
+			GROUP BY comments_votes.comment_id) AS comments_votes 
+			ON comments.comment_id = comments_votes.comment_id 
+			
+			LEFT JOIN (SELECT users.user_id, users.preferred_name, users.avatar FROM users) as users
+			ON comments.user_id = users.user_id
+			
+			WHERE comments.post_id=$1 ` // Still short of ORDER BY clause, deliberate space here
 	if filter != "" {
 		q += `AND (comments.content ILIKE '%' || $2 || '%') `
 	}

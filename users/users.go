@@ -48,22 +48,18 @@ const regex string = `^[0-9A-Za-z -_+()[]|@\.]+$`
 
 func Validate(s Settings) map[string](string) {
 	v := govalidator.New()
-
-	var ok bool = false
+	ok := false
 	for _, v := range avatars {
 		if v == s.Avatar {
 			ok = true
 			break
 		}
 	}
-
 	v.RequiredString(s.PreferredName, "preferred_name", "Please enter a preferred name").RegexMatches(s.PreferredName, regex, "preferred_name", "No special characters allowed! (Use only A-Z, a-z, 0-9, -, _, brackets, +)").MaxString(s.PreferredName, 255, "preferred_name", "Message is more than 255 characters.")
 	v.CustomRule(ok, "avatar", "Unrecognized avatar")
-
 	if v.IsFailed() {
 		return v.Errors()
 	}
-
 	return nil
 }
 
@@ -104,7 +100,7 @@ func ReturnAvatars() []string {
 }
 
 func ChooseAvatar(c string) string {
-	var s string = "/static/images/avatars/%s.svg"
+	s := "/static/images/avatars/%s.svg"
 	for _, v := range avatars {
 		if c == v {
 			s = fmt.Sprintf(s, v)
@@ -116,7 +112,7 @@ func ChooseAvatar(c string) string {
 	return s
 }
 
-var emailRegex string = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+var emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
 func CheckUsername(username string) (exists bool, err error) {
 	regex, err := regexp.Compile(emailRegex)

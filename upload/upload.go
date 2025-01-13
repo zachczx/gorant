@@ -6,9 +6,9 @@ import (
 	"database/sql"
 	"fmt"
 	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
+	_ "image/gif"  // For image.Decode() of image uploads.
+	_ "image/jpeg" // Ditto.
+	_ "image/png"  // Ditto.
 	"io"
 	"log"
 	"math"
@@ -263,17 +263,14 @@ func GenerateThumbnail(file multipart.File, width int) (bytes.Buffer, error) {
 		return buf, fmt.Errorf("error decoding file for thumbnail: %w", err)
 	}
 	fmt.Println(format)
-
 	ratio := (float64)(src.Bounds().Max.Y) / (float64)(src.Bounds().Max.X)
 	height := int(math.Round(float64(width) * ratio))
 	dst := image.NewRGBA(image.Rect(0, 0, width, height))
 	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
-
 	if err = webp.Encode(&buf, dst, &webp.Options{Lossless: false, Quality: 60}); err != nil {
 		log.Println(err)
 	}
 	p := &buf
-
 	return *p, nil
 }
 

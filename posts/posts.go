@@ -508,7 +508,7 @@ func GetPostIDTagIDTag(postID string) ([]JunctionPostTag, error) {
 	",",
 } */
 
-var validTagCharacters string = `^[A-Za-z0-9-]+$`
+var validTagCharacters = `^[A-Za-z0-9-]+$`
 
 func ValidateTags(tag string) (passed bool, err error) {
 	regex, err := regexp.Compile(validTagCharacters)

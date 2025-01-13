@@ -29,7 +29,7 @@ type keycloak struct {
 	currentUser *users.User
 }
 
-var regex *regexp.Regexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+var regex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 func newKeycloak() *keycloak {
 	return &keycloak{

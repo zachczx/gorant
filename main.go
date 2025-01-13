@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	ctx       context.Context = context.Background()
+	ctx       = context.Background()
 	emptyUser users.User
 )
 
