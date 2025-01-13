@@ -112,7 +112,7 @@ func ListLiveComments() ([]InstantComment, error) {
 	return instComments, nil
 }
 
-func ViewLivePost(id int) ([]InstantComment, error) {
+func ViewLivePost(id uuid.UUID) ([]InstantComment, error) {
 	rows, err := database.DB.Query(`SELECT instant_comments.id, instant_comments.instant_post_id, instant_comments.title, instant_comments.content, instant_comments.user_id, instant_comments.created_at, users.preferred_name FROM instant_comments 
 										LEFT JOIN users
 										ON instant_comments.user_id = users.user_id

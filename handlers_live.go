@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -74,7 +74,7 @@ func (k *keycloak) newInstantCommentHandler() http.Handler {
 }
 
 func sseHandler(w http.ResponseWriter, r *http.Request) {
-	instPID, err := strconv.Atoi(r.PathValue("instPID"))
+	instPID, err := uuid.Parse(r.PathValue("instPID"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -100,10 +100,9 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 	// 		This leads to errors when the connection expects data to be flushed, especially in the context of Server-Sent Events where real-time updates are crucial.
 	t := time.NewTicker(1 * time.Second)
 	defer t.Stop()
-
 	var instComments []live.InstantComment
-	var lastID int = 0
-
+	var lastCheckTime time.Time
+	fmt.Println(lastCheckTime)
 	// Necessary to do this assertion and see if this handler can flush data, else streaming wouldn't work.
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -126,28 +125,30 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 			if len(instComments) == 0 {
 				fmt.Println("No live comments")
 				sb.WriteString("event:instant\ndata:No data found!\n\n")
-				w.Write([]byte(sb.String()))
+				if _, err := w.Write([]byte(sb.String())); err != nil {
+					log.Fatal(err)
+				}
 				flusher.Flush()
 				return
 			}
-			// Using instComments[0].ID instead of instComments[len(instComments) - 1].ID because I'm sorting by DESC order.
+			// Using instComments[0].CreatedAt instead of instComments[len(instComments) - 1].CreatedAt,
+			// because I'm sorting by DESC order.
+			latestPostTime := instComments[0].CreatedAt
+			// This check is important, otherwise JS on frontend will keep receiving successful SSE responses,
+			// and my JS logic resets the input value and sets focus to it. Making it impossible to use.
+			if latestPostTime.After(lastCheckTime) {
+				lastCheckTime = latestPostTime
+				sb.WriteString("event: instant\ndata:")
+				for _, v := range instComments {
+					sb.WriteString(fmt.Sprintf("<div class='flex'><div class='avatar'><span>%s</span></div><div class='comment'><span class='user'>%s<span class='time'>%v (%v)</span></span><span class='content'>%s</span></div></div>", v.PreferredNameInitials(), v.PreferredName, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"), v.Content))
+				}
+				sb.WriteString("\n\n")
 
-			// TODO: Since converting to UUID, I can't get the last ID anymore, so I'll need a datetime comparison
-			// if lastID < instComments[0].ID {
-			// lastID = instComments[0].ID
-			fmt.Println("lastID: ", lastID)
-			sb.WriteString("event: instant\ndata:")
-			for _, v := range instComments {
-				sb.WriteString(fmt.Sprintf("<div class='flex'><div class='avatar'><span>%s</span></div><div class='comment'><span class='user'>%s<span class='time'>%v (%v)</span></span><span class='content'>%s</span></div></div>", v.PreferredNameInitials(), v.PreferredName, v.CreatedAt.Format(time.Kitchen), v.CreatedAt.Format("02 Jan"), v.Content))
+				if _, err := w.Write([]byte(sb.String())); err != nil {
+					fmt.Println("write error: ", err)
+				}
+				flusher.Flush()
 			}
-			sb.WriteString("\n\n")
-
-			if _, err := w.Write([]byte(sb.String())); err != nil {
-				fmt.Println("write error: ", err)
-			}
-
-			flusher.Flush()
-			// }
 		}
 	}
 }
