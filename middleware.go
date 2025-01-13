@@ -111,10 +111,12 @@ type ZResponseWriter struct {
 func (zrw *ZResponseWriter) Write(data []byte) (int, error) {
 	n, err := zrw.GzipWriter.Write(data)
 	if err != nil {
-		return n, err
+		return n, fmt.Errorf("error: gzipwriter write: %v", err)
 	}
-	err = zrw.GzipWriter.Flush()
-	return n, err
+	if err = zrw.GzipWriter.Flush(); err != nil {
+		return n, fmt.Errorf("error: gzipwriter flush: %v", err)
+	}
+	return n, nil
 }
 
 // This is needed, else SSE doesn't stream.
@@ -134,10 +136,10 @@ type ZBrResponseWriter struct {
 func (zrw *ZBrResponseWriter) Write(data []byte) (int, error) {
 	n, err := zrw.BrWriter.Write(data)
 	if err != nil {
-		return n, err
+		return n, fmt.Errorf("error: brotli writer write: %v", err)
 	}
 	if err := zrw.BrWriter.Flush(); err != nil {
-		return n, fmt.Errorf("brotli writer flushing error: %v", err)
+		return n, fmt.Errorf("error: brotli writer flush: %v", err)
 	}
 	return n, nil
 }

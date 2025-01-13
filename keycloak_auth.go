@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -217,16 +216,13 @@ func SyncUserLocalDB(username string) (bool, error) {
 		if err == sql.ErrNoRows {
 			_, err := database.DB.Exec("INSERT INTO users (user_id, email, preferred_name) VALUES ($1, $2, $3);", username, username, username)
 			if err != nil {
-
-				log.Printf("Error inserting new user into DB")
-				return firstLogin, err
+				return firstLogin, fmt.Errorf("error inserting new user into DB: %v", err)
 			}
 			fmt.Println("Successfully created new user in DB")
 			firstLogin = true
 			return firstLogin, nil
 		} else {
-			fmt.Println("Something else went wrong, not the issue with existing user being found.")
-			return firstLogin, err
+			return firstLogin, fmt.Errorf("error: not issue with existing user being found: %w", err)
 		}
 	}
 	fmt.Println("User already exists, no DB action needed")
@@ -235,7 +231,6 @@ func SyncUserLocalDB(username string) (bool, error) {
 
 func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session, cookieUsername string, refetch bool) error {
 	// Check if cookies are filled, if so, store user pref values in currentUser
-
 	var ok bool
 	if !refetch {
 		currentUser.PreferredName, ok = session.Values["PreferredName"].(string)
@@ -243,7 +238,6 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 			fmt.Println("No PreferredName cookie found!")
 			refetch = true
 		}
-
 		currentUser.Avatar, ok = session.Values["Avatar"].(string)
 		if currentUser.Avatar == "" || !ok {
 			fmt.Println("No Avatar cookie found!")
@@ -264,17 +258,14 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 	// If cookies are empty, then fetch from DB
 	if refetch {
 		fmt.Println("Fetching from DB")
-		err := currentUser.GetSettings(cookieUsername)
-		if err != nil {
-			return err
+		if err := currentUser.GetSettings(cookieUsername); err != nil {
+			return fmt.Errorf("error with getting settings from db: %v", err)
 		}
-
 		// Once fetched, store inside cookies
 		session.Values["PreferredName"] = currentUser.PreferredName
 		session.Values["Avatar"] = currentUser.Avatar
 		session.Values["AvatarPath"] = currentUser.AvatarPath
 		session.Values["SortComments"] = currentUser.SortComments
 	}
-
 	return nil
 }

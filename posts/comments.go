@@ -95,9 +95,9 @@ func sanitizeHTML(HTML string) (string, error) {
 	sanitizer.AllowList.Tags = allowedHTMLTags
 	sHTML, err := sanitizer.SanitizeString(HTML)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error with SanitizeString(): %w", err)
 	}
-	return sHTML, err
+	return sHTML, nil
 }
 
 var allowedHTMLTags = []*htmlsanitizer.Tag{
@@ -127,19 +127,19 @@ func Insert(c Comment) (string, error) {
 	if c.File.File == nil && c.File.Key == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
 		if err != nil {
-			return insertedCommentID, err
+			return insertedCommentID, fmt.Errorf("error inserting comment without files: %v", err)
 		}
 		insertedCommentID = returnCommentID.String()
-		return insertedCommentID, err
+		return insertedCommentID, nil
 	}
 
 	_, err = database.DB.Exec(`INSERT INTO files (file_id, user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`, c.File.ID, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now())
 	if err != nil {
-		return insertedCommentID, err
+		return insertedCommentID, fmt.Errorf("error inserting file (before inserting comment): %v", err)
 	}
 	err = database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id, file_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING comment_id`, c.UserID, c.Content, c.PostID, c.File.ID).Scan(&returnCommentID)
 	if err != nil {
-		return insertedCommentID, err
+		return insertedCommentID, fmt.Errorf("error inserting comment (after file inserted): %v", err)
 	}
 
 	insertedCommentID = returnCommentID.String()
@@ -171,7 +171,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 									WHERE comments.post_id=$1
 									ORDER BY cnt DESC NULLS LAST;`, postID)
 	if err != nil {
-		return comments, err
+		return comments, fmt.Errorf("error querying comments: %v", err)
 	}
 	defer rows.Close()
 
@@ -179,8 +179,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 		var c Comment
 
 		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
-			fmt.Println("Scanning error: ", err)
-			return comments, err
+			return comments, fmt.Errorf("error scanning comments: %v", err)
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
@@ -216,7 +215,7 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 									WHERE comment_id=$1 AND user_id=$2) as comments
 									LEFT JOIN files ON files.file_id=comments.file_id;`, commentID, currentUser).Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.NullFile.BaseURL)
 	if err != nil {
-		return c, err
+		return c, fmt.Errorf("error querying row to getcomment(): %w", err)
 	}
 	if c.NullFile.ID.Valid {
 		c.File.ID = c.NullFile.ID.UUID
@@ -234,24 +233,24 @@ func EditComment(c Comment) error {
 	var returnID uuid.UUID
 	sanitizedHTML, err := sanitizeHTML(c.Content)
 	if err != nil {
-		return err
+		return fmt.Errorf("error using sanitizeHTML for edit comment: %v", err)
 	}
 
 	if c.File.Key == "" {
 		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, sanitizedHTML, c.ID, c.UserID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error updating comments table without file: %v", err)
 		}
 		fmt.Println("Successfully edited!")
 		return nil
 	}
 	err = database.DB.QueryRow(`INSERT INTO files (user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING file_id`, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now()).Scan(&returnID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error inserting file for edit comment: %v", err)
 	}
 	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, sanitizedHTML, returnID.String(), c.ID, c.UserID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error editing comment after inserting file: %v", err)
 	}
 
 	fmt.Println("Successfully edited and updated files table!")
@@ -261,7 +260,7 @@ func EditComment(c Comment) error {
 func Delete(commentID string, username string) error {
 	_, err := database.DB.Exec(`DELETE FROM comments WHERE comment_id=$1 AND user_id=$2`, commentID, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("error deleting comment: %v", err)
 	}
 	return nil
 }
@@ -279,7 +278,7 @@ func Validate(c Comment) map[string](string) {
 func UpVote(commentID string, username string) error {
 	res, err := database.DB.Query("SELECT comment_id FROM comments_votes WHERE comment_id=$1 AND user_id=$2", commentID, username)
 	if err != nil {
-		fmt.Println("Error querying db", err)
+		return fmt.Errorf("error fetching comment_id for upvote: %v", err)
 	}
 	defer res.Close()
 
@@ -293,8 +292,7 @@ func UpVote(commentID string, username string) error {
 
 	_, err = database.DB.Exec(q, commentID, username)
 	if err != nil {
-		fmt.Println("Error inserting upvote value: ", err)
-		return err
+		return fmt.Errorf("error inserting upvote value: %v", err)
 	}
 
 	return nil
@@ -305,7 +303,7 @@ func ConvertDate(date string) (string, error) {
 	var suffix string
 	t, err := time.Parse(time.RFC3339, date)
 	if err != nil {
-		return s, err
+		return s, fmt.Errorf("error parsing time to convert date: %v", err)
 	}
 
 	n := time.Now()
@@ -338,8 +336,7 @@ func ConvertDate(date string) (string, error) {
 	default:
 		fmt.Println("Something went wrong")
 	}
-
-	return s, err
+	return s, nil
 }
 
 func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]Comment, error) {
@@ -375,8 +372,6 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 		q += `ORDER BY cnt DESC NULLS LAST;`
 	}
 
-	// fmt.Println(q)
-
 	var rows *sql.Rows
 	var err error
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
@@ -384,22 +379,21 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 	// Decided to just do a separate query for that instead.
 	if filter != "" {
 		rows, err = database.DB.Query(q, postID, filter)
+		if err != nil {
+			return comments, fmt.Errorf("error querying filtered comments: %v", err)
+		}
 	} else {
 		rows, err = database.DB.Query(q, postID)
-	}
-	if err != nil {
-		return comments, err
+		if err != nil {
+			return comments, fmt.Errorf("error querying (without filter) comments: %v", err)
+		}
 	}
 	defer rows.Close()
-
 	for rows.Next() {
 		var c Comment
-
 		if err := rows.Scan(&c.ID, &c.UserID, &c.Content, &c.CreatedAt.Time, &c.PostID, &c.NullFile.ID, &c.NullFile.Key, &c.NullFile.ThumbnailKey, &c.NullFile.Store, &c.NullFile.Bucket, &c.NullFile.BaseURL, &c.CommentStats.Count, &c.CommentStats.IDsVoted, &c.PreferredName, &c.Avatar); err != nil {
-			fmt.Println("Scanning error: ", err)
-			return comments, err
+			return comments, fmt.Errorf("error scanning for ListCommentsFilterSort(): %w", err)
 		}
-
 		c.Initials = strings.ToUpper(c.UserID[:2])
 		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
 		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
@@ -416,10 +410,8 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			c.File.BaseURL = c.NullFile.BaseURL.String
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
-
 		comments = append(comments, c)
 	}
-
 	return comments, nil
 }
 
@@ -446,13 +438,13 @@ func SearchComments(query string, sort string) ([]SearchComment, error) {
 										WHERE ts @@ websearch_to_tsquery('english', $1)`, query)
 	}
 	if err != nil {
-		return results, err
+		return results, fmt.Errorf("error querying db for search comments: %w", err)
 	}
 	defer rows.Close()
 	var row SearchComment
 	for rows.Next() {
 		if err := rows.Scan(&row.ID, &row.UserID, &row.PreferredName, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
-			return results, err
+			return results, fmt.Errorf("error scanning db for search comments: %w", err)
 		}
 		if row.NullFile.ID.Valid {
 			row.File.ID = row.NullFile.ID.UUID

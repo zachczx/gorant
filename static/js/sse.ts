@@ -2,13 +2,13 @@ import { keyboardShortcut } from './common';
 
 // const instantSSEEl = document.getElementById('instant-sse');
 
-window.addEventListener('htmx:sseBeforeMessage', (evt) => {
-	console.log(evt.detail.elt);
-});
+// window.addEventListener('htmx:sseBeforeMessage', (evt) => {
+// 	console.log(evt.detail.elt);
+// });
 
-window.addEventListener('htmx:beforeRequest', (evt) => {
-	console.log(evt.detail);
-});
+// window.addEventListener('htmx:beforeRequest', (evt) => {
+// 	console.log(evt.detail);
+// });
 
 const liveCommentForm = document.getElementById('live-comment-form') as HTMLFormElement;
 const contentInput = document.getElementById('content-input') as HTMLInputElement;

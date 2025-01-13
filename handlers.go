@@ -246,13 +246,13 @@ func (k *keycloak) UpdateSessionStore(w http.ResponseWriter, r *http.Request) er
 	// Err cannot be nil here since we're verifying token
 	if err != nil || session == nil {
 		*k.currentUser = users.User{}
-		return err
+		return fmt.Errorf("error with getting gorilla session store: %v", err)
 	}
 	if err := SetSettingsCookie(k.currentUser, session, k.currentUser.UserID, true); err != nil {
-		return err
+		return fmt.Errorf("error with setting settings cookie: %v", err)
 	}
 	if err := session.Save(r, w); err != nil {
-		return err
+		return fmt.Errorf("error with saving gorilla session: %v", err)
 	}
 	return nil
 }
@@ -350,18 +350,17 @@ func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (mu
 		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("formfile error: %v", err)
 	}
 	if header.Size == 0 {
-		err = errors.New("empty file")
-		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error empty file: %w", err)
 	}
 
 	defer uploadedFile.Close()
 	fileType, err := checkFileType(uploadedFile)
 	if err != nil {
-		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error checkfiletype(): %w", err)
 	}
 	fileName, thumbnailFileName, uniqueKey, err = bc.UploadToBucket(uploadedFile, header.Filename, fileType, k.currentUser.UserID)
 	if err != nil {
-		return uploadedFile, fileName, thumbnailFileName, uniqueKey, err
+		return uploadedFile, fileName, thumbnailFileName, uniqueKey, fmt.Errorf("error UploadToBucket(): %w", err)
 	}
 	return uploadedFile, fileName, thumbnailFileName, uniqueKey, nil
 }
@@ -807,7 +806,7 @@ func checkFileType(file multipart.File) (string, error) {
 	buff := make([]byte, 512)
 	_, err := file.Read(buff)
 	if err != nil {
-		return fileType, err
+		return fileType, fmt.Errorf("error reading file: %w", err)
 	}
 	fileType = http.DetectContentType(buff)
 	accepted := false
@@ -822,7 +821,7 @@ func checkFileType(file multipart.File) (string, error) {
 	}
 	// Need to call Seek() to reset file pointer to beginning of file.
 	if _, err := file.Seek(0, 0); err != nil {
-		return fileType, err
+		return fileType, fmt.Errorf("error resetting file seek position: %w", err)
 	}
 	return fileType, nil
 }
