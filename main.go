@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"gorant/database"
 	"gorant/upload"
@@ -109,7 +110,7 @@ func main() {
 	mux.Handle("GET /logout", k.Logout(currentUser))
 
 	// Upload routes
-	mux.Handle("GET /upload", k.CheckAuthentication()(k.viewUploadHandler(r2)))
+	mux.Handle("GET /upload-inspect", k.CheckAuthentication()(k.viewUploadHandler(r2)))
 	mux.Handle("GET /view/{fileID}", viewFileHandler(r2))
 	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.uploadFileHandler(r2)))
 	mux.Handle("POST /upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
@@ -122,9 +123,15 @@ func main() {
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
-	p := os.Getenv("LISTEN_ADDR")
 	wrappedMux := StatusLogger(ExcludeCompression(SetCacheControl(mux)))
-	err = http.ListenAndServe(p, wrappedMux)
+
+	server := &http.Server{
+		Addr:              os.Getenv("LISTEN_ADDR"),
+		ReadHeaderTimeout: 5 * time.Second,
+		Handler:           wrappedMux,
+	}
+
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}

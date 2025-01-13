@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	_ "image/gif"
-	"image/jpeg"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
@@ -285,20 +284,20 @@ func UploadToLocalWebp(file multipart.File, fileName string) (string, error) {
 	var buf bytes.Buffer
 	localDir := "./static/uploads/"
 	newFileName := uuid.NewString() + ".webp"
-	img, err := jpeg.Decode(file)
+	img, format, err := image.Decode(file)
 	if err != nil {
-		log.Fatalln(err)
+		return newFileName, fmt.Errorf("error decoding file: %w", err)
 	}
+	fmt.Println(format)
 	// output, err := os.Create(localDir + uuid.NewString())
 	// if err != nil {
 	// 	log.Fatalln(err)
 	// }
 	// defer output.Close()
-
 	if err = webp.Encode(&buf, img, &webp.Options{Lossless: false, Quality: 75}); err != nil {
 		log.Println(err)
 	}
-	if err = os.WriteFile(localDir+newFileName, buf.Bytes(), 0o666); err != nil {
+	if err = os.WriteFile(localDir+newFileName, buf.Bytes(), 0o600); err != nil {
 		log.Println(err)
 	}
 	return newFileName, nil

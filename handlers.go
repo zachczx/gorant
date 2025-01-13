@@ -777,12 +777,14 @@ func (k *keycloak) uploadTestFileHandler() http.Handler {
 
 		uploadedFile, header, err := r.FormFile("upload")
 		if err != nil {
+			fmt.Println("form file error", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		defer uploadedFile.Close()
 		_, err = checkFileType(uploadedFile)
 		if err != nil {
+			fmt.Println("check file type", err)
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}

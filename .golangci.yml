@@ -1,9 +1,16 @@
 linters:
   enable:
+    ##### Recommended from reddit
     - wrapcheck
-    # - revive
-    # - nilerr
-    # - gosec
-    # - gochecksumtype
-    # - exhaustruct
-    # - exhaustive
+    - revive
+    - nilerr
+    - gosec
+    - gochecksumtype
+    - exhaustive
+    ##### defaults
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
