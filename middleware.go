@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -163,6 +164,11 @@ func ZxCompress() http.Handler {
 
 func ExcludeCompression(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Templ live reload doesn't seem to work with Brotli compression, so skip compression if it's a dev env.
+		if os.Getenv("DEV_ENV") == "TRUE" {
+			next.ServeHTTP(w, r)
+			return
+		}
 		// Not using mime.TypeByExtension because it doesn't have .woff2 as a mime type so it's messy
 		// to handle this and html from file paths.
 		ext := path.Ext(r.RequestURI)
