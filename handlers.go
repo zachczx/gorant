@@ -29,14 +29,15 @@ func (k *keycloak) landingHandler() http.Handler {
 		if err != nil {
 			fmt.Println("Error fetching tags", err)
 		}
-		fmt.Println("Tags: ", t)
+		// fmt.Println("Tags: ", t)
 		TemplRender(w, r, templates.MainPage(k.currentUser, p, t))
 	})
 }
 
 // Not using this because everything loads so fast, it's just a flash before it changes, which is uglier.
 // And worse, I incur 2 authentication checks instead of 1.
-// It's more troublesome to have to split out Create Bar and NavProfileBadge, both of which needs current user data, just to load them via HTMX separately.
+// It's more troublesome to have to split out Create Bar and NavProfileBadge, both of which needs current user data,
+// just to load them via HTMX separately.
 func (k *keycloak) viewNavbarProfileBadge() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.NavProfileBadge(k.currentUser))
@@ -44,7 +45,7 @@ func (k *keycloak) viewNavbarProfileBadge() http.Handler {
 }
 
 func postFilterHandler(w http.ResponseWriter, r *http.Request) {
-	// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes
+	// Requires r.ParseForm() because r.FormValue only grabs first value, not other values of same named checkboxes.
 	if err := r.ParseForm(); err != nil {
 		w.Header().Set("Hx-Redirect", "/error")
 		return
@@ -218,7 +219,6 @@ func (k *keycloak) filterSortPostHandler() http.Handler {
 
 		// By default the radio buttons aren't checked, so there's no default value when the filter is posted
 		if sort != "" {
-			fmt.Println("Inside saving")
 			s, err := users.SaveSortComments(k.currentUser.UserID, sort)
 			if err != nil {
 				fmt.Println(err)
@@ -539,6 +539,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 				},
 			}
 		}
+		fmt.Println(c.File.ID)
 		if err := posts.EditComment(c); err != nil {
 			fmt.Println(err)
 			return
@@ -726,7 +727,7 @@ func (k *keycloak) viewUploadHandler(bc *upload.BucketConfig) http.Handler {
 	})
 }
 
-// TODO: Rename this, since this only seems to be used in admin
+// TODO: Rename this, since this only seems to be used in admin.
 func (k *keycloak) uploadFileHandler(bc *upload.BucketConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Start uploading")
@@ -876,16 +877,10 @@ func (k *keycloak) viewErrorUnauthorizedHandler(w http.ResponseWriter, r *http.R
 
 func (k *keycloak) searchHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("invoked handler")
 		query := r.URL.Query().Get("q")
 		sort := r.URL.Query().Get("s")
-		if sort != "relevance" && sort != "recent" {
-			if r.Header.Get("Hx-Request") == "" {
-				http.Redirect(w, r, "/error", http.StatusSeeOther)
-			} else {
-				w.Header().Set("Hx-Redirect", "/error")
-			}
-			return
+		if sort == "" {
+			sort = "relevance"
 		}
 		results, err := posts.SearchComments(query, sort)
 		if err != nil {
@@ -901,30 +896,27 @@ func (k *keycloak) searchHandler() http.Handler {
 }
 
 func resetAdmin(w http.ResponseWriter, r *http.Request) {
-	if os.Getenv("DEV_ENV") == "TRUE" {
-		err := database.Reset()
-		if err != nil {
-			fmt.Println(err)
-			_, err := w.Write([]byte("Reset failed, errored out\r\n"))
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			msg := fmt.Sprintf("%v", err)
-			if _, err := io.WriteString(w, msg); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			return
-		}
-
-		s := time.Now().Format(time.RFC3339)
-
-		TemplRender(w, r, templates.Reset("", s))
-	} else {
+	if os.Getenv("DEV_ENV") != "TRUE" {
 		if _, err := w.Write([]byte("Not allowed!")); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
+	err := database.Reset()
+	if err != nil {
+		fmt.Println(err)
+		_, err := w.Write([]byte("Reset failed, errored out\r\n"))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		msg := fmt.Sprintf("%v", err)
+		if _, err := io.WriteString(w, msg); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	s := time.Now().Format(time.RFC3339)
+	TemplRender(w, r, templates.Reset("", s))
 }

@@ -133,8 +133,7 @@ func (c *CreatedAt) Process() string {
 	return s
 }
 
-func ListPosts() (PostCollection, error) {
-	rows, err := database.DB.Query(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+var listPostsQuery = `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
 									FROM posts
 										LEFT JOIN users ON users.user_id=posts.user_id
 										LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
@@ -146,62 +145,10 @@ func ListPosts() (PostCollection, error) {
 										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 												FROM posts_tags
 														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`)
-	if err != nil {
-		return nil, fmt.Errorf("error executing query: %w", err)
-	}
+												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`
 
-	defer rows.Close()
-
-	var posts PostCollection
-
-	for rows.Next() {
-		var p Post
-
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
-			return nil, fmt.Errorf("error scanning: %w", err)
-		}
-
-		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
-
-		p.PostStats.LikesCountString = NullIntToString(p.PostStats.LikesCount)
-
-		if p.Tags.TagsNullString.Valid {
-			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
-		} else {
-			p.Tags.Tags = []string{}
-		}
-
-		posts = append(posts, p)
-	}
-
-	return posts, nil
-}
-
-func ListTags() ([]string, error) {
-	var tags []string
-	var tagID uuid.UUID
-	var tag string
-
-	rows, err := database.DB.Query(`SELECT posts_tags.tag_id, tags.tag
-									FROM(SELECT DISTINCT posts_tags.tag_id FROM posts_tags) as posts_tags
-										LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-									ORDER BY tags.tag`)
-	if err != nil {
-		return tags, fmt.Errorf("error querying posts_tags for listtags(): %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		if err := rows.Scan(&tagID, &tag); err != nil {
-			return tags, fmt.Errorf("error scanning posts_tags for listtags(): %w", err)
-		}
-
-		tags = append(tags, tag)
-	}
-	fmt.Println(tags)
-
-	return tags, nil
+func ListPosts() (PostCollection, error) {
+	return scanPosts(listPostsQuery)
 }
 
 func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
@@ -212,11 +159,10 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	if len(mood) == 0 && len(tags) == 0 {
 		p, err := ListPosts()
 		if err != nil {
-			fmt.Println("Error fetching posts", err)
+			return p, fmt.Errorf("error: fetching posts: %w", err)
 		}
 		return p, nil
 	}
-
 	// IN clause fails if the tags slice fed to the INNER JOIN is empty, so if it's empty, grab all the possible moods
 	if len(mood) != 0 && len(tags) == 0 {
 		// This is different because 2 INNER JOINs are now LEFT JOINs
@@ -281,37 +227,53 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 		return nil, fmt.Errorf("error executing sqlx.In: %w", err)
 	}
 	query = database.DB.Rebind(query)
-	fmt.Println("Query: ", query)
-	rows, err := database.DB.Query(query, args...)
+	return scanPosts(query, args...)
+}
+
+func scanPosts(query string, args ...interface{}) (PostCollection, error) {
+	rows, err := database.DB.Queryx(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error executing list-post-filter query: %w", err)
 	}
-
 	defer rows.Close()
-
 	var posts PostCollection
-
 	for rows.Next() {
 		var p Post
-
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			return nil, fmt.Errorf("error scanning list-post-filter: %w", err)
 		}
-
 		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
-
 		p.PostStats.LikesCountString = NullIntToString(p.PostStats.LikesCount)
-
 		if p.Tags.TagsNullString.Valid {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {
 			p.Tags.Tags = []string{}
 		}
-
 		posts = append(posts, p)
 	}
-
 	return posts, nil
+}
+
+func ListTags() ([]string, error) {
+	var tags []string
+	var tagID uuid.UUID
+	var tag string
+	rows, err := database.DB.Query(`SELECT posts_tags.tag_id, tags.tag
+									FROM(SELECT DISTINCT posts_tags.tag_id FROM posts_tags) as posts_tags
+										LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+									ORDER BY tags.tag`)
+	if err != nil {
+		return tags, fmt.Errorf("error querying posts_tags for listtags(): %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err := rows.Scan(&tagID, &tag); err != nil {
+			return tags, fmt.Errorf("error scanning posts_tags for listtags(): %w", err)
+		}
+		tags = append(tags, tag)
+	}
+	fmt.Println(tags)
+	return tags, nil
 }
 
 func NewPost(p Post, tags []string) error {

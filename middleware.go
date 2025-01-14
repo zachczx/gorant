@@ -3,7 +3,6 @@ package main
 import (
 	"compress/gzip"
 	"fmt"
-	"mime"
 	"net/http"
 	"path"
 	"strconv"
@@ -15,19 +14,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// Taken from Go-Chi package
-var defaultCompressibleContentTypes = []string{
-	"text/html",
-	"text/css",
-	"text/plain",
-	"text/javascript",
-	"application/javascript",
-	"application/x-javascript",
-	"application/json",
-	"application/atom+xml",
-	"application/rss+xml",
-	"image/svg+xml",
-}
+var defaultCompressibleFileExtensions = []string{".html", ".htm", ".css", ".txt", ".js", ".map", ".json", ".xml", ".svg"}
 
 type StatusRecorder struct {
 	http.ResponseWriter
@@ -47,19 +34,15 @@ func StatusLogger(next http.Handler) http.Handler {
 			return
 		}
 		start := time.Now()
-		rec := StatusRecorder{w, 200}
+		rec := StatusRecorder{w, http.StatusOK}
 		next.ServeHTTP(&rec, r)
 		since := time.Since(start)
 
 		if !strings.Contains(r.URL.Path, "/static/") {
-			var status string
-			var method string
-			var url string
-			var duration string
-			var protocol string
+			var status, method, url, duration, protocol string
 
 			switch rec.status {
-			case 200:
+			case http.StatusOK:
 				status = pterm.Green(strconv.Itoa(rec.status))
 			default:
 				status = pterm.Red(strconv.Itoa(rec.status))
@@ -180,33 +163,23 @@ func ZxCompress() http.Handler {
 
 func ExcludeCompression(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Using strings.Contain because css file has an additional charset=utf-8, which doesn't allow == match.
-		// .woff2 also doesn't have a mime type. Using this because mime.TypeByExtension guesses based on extension anyway.
-
-		ext := mime.TypeByExtension(path.Ext(r.RequestURI))
-
-		for _, v := range defaultCompressibleContentTypes {
-			if strings.Contains(ext, v) {
+		// Not using mime.TypeByExtension because it doesn't have .woff2 as a mime type so it's messy
+		// to handle this and html from file paths.
+		ext := path.Ext(r.RequestURI)
+		// Check to see if it's a router path, if so it'll be a HTML response so let's just compress it.
+		if ext == "" {
+			ch := compress.Middleware(next)
+			ch.ServeHTTP(w, r)
+			return
+		}
+		for _, v := range defaultCompressibleFileExtensions {
+			if ext == v {
 				ch := compress.Middleware(next)
 				ch.ServeHTTP(w, r)
 				return
 			}
 		}
 		next.ServeHTTP(w, r)
-
-		// Not using this because it's more work.
-		// if strings.Contains(r.URL.Path, "/event") {
-		// 	next.ServeHTTP(w, r)
-		// 	return
-		// }
-		// ext := path.Ext(r.RequestURI)
-		// switch ext {
-		// case ".webp", ".woff2":
-		// 	next.ServeHTTP(w, r)
-		// default:
-		// 	ch := compress.Middleware(next)
-		// 	ch.ServeHTTP(w, r)
-		// }
 	})
 }
 

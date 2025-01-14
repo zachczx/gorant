@@ -95,13 +95,10 @@ templ NavCenterLinks(activeSection string) {
 
 templ NavProfileBadge(currentUser *users.User) {
 	<div id="navbar-profile-badge" class="navbar-end gap-4 lg:pe-6">
-		<form method="get" action="/search">
-			<label
-				id="nav-search-label"
-				class="input input-bordered flex items-center gap-1 rounded-full bg-white/70"
-			>
-				<input type="text" class="grow" name="q" placeholder="Search"/>
-				<button class="-me-2.5 rounded-full bg-neutral/90 p-1.5 text-accent-content">
+		<form method="get" action="/search" class="search-bar-filled-w w-full max-w-36 transition-all duration-200 ease-out focus-within:max-w-96">
+			<label id="nav-search-label" class="search-bar-input-spacing input input-bordered relative flex items-center gap-1 rounded-full bg-white/70">
+				<input type="text" class="grow" name="q" placeholder="Search" autocomplete="off"/>
+				<button class="absolute inset-y-auto right-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-neutral/90 text-accent-content">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
 					</svg>
@@ -170,7 +167,7 @@ templ Footer() {
 				// <li class="ms-6">empty wallet by Amethyst Studio from <a href="https://thenounproject.com/browse/icons/term/empty-wallet/" class="underline" target="_blank" title="empty wallet Icons">Noun Project</a> (CC BY 3.0)</li>
 				<li class="ms-6">Empty state illustration by <a href="https://www.figma.com/community/file/931094174831888421" class="underline" target="_blank" title="Icons">TanahAir Studio</a></li>
 				<li class="ms-6">
-					Broken rocket, broken robot, empty puzzle illustrations by 
+					Broken rocket, broken robot, empty puzzle, cow spaceship illustrations by 
 					<a href="https://www.pixeltrue.com/" class="underline" target="_blank" title="Icons">
 						Pixel True
 					</a>

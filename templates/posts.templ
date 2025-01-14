@@ -279,10 +279,10 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							if comments[i].CommentStats.CurrentUserVoted == "true" {
 								class="inline-block h-auto text-4xl text-secondary"
 							} else {
-								class="inline-block h-auto text-4xl transition-all duration-300 ease-out hover:text-secondary active:-translate-y-5"
+								class="group inline-block h-auto text-4xl hover:text-secondary"
 							}
 						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
+							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block transition-all duration-300 ease-out active:-translate-y-5" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
 						</button>
 						<div>
 							if len(comments[i].CommentStats.CountString) > 0 {

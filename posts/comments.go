@@ -60,7 +60,7 @@ type CommentVote struct {
 	Score     int       `db:"score"`
 }
 
-// Null handling for counts from DB, since counts are calculated from the query
+// Null handling for counts from DB, since counts are calculated from the query.
 type CommentStats struct {
 	Count            sql.NullInt64 `db:"cnt"`
 	CountString      string
@@ -190,11 +190,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 			c.CommentStats.CurrentUserVoted = "false"
 		}
 		if c.NullFile.ID.Valid {
-			c.File.ID = c.NullFile.ID.UUID
-			c.File.Key = c.NullFile.Key.String
-			c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
-			c.File.Store = c.NullFile.Store.String
-			c.File.Bucket = c.NullFile.Bucket.String
+			syncNullFiletoFile(&c)
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 
@@ -218,12 +214,7 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 		return c, fmt.Errorf("error querying row to getcomment(): %w", err)
 	}
 	if c.NullFile.ID.Valid {
-		c.File.ID = c.NullFile.ID.UUID
-		c.File.Key = c.NullFile.Key.String
-		c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
-		c.File.Store = c.NullFile.Store.String
-		c.File.Bucket = c.NullFile.Bucket.String
-		c.File.BaseURL = c.NullFile.BaseURL.String
+		syncNullFiletoFile(&c)
 	}
 	return c, nil
 }
@@ -244,7 +235,7 @@ func EditComment(c Comment) error {
 		fmt.Println("Successfully edited!")
 		return nil
 	}
-	err = database.DB.QueryRow(`INSERT INTO files (user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING file_id`, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now()).Scan(&returnID)
+	err = database.DB.QueryRow(`INSERT INTO files (file_id, user_id, file_key, file_thumbnail_key, file_store, file_bucket, file_base_url, uploaded_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING file_id`, c.File.ID, c.UserID, c.File.Key, c.File.ThumbnailKey, c.File.Store, c.File.Bucket, c.File.BaseURL, time.Now()).Scan(&returnID)
 	if err != nil {
 		return fmt.Errorf("error inserting file for edit comment: %w", err)
 	}
@@ -401,12 +392,7 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			c.CommentStats.CurrentUserVoted = "false"
 		}
 		if c.NullFile.ID.Valid {
-			c.File.ID = c.NullFile.ID.UUID
-			c.File.Key = c.NullFile.Key.String
-			c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
-			c.File.Store = c.NullFile.Store.String
-			c.File.Bucket = c.NullFile.Bucket.String
-			c.File.BaseURL = c.NullFile.BaseURL.String
+			syncNullFiletoFile(&c)
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 		comments = append(comments, c)
@@ -418,8 +404,6 @@ func SearchComments(query string, sort string) ([]SearchComment, error) {
 	var results []SearchComment
 	var rows *sql.Rows
 	var err error
-	fmt.Println("Sort: .....", sort)
-
 	if sort == "recent" {
 		rows, err = database.DB.Query(`SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
 										LEFT JOIN users
@@ -451,4 +435,14 @@ func SearchComments(query string, sort string) ([]SearchComment, error) {
 		results = append(results, row)
 	}
 	return results, nil
+}
+
+// This exists to reduce copy pasting in the rows.Next()/rows.Scan() parts after executing SQL.
+func syncNullFiletoFile(c *Comment) {
+	c.File.ID = c.NullFile.ID.UUID
+	c.File.Key = c.NullFile.Key.String
+	c.File.ThumbnailKey = c.NullFile.ThumbnailKey.String
+	c.File.Store = c.NullFile.Store.String
+	c.File.Bucket = c.NullFile.Bucket.String
+	c.File.BaseURL = c.NullFile.BaseURL.String
 }

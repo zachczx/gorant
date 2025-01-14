@@ -94,9 +94,7 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-
 			cookieSince := time.Since(cookieStart)
-
 			token, ok := session.Values["token"].(string)
 			if token == "" || !ok {
 				k.currentUser.UserID = ""
@@ -104,13 +102,11 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-
 			cookieUsername, ok := session.Values["username"].(string)
 			if cookieUsername == "" || !ok {
 				fmt.Println("No username cookie found!")
 			}
 			k.currentUser.UserID = cookieUsername
-
 			authStart := time.Now()
 			result, err := k.gocloak.RetrospectToken(ctx, token, k.config.clientID, k.config.clientSecret, k.config.realm)
 			if err != nil || !*result.Active {
@@ -120,15 +116,12 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 				return
 			}
 			authDuration := time.Since(authStart)
-
 			settingsStart := time.Now()
-
 			// Load user settings from cookie or DB.
 			// If loaded from DB, then store in cookie to be saved.
 			if err := SetSettingsCookie(k.currentUser, session, cookieUsername, false); err != nil {
 				fmt.Println(err)
 			}
-
 			if err := session.Save(r, w); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -137,7 +130,6 @@ func (k *keycloak) CheckAuthentication() func(http.Handler) http.Handler {
 			// Format benchmarks
 			settingsDuration := time.Since(settingsStart)
 			if os.Getenv("DEV_ENV") == "TRUE" {
-
 				bulletListItems := []pterm.BulletListItem{
 					{
 						Level:       0,
