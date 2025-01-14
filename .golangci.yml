@@ -1,34 +1,36 @@
 linters:
   enable:
-    ##### Recommended from reddit
+    # Recommended from reddit
     - wrapcheck
     - revive
     - nilerr
     - gosec
     - gochecksumtype
     - exhaustive
-    ##### Defaults
+    # Defaults
     - errcheck
     - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
-    #### Extras
-    ##### Style
+    # Extras
+    ## Style
     - stylecheck
     - godot
     - whitespace
     - exptostd
     - dupl
-    - mnd
-    ##### Brain
+    ## Brain/Complexity
     - gocognit
     - nestif
     - sqlclosecheck
+    - maintidx
+
   disable:
     - funlen
     - cyclop
+    - mnd
 
 linters-settings:
   stylecheck:

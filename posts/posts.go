@@ -99,11 +99,12 @@ const regex string = `^[A-Za-z0-9 _!.\$\/\\|()\[\]=` + "`" + `{<>?@#%^&*—:;'"+
 func (c *CreatedAt) Process() string {
 	var s string
 	var suffix string
-
+	singleDay := 24.00
+	singleHour := 1.00
 	n := time.Now()
 	diff := n.Sub(c.Time).Hours()
 	switch {
-	case diff < 1:
+	case diff < singleHour:
 		if n.Sub(c.Time).Minutes() < 2 {
 			suffix = " minute ago"
 		} else {
@@ -111,7 +112,7 @@ func (c *CreatedAt) Process() string {
 		}
 		// Mins
 		s = strconv.Itoa(int(n.Sub(c.Time).Minutes())) + suffix
-	case diff >= 1 && diff <= 23.99:
+	case diff >= singleHour && diff < singleDay:
 		if diff < 2 {
 			suffix = " hour ago"
 		} else {
@@ -119,14 +120,14 @@ func (c *CreatedAt) Process() string {
 		}
 		// Hours
 		s = strconv.Itoa(int(diff)) + suffix
-	case diff > 23.99:
-		if diff < 48 {
+	case diff >= singleDay:
+		if diff < 2*singleDay {
 			suffix = " day ago"
 		} else {
 			suffix = " days ago"
 		}
 		// Days
-		s = strconv.Itoa(int(n.Sub(c.Time).Hours()/24)) + suffix
+		s = strconv.Itoa(int(n.Sub(c.Time).Hours()/singleDay)) + suffix
 	default:
 		fmt.Println("Something went wrong")
 	}
