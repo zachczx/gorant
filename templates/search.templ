@@ -76,7 +76,13 @@ templ ResultsList(results []posts.SearchComment, query string) {
 						<img src="/static/images/cow-spaceship.svg" width="385" height="460" class="h-32 w-32 lg:h-72 lg:w-72" alt="Nothing!"/>
 					</div>
 					<h2 class="text-center text-xl font-bold">Nothing found!</h2>
-					<p class="justify-self-center text-base-content/80">Try using another search term</p>
+					<p class="justify-self-center text-base-content/80">
+						if query =="" {
+							Huh? You didn't enter a search term.
+						} else {
+							Change it up, try another search term.
+						}
+					</p>
 				</div>
 			}
 		</div>
