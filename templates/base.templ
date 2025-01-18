@@ -206,11 +206,12 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 			<div
 				id="content"
 				class="w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
+				hx-ext="response-targets"
 			>
 				<div class="flex items-center">
 					<h2 class="grow px-8 text-center text-3xl font-extrabold">Posts</h2>
 				</div>
-				<form id="post-form" hx-post="/posts/new" hx-swap="innerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-start justify-items-center px-2 lg:pt-0">
+				<form id="post-form" hx-post="/posts/new" hx-swap="outerHTML" hx-target="#post-form-message" hx-target-error="#toast" class="grid w-full max-w-[1600px] content-start justify-items-center px-2 lg:pt-0">
 					if currentUser.UserID != "" {
 						// Logged in
 						// Padding end for label is to prevent input from overflowing under the button
@@ -258,7 +259,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 							<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent btn-md w-full rounded-lg text-lg lg:w-auto lg:min-w-48 lg:text-xl">Incognito Mode</a>
 						</div>
 					}
-					<div id="post-form-message" class="text-sm text-error">
+					<div id="post-form-message" class="text-sm text-error pt-1">
 						{ children... }
 					</div>
 				</form>
@@ -436,7 +437,7 @@ templ ListPosts(posts posts.PostCollection) {
 }
 
 templ AnonymousMode(input string) {
-	<form id="post-form" hx-post="/posts/new" hx-swap="outerHTML" hx-target="#post-form-message" class="grid w-full max-w-[1600px] content-center justify-items-center px-2 lg:pt-0" hx-target-error="#toast" hx-ext="response-targets">
+	<form id="post-form" hx-post="/posts/new" hx-swap="outerHTML" hx-target="#post-form-message" hx-target-error="#toast" class="grid w-full max-w-[1600px] content-center justify-items-center px-2 lg:pt-0" hx-target-error="#toast" hx-ext="response-targets">
 		<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/70 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="hugeicons:anonymous me-4 text-gray-400" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" color="currentColor"><path d="M7 15a3 3 0 1 0 0 6a3 3 0 0 0 0-6m10 0a3 3 0 1 0 0 6a3 3 0 0 0 0-6m-3 2h-4m12-4c-2.457-1.227-6.027-2-10-2s-7.543.773-10 2"></path><path d="m19 11.5l-1.058-6.788c-.215-1.384-1.719-2.134-2.933-1.463l-.615.34a4.94 4.94 0 0 1-4.788 0l-.615-.34c-1.214-.67-2.718.08-2.933 1.463L5 11.5"></path></g></svg>
 			<input
@@ -466,7 +467,7 @@ templ AnonymousMode(input string) {
 			</button>
 		</label>
 		@CreatePostDrawer()
-		<div id="post-form-message" class="text-sm text-error">
+		<div id="post-form-message" class="text-sm text-error pt-1">
 			{ children... }
 		</div>
 		<input type="hidden" name="anonymous-mode" value="true"/>
@@ -652,10 +653,6 @@ templ MainPageError(currentUser *users.User, posts posts.PostCollection, tags []
 	@MainPage(currentUser, posts, tags) {
 		No special characters allowed! ID may contain only A-Z, a-z, 0-9, dash, underscore.
 	}
-}
-
-templ CreatePostError(message string) {
-	<div class="flex items-center text-error"><svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-2 inline" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>{ message }</div>
 }
 
 templ Error(currentUser *users.User, message string) {

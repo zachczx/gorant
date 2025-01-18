@@ -110,12 +110,12 @@ func main() {
 	mux.Handle("GET /logout", k.Logout(currentUser))
 
 	// Upload routes
-	mux.Handle("GET /upload-inspect", k.CheckAuthentication()(k.viewUploadHandler(r2)))
-	mux.Handle("GET /view/{fileID}", viewFileHandler(r2))
-	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.uploadFileHandler(r2)))
-	mux.Handle("POST /upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
-	mux.Handle("GET /upload/duplicates", k.CheckAuthentication()(k.viewDuplicateFilesHandler()))
-	mux.Handle("POST /upload/duplicates/delete", k.CheckAuthentication()(k.deleteDuplicateFilesHandler(r2)))
+	mux.Handle("GET /admin/upload-inspect", k.CheckAuthentication()(k.adminViewUploadHandler(r2)))
+	mux.Handle("GET /admin/view/{fileID}", adminViewFileHandler(r2))
+	mux.Handle("POST /upload/process", k.CheckAuthentication()(k.adminUploadFileHandler(r2)))
+	mux.Handle("POST /admin/upload/test", k.CheckAuthentication()(k.uploadTestFileHandler()))
+	mux.Handle("GET /admin/upload/duplicates", k.CheckAuthentication()(k.adminViewDuplicateFilesHandler()))
+	mux.Handle("POST /admin/upload/duplicates/delete", k.CheckAuthentication()(k.adminDeleteDuplicateFilesHandler(r2)))
 
 	// Search routes
 	mux.Handle("GET /search", k.CheckAuthentication()(k.searchHandler()))

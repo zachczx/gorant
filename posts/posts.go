@@ -659,20 +659,12 @@ func EditMood(postID string, mood string) error {
 }
 
 func ValidateMood(mood string) error {
-	res := false
 	for _, v := range allowedMoods {
-		v = strings.ToUpper(v)
-
-		if strings.Contains(v, strings.ToUpper(mood)) {
-			res = true
-			break
+		if strings.EqualFold(v, mood) {
+			return nil
 		}
 	}
-	if !res {
-		return errors.New("new mood is not in allowed list")
-	}
-
-	return nil
+	return errors.New("new mood is not in allowed list")
 }
 
 func SanitizeTitleToID(title string) (string, error) {
