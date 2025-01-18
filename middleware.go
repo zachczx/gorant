@@ -40,7 +40,7 @@ func StatusLogger(next http.Handler) http.Handler {
 		since := time.Since(start)
 
 		if !strings.Contains(r.URL.Path, "/static/") {
-			var status, method, url, duration, protocol string
+			var status, method, url, duration, encoding string
 
 			switch rec.status {
 			case http.StatusOK:
@@ -74,13 +74,13 @@ func StatusLogger(next http.Handler) http.Handler {
 
 			switch w.Header().Get("Content-Encoding") {
 			case "br":
-				protocol = pterm.LightWhite(w.Header().Get("Content-Encoding"))
+				encoding = pterm.LightWhite(w.Header().Get("Content-Encoding"))
 			default:
-				protocol = pterm.Red(w.Header().Get("Content-Encoding"))
+				encoding = pterm.Red(w.Header().Get("Content-Encoding"))
 			}
 			fmt.Println(" ")
 			pterm.DefaultSection.Println("Request!")
-			pterm.Printf("[%v]-[%v]-[%v]-[%v]-[%v]\r\n\r\n", status, method, protocol, duration, url)
+			pterm.Printf("[%v]-[%v]-[%v]-[%v]-[%v]\r\n\r\n", status, method, encoding, duration, url)
 			fmt.Println("###################")
 		}
 	})
