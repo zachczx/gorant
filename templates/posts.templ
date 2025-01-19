@@ -241,7 +241,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							<div class="flex grow items-center">
 								<div class="avatar me-4">
 									<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
-										<img src={ string(templ.URL(comments[i].AvatarPath)) } class="scale-125" alt={ comments[i].PreferredName + "'s Avatar" }/>
+										<img src={ string(templ.URL(comments[i].AvatarPath())) } class="scale-125" alt={ comments[i].PreferredName + "'s Avatar" }/>
 									</div>
 								</div>
 								<div>
@@ -293,7 +293,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							// Previously used for <textarea> input
 							// hyphenate whitespace-pre-line 
 							@templ.Raw(comments[i].Content)
-							<div class="mt-8 grid grid-cols-2 content-center">
+							<div class="mt-4 grid grid-cols-2 content-center">
 								if len(comments[i].File.Key) > 0 {
 									<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="border border-neutral/10 rounded-lg bg-neutral/5 flex w-fit px-2 py-0.5 max-w-56 items-center gap-1 truncate text-sm font-medium text-base-content/70">
 										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attach-file-rounded rotate-45 text-base-content/70 pointer-events-none" viewBox="0 0 24 24">

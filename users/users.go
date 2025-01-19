@@ -19,7 +19,6 @@ type User struct {
 	ContactMe       int    `db:"contact_me"`
 	ContactMeString string
 	Avatar          string `db:"avatar"`
-	AvatarPath      string
 	SortComments    string `db:"sort_comments"`
 }
 
@@ -28,6 +27,11 @@ type Settings struct {
 	ContactMe     string
 	Avatar        string
 	SortComments  string
+}
+
+func (u *User) AvatarPath() string {
+	avatar := ChooseAvatar(u.Avatar)
+	return avatar
 }
 
 var avatars = []string{"bird", "bird2", "bulldog", "cat", "cat2", "cat3", "cat4", "cat5", "cat6", "corgi", "dog2", "dog3", "dog4", "dog5", "goldfish", "hamster", "husky", "owl", "pigeon", "poodle", "rabbit", "shiba", "snake", "turtle", "whitehamster"}
@@ -40,7 +44,6 @@ func (u *User) GetSettings(username string) error {
 		return fmt.Errorf("error fetching settings getsettings() from db: %w", err)
 	}
 	u.ContactMeString = strconv.Itoa(u.ContactMe)
-	u.AvatarPath = ChooseAvatar(u.Avatar)
 	return nil
 }
 

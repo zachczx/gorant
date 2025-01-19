@@ -234,11 +234,6 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 			fmt.Println("No Avatar cookie found!")
 			refetch = true
 		}
-		currentUser.AvatarPath, ok = session.Values["AvatarPath"].(string)
-		if currentUser.AvatarPath == "" || !ok {
-			fmt.Println("No AvatarPath cookie found!")
-			refetch = true
-		}
 		currentUser.SortComments, ok = session.Values["SortComments"].(string)
 		if currentUser.SortComments == "" || !ok {
 			fmt.Println("No SortComments cookie found!")
@@ -255,7 +250,6 @@ func SetSettingsCookie(currentUser *users.User, session *gorillaSessions.Session
 		// Once fetched, store inside cookies
 		session.Values["PreferredName"] = currentUser.PreferredName
 		session.Values["Avatar"] = currentUser.Avatar
-		session.Values["AvatarPath"] = currentUser.AvatarPath
 		session.Values["SortComments"] = currentUser.SortComments
 	}
 	return nil

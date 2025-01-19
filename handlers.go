@@ -724,7 +724,6 @@ func (k *keycloak) editSettingsHandler() http.Handler {
 		}
 		session.Values["PreferredName"] = k.currentUser.PreferredName
 		session.Values["Avatar"] = k.currentUser.Avatar
-		session.Values["AvatarPath"] = k.currentUser.AvatarPath
 		session.Values["SortComments"] = k.currentUser.SortComments
 		err = session.Save(r, w)
 		if err != nil {

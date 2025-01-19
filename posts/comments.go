@@ -27,7 +27,6 @@ type Comment struct {
 	Avatar             string `db:"avatar"`
 	CommentStats       CommentStats
 	CreatedAtProcessed string
-	AvatarPath         string
 	File               upload.LookupFile
 	NullFile           upload.NullFile
 	Replies            ReplyCollection
@@ -40,6 +39,11 @@ func (c *Comment) IDString() string {
 func (c *Comment) FileURL() string {
 	k := c.File.BaseURL + "/" + c.File.ID.String() + "-" + c.File.Key
 	return k
+}
+
+func (c *Comment) AvatarPath() string {
+	avatar := users.ChooseAvatar(c.Avatar)
+	return avatar
 }
 
 func (c *Comment) ThumbnailURL() string {
@@ -193,8 +197,6 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 		if c.NullFile.ID.Valid {
 			syncNullFiletoFile(&c)
 		}
-		c.AvatarPath = users.ChooseAvatar(c.Avatar)
-
 		comments = append(comments, c)
 	}
 	return comments, nil
@@ -402,7 +404,6 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 		if c.NullFile.ID.Valid {
 			syncNullFiletoFile(&c)
 		}
-		c.AvatarPath = users.ChooseAvatar(c.Avatar)
 		if replyMap[c.ID] != nil {
 			c.Replies = replyMap[c.ID]
 		}
