@@ -591,6 +591,27 @@ func (k *keycloak) deleteCommentHandler() http.Handler {
 	})
 }
 
+func (k *keycloak) replyCommentHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		fmt.Println(postID)
+		commentID, err := uuid.Parse(r.PathValue("commentID"))
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		message := r.FormValue("message")
+		reply := &posts.Reply{UserID: k.currentUser.UserID, Content: message, PostID: postID, CommentID: commentID}
+		if err := reply.Insert(); err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Error saving reply!"))
+			return
+		}
+		TemplRender(w, r, templates.Toast("success", "Reply saved!"))
+	})
+}
+
 func (k *keycloak) editPostDescriptionHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")

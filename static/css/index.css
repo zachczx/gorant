@@ -360,6 +360,45 @@
 			padding-left: 2.5rem;
 		}
 	}
+
+	/* Comment/replies */
+
+	.replies-container {
+		padding-inline-start: 3rem;
+	}
+
+	.reply {
+		position: relative;
+		--size: 8rem;
+		div {
+			position: relative;
+			z-index: 2;
+		}
+
+		&::before {
+			position: absolute;
+			z-index: 1;
+			top: calc(var(--size) / -16); /* -0.5 */
+			left: -2rem;
+			content: '';
+			height: calc(var(--size) / 2);
+			width: 2rem;
+			border-inline-start: 2px solid #dbdbd9;
+			border-bottom: 2px solid #dbdbd9;
+			border-bottom-left-radius: 6px;
+		}
+
+		&:not(:last-child)::after {
+			z-index: 1;
+			position: absolute;
+			top: calc(var(--size) / 3);
+			left: -2rem;
+			content: '';
+			height: 100%;
+			width: 20px;
+			border-inline-start: 2px solid #dbdbd9;
+		}
+	}
 }
 
 @layer utilities {

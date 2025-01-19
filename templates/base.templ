@@ -259,7 +259,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 							<a hx-post="/anonymous" hx-target="#post-form" hx-swap="outerHTML" class="btn btn-outline btn-accent btn-md w-full rounded-lg text-lg lg:w-auto lg:min-w-48 lg:text-xl">Incognito Mode</a>
 						</div>
 					}
-					<div id="post-form-message" class="text-sm text-error pt-1">
+					<div id="post-form-message" class="pt-1 text-sm text-error">
 						{ children... }
 					</div>
 				</form>
@@ -467,7 +467,7 @@ templ AnonymousMode(input string) {
 			</button>
 		</label>
 		@CreatePostDrawer()
-		<div id="post-form-message" class="text-sm text-error pt-1">
+		<div id="post-form-message" class="pt-1 text-sm text-error">
 			{ children... }
 		</div>
 		<input type="hidden" name="anonymous-mode" value="true"/>

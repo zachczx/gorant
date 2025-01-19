@@ -30,6 +30,7 @@ type Comment struct {
 	AvatarPath         string
 	File               upload.LookupFile
 	NullFile           upload.NullFile
+	Replies            ReplyCollection
 }
 
 func (c *Comment) IDString() string {
@@ -332,6 +333,13 @@ func ConvertDate(date string) (string, error) {
 
 func ListCommentsFilterSort(postID string, currentUser string, sort string, filter string) ([]Comment, error) {
 	var comments []Comment
+	var err error
+	replyCollection, err := GetReplies(postID)
+	if err != nil {
+		return comments, fmt.Errorf("error: get replies: %w", err)
+	}
+	replyMap := replyCollection.Map()
+
 	q := `SELECT comments.comment_id, comments.user_id, comments.content, comments.created_at, comments.post_id, comments.file_id, files.file_key, files.file_thumbnail_key, files.file_store, files.file_bucket, files.file_base_url, cnt, ids_voted, users.preferred_name, users.avatar 
 			FROM comments 
 			LEFT JOIN files
@@ -345,25 +353,25 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			LEFT JOIN (SELECT users.user_id, users.preferred_name, users.avatar FROM users) as users
 			ON comments.user_id = users.user_id
 			
-			WHERE comments.post_id=$1 ` // Still short of ORDER BY clause, deliberate space here
+			WHERE comments.post_id=$1`
 	if filter != "" {
-		q += `AND (comments.content ILIKE '%' || $2 || '%') `
+		q += ` ` + `AND (comments.content ILIKE '%' || $2 || '%')`
 	}
 
 	if sort == "upvote;asc" {
-		q += `ORDER BY cnt ASC NULLS FIRST;`
+		q += ` ` + `ORDER BY cnt ASC NULLS FIRST;`
 	} else if sort == "upvote;desc" {
-		q += `ORDER BY cnt DESC NULLS LAST;`
+		q += ` ` + `ORDER BY cnt DESC NULLS LAST;`
 	} else if sort == "date;asc" {
-		q += `ORDER BY comments.created_at ASC NULLS LAST;`
+		q += ` ` + `ORDER BY comments.created_at ASC NULLS LAST;`
 	} else if sort == "date;desc" {
-		q += `ORDER BY comments.created_at DESC NULLS LAST;`
+		q += ` ` + `ORDER BY comments.created_at DESC NULLS LAST;`
 	} else {
-		q += `ORDER BY cnt DESC NULLS LAST;`
+		q += ` ` + `ORDER BY cnt DESC NULLS LAST;`
 	}
 
 	var rows *sql.Rows
-	var err error
+
 	// Useful resource for the join - https://stackoverflow.com/questions/2215754/sql-left-join-count
 	// I considered left join for post description, but it was stupid to append description to every comment.
 	// Decided to just do a separate query for that instead.
@@ -395,8 +403,12 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			syncNullFiletoFile(&c)
 		}
 		c.AvatarPath = users.ChooseAvatar(c.Avatar)
+		if replyMap[c.ID] != nil {
+			c.Replies = replyMap[c.ID]
+		}
 		comments = append(comments, c)
 	}
+
 	return comments, nil
 }
 

@@ -13,7 +13,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, comments []
 				<div class="sticky top-2 z-[1] grid max-h-[90dvh] justify-items-center overflow-y-auto backdrop-blur">
 					<div class="grid w-full content-center rounded-lg border border-neutral/10 bg-white/70 shadow-lg lg:max-w-2xl">
 						<button id="post-title-truncated" class="rounded-t-lg border-t-8 border-t-primary/70 p-4">
-							<h1 class="line-clamp-2 max-h-[6.3rem] overflow-hidden text-center text-3xl break-all font-extrabold capitalize">
+							<h1 class="line-clamp-2 max-h-[6.3rem] overflow-hidden break-all text-center text-3xl font-extrabold capitalize">
 								{ post.Title }
 							</h1>
 						</button>
@@ -294,16 +294,27 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							// hyphenate whitespace-pre-line 
 							@templ.Raw(comments[i].Content)
 							if len(comments[i].File.Key) > 0 {
-								<div class="mt-8 grid gap-1 border-t border-t-neutral/20 pt-4">
-									<h4 class="flex items-center font-medium">
-										// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
-										// 	<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
-										// </svg>
-										Attachment
-									</h4>
-									<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="flex max-h-36 max-w-36 items-center justify-center overflow-hidden rounded-lg border border-neutral/30 bg-neutral/90 text-sm text-base-content/70 underline hover:text-accent">
-										<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].ThumbnailURL()))) } alt="Uploaded image" class="object-fit"/>
-									</button>
+								<div id={ "comment-" + comments[i].IDString() + "-attachment_snippet" } class="collapse mt-8 rounded-lg border border-base-content/20 text-base-content/70">
+									// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
+									<input type="checkbox" class="min-h-10"/>
+									<div class="collapse-title min-h-10 content-center px-4 flex items-center py-1 text-sm">
+										<h4 class="flex items-center font-medium grow">
+											<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
+												<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
+											</svg>
+											Attachment
+										</h4>
+										<div>
+											<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+												<path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path>
+											</svg>
+										</div>
+									</div>
+									<div class="collapse-content">
+										<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="grid justify-items-center content-center min-w-32 max-h-96 max-w-96 overflow-hidden rounded-lg border border-neutral/30 bg-neutral/90 text-sm text-base-content/70 underline hover:text-accent">
+											<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].ThumbnailURL()))) } alt="Uploaded image" class="object-fit"/>
+										</button>
+									</div>
 								</div>
 								// Modal for each attachment
 								<dialog id={ "comment_" + comments[i].IDString() + "_attachment" } class="modal">
@@ -328,6 +339,43 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							}
 						</div>
 					</div>
+				</div>
+				<div class="grid gap-4">
+					if len(comments[i].Replies) > 0 {
+						<div class="grid gap-4">
+							<div class="replies-container grid gap-2">
+								for j := 0; j < len(comments[i].Replies); j++ {
+									<div class="reply">
+										@replyBody(currentUser, comments[i].Replies[j])
+									</div>
+								}
+							</div>
+						</div>
+					}
+					// <form
+					// 	hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply", comments[i].PostID, comments[i].IDString()))) }
+					// 	hx-swap="outerHTML"
+					// 	hx-target="#toast"
+					// 	class="join w-full"
+					// >
+					// 	<label class="input join-item input-bordered flex w-full items-center gap-2">
+					// 		<svg
+					// 			xmlns="http://www.w3.org/2000/svg"
+					// 			viewBox="0 0 16 16"
+					// 			fill="currentColor"
+					// 			class="h-5 w-5 opacity-70"
+					// 		>
+					// 			<path
+					// 				d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z"
+					// 			></path>
+					// 			<path
+					// 				d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z"
+					// 			></path>
+					// 		</svg>
+					// 		<input type="text" class="grow" name="message" placeholder="Reply to comment"/>
+					// 	</label>
+					// 	<button class="btn btn-accent join-item">Reply</button>
+					// </form>
 				</div>
 			}
 		} else {
@@ -768,4 +816,55 @@ templ PartialLikePost(postID string, like string) {
 			</svg>
 		}
 	</button>
+}
+
+templ replyBody(currentUser *users.User, reply posts.Reply) {
+	<div class="w-full rounded-xl border border-neutral/10 bg-white/70 p-4">
+		<div class="flex">
+			<div class="flex grow items-center">
+				<div class="avatar me-4">
+					<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
+						<img src={ string(templ.URL(reply.AvatarPath())) } class="scale-125" alt={ reply.PreferredName + "'s Avatar" }/>
+					</div>
+				</div>
+				<div>
+					<div class="text-xl font-bold">
+						{ reply.PreferredName }
+					</div>
+					<div class="text-xs text-base-content/60">
+						{ reply.CreatedAt.Process() }
+					</div>
+				</div>
+			</div>
+			<div class="flex items-center text-base">
+				if reply.UserID == currentUser.UserID {
+					<div class="dropdown dropdown-end ms-8">
+						<div tabindex="0" role="button" class="flex items-center justify-center rounded-lg text-neutral/70">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols-more-horiz inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14q-.825 0-1.412-.587T4 12t.588-1.412T6 10t1.413.588T8 12t-.587 1.413T6 14m6 0q-.825 0-1.412-.587T10 12t.588-1.412T12 10t1.413.588T14 12t-.587 1.413T12 14m6 0q-.825 0-1.412-.587T16 12t.588-1.412T18 10t1.413.588T20 12t-.587 1.413T18 14"></path></svg>
+						</div>
+						<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
+							<li
+								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
+							>
+								<button class="flex">
+									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
+									</svg>Edit comment
+								</button>
+							</li>
+							<li>
+								<button class="flex">
+									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+									</svg>
+									Delete comment
+								</button>
+							</li>
+						</ul>
+					</div>
+				}
+			</div>
+		</div>
+		<div class="comment-content pt-4 text-base">{ reply.Content }</div>
+	</div>
 }
