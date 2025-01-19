@@ -293,50 +293,45 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							// Previously used for <textarea> input
 							// hyphenate whitespace-pre-line 
 							@templ.Raw(comments[i].Content)
-							if len(comments[i].File.Key) > 0 {
-								<div id={ "comment-" + comments[i].IDString() + "-attachment_snippet" } class="collapse mt-8 rounded-lg border border-base-content/20 text-base-content/70">
-									// DaisyUI applies a min-h of 3.75rem by default to checkbox and collapse-title, so classes in both are needed
-									<input type="checkbox" class="min-h-10"/>
-									<div class="collapse-title min-h-10 content-center px-4 flex items-center py-1 text-sm">
-										<h4 class="flex items-center font-medium grow">
-											<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attachment me-2" viewBox="0 0 24 24">
-												<path fill="currentColor" d="M8.25 18q-2.6 0-4.425-1.825T2 11.75t1.825-4.425T8.25 5.5h9.25q1.875 0 3.188 1.313T22 10t-1.312 3.188T17.5 14.5H8.75q-1.15 0-1.95-.8T6 11.75t.8-1.95T8.75 9H18v2H8.75q-.325 0-.537.213T8 11.75t.213.538t.537.212h8.75q1.05-.025 1.775-.737T20 10t-.725-1.775T17.5 7.5H8.25q-1.775-.025-3.012 1.225T4 11.75q0 1.75 1.238 2.975T8.25 16H18v2z"></path>
-											</svg>
-											Attachment
-										</h4>
-										<div>
-											<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-												<path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path>
-											</svg>
-										</div>
-									</div>
-									<div class="collapse-content">
-										<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="grid justify-items-center content-center min-w-32 max-h-96 max-w-96 overflow-hidden rounded-lg border border-neutral/30 bg-neutral/90 text-sm text-base-content/70 underline hover:text-accent">
-											<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].ThumbnailURL()))) } alt="Uploaded image" class="object-fit"/>
-										</button>
-									</div>
-								</div>
-								// Modal for each attachment
-								<dialog id={ "comment_" + comments[i].IDString() + "_attachment" } class="modal">
-									<div class="modal-box min-w-[40dvw] overflow-auto p-2">
-										<form method="dialog" class="grid justify-items-end">
-											<button>
-												<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:close text-base-content/70" viewBox="0 0 24 24">
-													<path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z"></path>
-												</svg>
-											</button>
-										</form>
-										<div class="grid max-w-[1600px] justify-items-center p-2 text-base">
-											<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].FileURL()))) } alt="Uploaded image" class=""/>
-											<div class="modal-action justify-self-end">
-												<form method="dialog">
-													<button class="btn btn-accent">Close</button>
-												</form>
+							<div class="mt-8 grid grid-cols-2 content-center">
+								if len(comments[i].File.Key) > 0 {
+									<button onClick={ commentAttachmentModal(comments[i].IDString()) } class="border border-neutral/10 rounded-lg bg-neutral/5 flex w-fit px-2 py-0.5 max-w-56 items-center gap-1 truncate text-sm font-medium text-base-content/70">
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:attach-file-rounded rotate-45 text-base-content/70 pointer-events-none" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M18 15.75q0 2.6-1.825 4.425T11.75 22t-4.425-1.825T5.5 15.75V6.5q0-1.875 1.313-3.187T10 2t3.188 1.313T14.5 6.5v8.75q0 1.15-.8 1.95t-1.95.8t-1.95-.8t-.8-1.95V7q0-.425.288-.712T10 6t.713.288T11 7v8.25q0 .325.213.538t.537.212t.538-.213t.212-.537V6.5q-.025-1.05-.737-1.775T10 4t-1.775.725T7.5 6.5v9.25q-.025 1.775 1.225 3.013T11.75 20q1.75 0 2.975-1.237T16 15.75V7q0-.425.288-.712T17 6t.713.288T18 7z"></path>
+										</svg>
+										{ comments[i].File.Key }
+									</button>
+									// Modal for each attachment
+									<dialog id={ "comment_" + comments[i].IDString() + "_attachment" } class="modal">
+										<div class="modal-box min-w-[40dvw] overflow-auto p-2">
+											<form method="dialog" class="grid justify-items-end">
+												<button>
+													<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:close text-base-content/70" viewBox="0 0 24 24">
+														<path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z"></path>
+													</svg>
+												</button>
+											</form>
+											<div class="grid max-w-[1600px] justify-items-center p-2 text-base">
+												<img src={ string(templ.URL(fmt.Sprintf("%s", comments[i].FileURL()))) } alt="Uploaded image" class=""/>
+												<div class="modal-action justify-self-end">
+													<form method="dialog">
+														<button class="btn btn-accent">Close</button>
+													</form>
+												</div>
 											</div>
 										</div>
-									</div>
-								</dialog>
-							}
+									</dialog>
+								} else {
+									<div></div>
+								}
+								<div class="flex justify-end text-sm">
+									<button class="reply-button flex items-center gap-2 text-base-content/70" data-comment-id={ comments[i].IDString() }>
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3rem" height="1.3rem" class="material-symbols:reply pointer-events-none" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M19 19v-4q0-1.25-.875-2.125T16 12H6.825l3.6 3.6L9 17l-6-6l6-6l1.425 1.4l-3.6 3.6H16q2.075 0 3.538 1.463T21 15v4z"></path>
+										</svg>Reply
+									</button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -344,6 +339,29 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 					if len(comments[i].Replies) > 0 {
 						<div class="grid gap-4">
 							<div class="replies-container grid gap-2">
+								<form
+									id={ "comment-" + comments[i].IDString() + "-reply-form" }
+									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply", comments[i].PostID, comments[i].IDString()))) }
+									hx-swap="outerHTML"
+									hx-target="#posts"
+									hx-target-error="#toast"
+									class="reply-input hidden"
+								>
+									<label
+										id={ "comment-" + comments[i].IDString() + "-reply-input" }
+										class="input border border-neutral/20 focus:outline-accent/30 focus-within:outline-accent/30 relative flex w-full items-center gap-2 bg-primary/10"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-base-content/50 material-symbols:reply" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M19 19v-4q0-1.25-.875-2.125T16 12H6.825l3.6 3.6L9 17l-6-6l6-6l1.425 1.4l-3.6 3.6H16q2.075 0 3.538 1.463T21 15v4z"></path>
+										</svg>
+										<input type="text" class="grow" name="message" placeholder="Reply to comment"/>
+										<button class="absolute right-2 top-1.75">
+											<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="material-symbols:send-rounded text-accent" viewBox="0 0 24 24">
+												<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
+											</svg>
+										</button>
+									</label>
+								</form>
 								for j := 0; j < len(comments[i].Replies); j++ {
 									<div class="reply">
 										@replyBody(currentUser, comments[i].Replies[j])
@@ -352,30 +370,6 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							</div>
 						</div>
 					}
-					// <form
-					// 	hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply", comments[i].PostID, comments[i].IDString()))) }
-					// 	hx-swap="outerHTML"
-					// 	hx-target="#toast"
-					// 	class="join w-full"
-					// >
-					// 	<label class="input join-item input-bordered flex w-full items-center gap-2">
-					// 		<svg
-					// 			xmlns="http://www.w3.org/2000/svg"
-					// 			viewBox="0 0 16 16"
-					// 			fill="currentColor"
-					// 			class="h-5 w-5 opacity-70"
-					// 		>
-					// 			<path
-					// 				d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z"
-					// 			></path>
-					// 			<path
-					// 				d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z"
-					// 			></path>
-					// 		</svg>
-					// 		<input type="text" class="grow" name="message" placeholder="Reply to comment"/>
-					// 	</label>
-					// 	<button class="btn btn-accent join-item">Reply</button>
-					// </form>
 				</div>
 			}
 		} else {

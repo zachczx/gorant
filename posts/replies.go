@@ -50,7 +50,8 @@ func GetReplies(postID string) (ReplyCollection, error) {
 	q := `SELECT replies.reply_id, replies.user_id, users.preferred_name, users.avatar, replies.content, replies.created_at, replies.post_id, replies.comment_id FROM replies 
 			LEFT JOIN users
 			ON replies.user_id = users.user_id
-			WHERE post_id=$1;`
+			WHERE post_id=$1
+			ORDER BY replies.created_at DESC;`
 	rows, err := database.DB.Query(q, postID)
 	if err != nil {
 		return replyCollection, fmt.Errorf("error: replies query: %w", err)

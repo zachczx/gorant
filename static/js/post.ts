@@ -208,3 +208,32 @@ function handleDrop(evt: DragEvent) {
 		commentFileInputDroparea?.classList.remove('bg-primary/30');
 	}
 }
+
+// document.addEventListener('load', () => {
+// 	replyButtonListener();
+// });
+
+replyButtonListener();
+
+function replyButtonListener() {
+	console.log('start');
+	const replyButtons = document.getElementsByClassName('reply-button') as HTMLCollectionOf<HTMLDivElement>;
+	for (const button of replyButtons) {
+		const commentReplyForm = document.getElementById(
+			'comment-' + button.dataset.commentId + '-reply-form',
+		) as HTMLFormElement;
+		const commentReplyInput = document.getElementById(
+			'comment-' + button.dataset.commentId + '-reply-input',
+		) as HTMLLabelElement;
+		button.addEventListener('click', (evt) => {
+			console.log('clicked! ', evt.target);
+			if (commentReplyForm.classList.contains('hidden')) {
+				commentReplyForm.classList.remove('hidden');
+				commentReplyInput.classList.remove('hidden');
+			} else {
+				commentReplyForm.classList.add('hidden');
+				commentReplyInput.classList.add('hidden');
+			}
+		});
+	}
+}

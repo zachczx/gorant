@@ -603,12 +603,19 @@ func (k *keycloak) replyCommentHandler() http.Handler {
 		message := r.FormValue("message")
 		reply := &posts.Reply{UserID: k.currentUser.UserID, Content: message, PostID: postID, CommentID: commentID}
 		if err := reply.Insert(); err != nil {
-			fmt.Println(err)
 			w.WriteHeader(http.StatusForbidden)
 			TemplRender(w, r, templates.Toast("error", "Error saving reply!"))
 			return
 		}
-		TemplRender(w, r, templates.Toast("success", "Reply saved!"))
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Error displaying comments!"))
+			return
+		}
+		TemplRender(w, r, templates.Comments(k.currentUser, comments, ""))
+
+		// TemplRender(w, r, templates.Toast("success", "Reply saved!"))
 	})
 }
 
