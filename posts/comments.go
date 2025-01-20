@@ -67,11 +67,24 @@ type CommentVote struct {
 
 // Null handling for counts from DB, since counts are calculated from the query.
 type CommentStats struct {
-	Count            sql.NullInt64 `db:"cnt"`
-	CountString      string
-	IDsVoted         sql.NullString `db:"cnt"`
-	IDsVotedString   string         // String separated by "," with the user_ids grouped
-	CurrentUserVoted string         // Returns a true or false for use in Templ template
+	Count    sql.NullInt64  `db:"cnt"`
+	IDsVoted sql.NullString `db:"cnt"`
+	// IDsVotedString   string         // String separated by "," with the user_ids grouped
+	CurrentUserVoted bool // Returns a true or false for use in Templ template
+}
+
+func (cs *CommentStats) CountString() string {
+	if cs.Count.Valid {
+		return strconv.FormatInt(cs.Count.Int64, 10)
+	}
+	return "0"
+}
+
+func (cs *CommentStats) CheckUpvoted(userID string) bool {
+	if cs.IDsVoted.Valid {
+		return strings.Contains(cs.IDsVoted.String, userID)
+	}
+	return false
 }
 
 type SearchComment struct {
@@ -188,12 +201,7 @@ func ListComments(postID string, currentUser string) ([]Comment, error) {
 		}
 
 		c.Initials = strings.ToUpper(c.UserID[:2])
-		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
-		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
-			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
-		} else {
-			c.CommentStats.CurrentUserVoted = "false"
-		}
+
 		if c.NullFile.ID.Valid {
 			syncNullFiletoFile(&c)
 		}
@@ -395,12 +403,6 @@ func ListCommentsFilterSort(postID string, currentUser string, sort string, filt
 			return comments, fmt.Errorf("error scanning for ListCommentsFilterSort(): %w", err)
 		}
 		c.Initials = strings.ToUpper(c.UserID[:2])
-		c.CommentStats.CountString = NullIntToString(c.CommentStats.Count)
-		if c.CommentStats.IDsVoted.Valid && currentUser != "" {
-			c.CommentStats.CurrentUserVoted = strconv.FormatBool(strings.Contains(c.CommentStats.IDsVoted.String, currentUser))
-		} else {
-			c.CommentStats.CurrentUserVoted = "false"
-		}
 		if c.NullFile.ID.Valid {
 			syncNullFiletoFile(&c)
 		}

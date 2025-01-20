@@ -30,26 +30,6 @@ type JunctionPostTag struct {
 	Tag         string
 }
 
-type JoinPost struct {
-	PostID                string `db:"post_id"`
-	PostTitle             string `db:"post_title"`
-	UserID                string `db:"user_id"`
-	Description           string `db:"description"`
-	Protected             int    `db:"protected"`
-	CreatedAt             string `db:"created_at"`
-	Mood                  string `db:"mood"`
-	PreferredName         string
-	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
-	CommentsCountString   string
-	CreatedAtProcessed    string
-	LikesCount            sql.NullInt64 `db:"likes_cnt"`
-	LikesCountString      string
-	CurrentUserLike       sql.NullInt64 `db:"score"`
-	CurrentUserLikeString string
-	TagsNullString        sql.NullString `db:"tags"`
-	Tags                  []string
-}
-
 type Post struct {
 	ID            string `db:"post_id"`
 	Title         string `db:"post_title"`
@@ -83,11 +63,43 @@ type Tag struct {
 
 type PostStats struct {
 	CommentsCount         sql.NullInt64 `db:"comments_cnt"`
-	CommentsCountString   string
+	RepliesCount          sql.NullInt64
 	LikesCount            sql.NullInt64 `db:"likes_cnt"`
-	LikesCountString      string
 	CurrentUserLike       sql.NullInt64 `db:"score"`
 	CurrentUserLikeString string
+}
+
+func (ps *PostStats) RepliesCountString() string {
+	if ps.RepliesCount.Valid {
+		return strconv.FormatInt(ps.RepliesCount.Int64, 10)
+	}
+	return "0"
+}
+
+func (ps *PostStats) CommentsCountString() string {
+	if ps.CommentsCount.Valid {
+		return strconv.FormatInt(ps.CommentsCount.Int64, 10)
+	}
+	return "0"
+}
+
+func (ps *PostStats) LikesCountString() string {
+	if ps.LikesCount.Valid {
+		return strconv.FormatInt(ps.LikesCount.Int64, 10)
+	}
+	return "0"
+}
+
+func (ps *PostStats) CommentsRepliesCountString() string {
+	var comments int64
+	var replies int64
+	if ps.CommentsCount.Valid {
+		comments = ps.CommentsCount.Int64
+	}
+	if ps.RepliesCount.Valid {
+		replies = ps.RepliesCount.Int64
+	}
+	return strconv.FormatInt(comments+replies, 10)
 }
 
 type PostCollection []Post
@@ -134,12 +146,15 @@ func (c *CreatedAt) Process() string {
 	return s
 }
 
-var listPostsQuery = `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+var listPostsQuery = `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 									FROM posts
 										LEFT JOIN users ON users.user_id=posts.user_id
 										LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
 												FROM comments
 												GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+										LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+												FROM replies 
+												GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
 										LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
 												FROM posts_likes
 												GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
@@ -168,7 +183,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	if len(mood) != 0 && len(tags) == 0 {
 		// This is different because 2 INNER JOINs are now LEFT JOINs
 		// Specifically: (SELECT DISTINCT... and SELECT posts_tags.post_id...)
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
 									WHERE mood IN (?)) AS posts
@@ -179,6 +194,9 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
 											FROM comments
 											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+											FROM replies 
+											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
 									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
 											FROM posts_likes
 											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
@@ -187,7 +205,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood)
 	} else if len(mood) == 0 && len(tags) != 0 {
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts AS posts
 									INNER JOIN(SELECT DISTINCT posts_tags.post_id
@@ -197,6 +215,9 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
 											FROM comments
 											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+											FROM replies 
+											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
 									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
 											FROM posts_likes
 											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
@@ -205,7 +226,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, tags)
 	} else {
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, likes_cnt, tags
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
 									WHERE mood IN (?)) AS posts
@@ -216,6 +237,9 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
 											FROM comments
 											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+											FROM replies 
+											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
 									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
 											FROM posts_likes
 											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
@@ -240,11 +264,9 @@ func scanPosts(query string, args ...interface{}) (PostCollection, error) {
 	var posts PostCollection
 	for rows.Next() {
 		var p Post
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.RepliesCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
 			return nil, fmt.Errorf("error scanning list-post-filter: %w", err)
 		}
-		p.PostStats.CommentsCountString = NullIntToString(p.PostStats.CommentsCount)
-		p.PostStats.LikesCountString = NullIntToString(p.PostStats.LikesCount)
 		if p.Tags.TagsNullString.Valid {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
 		} else {

@@ -207,7 +207,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 						class="relative flex h-auto w-full rounded-xl border border-neutral/10 transition-all duration-1000"
 					}
 				>
-					<div id={ "comment-delete-loader-" + comments[i].ID.String() } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100"><span class="loading loading-spinner loading-md text-error"></span></div>
+					<div id={ "comment-delete-loader-" + comments[i].ID.String() } class="absolute left-1/2 top-1/2 z-10 hidden w-full -translate-x-1/2 -translate-y-1/2 transform justify-center opacity-100 backdrop-blur-[1px]"><span class="loading loading-spinner loading-md text-error"></span></div>
 					<div
 						id={ "comment-upvote-" + comments[i].ID.String() }
 						class="grid content-center rounded-l-xl bg-white/70 p-2 text-center text-xl font-bold lg:w-16"
@@ -217,7 +217,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							hx-target="#posts"
 							hx-swap="outerHTML"
 							hx-target-403="#toast"
-							if comments[i].CommentStats.CurrentUserVoted == "true" {
+							if comments[i].CommentStats.CheckUpvoted(currentUser.UserID) {
 								class="inline-block h-auto text-4xl text-secondary"
 							} else {
 								class="group inline-block h-auto text-4xl hover:text-secondary"
@@ -226,11 +226,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="inline-block transition-all duration-300 ease-out active:-translate-y-5" viewBox="0 0 24 24"><path fill="currentColor" d="m7 14l5-5l5 5z"></path></svg>
 						</button>
 						<div>
-							if len(comments[i].CommentStats.CountString) > 0 {
-								{ comments[i].CommentStats.CountString }
-							} else {
-								0
-							}
+							{ comments[i].CommentStats.CountString() }
 						</div>
 					</div>
 					<div
@@ -255,7 +251,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 										<div tabindex="0" role="button" class="flex items-center justify-center rounded-lg text-neutral/70">
 											<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols-more-horiz inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14q-.825 0-1.412-.587T4 12t.588-1.412T6 10t1.413.588T8 12t-.587 1.413T6 14m6 0q-.825 0-1.412-.587T10 12t.588-1.412T12 10t1.413.588T14 12t-.587 1.413T12 14m6 0q-.825 0-1.412-.587T16 12t.588-1.412T18 10t1.413.588T20 12t-.587 1.413T18 14"></path></svg>
 										</div>
-										<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
+										<ul tabindex="0" class="menu dropdown-content z-[5] w-52 rounded-box border-2 border-accent/20 bg-primary/15 p-2 shadow-lg backdrop-blur-[40px]">
 											<li
 												hx-target="#comment-form"
 												hx-swap="outerHTML"
@@ -275,7 +271,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 												hx-swap="outerHTML swap:1s"
 												hx-target-403="#toast"
 												hx-delete={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", comments[i].PostID, comments[i].ID.String()))) }
-												class="delete-button rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content"
+												class="comment-delete-button rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content"
 											>
 												<button class="flex">
 													<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
@@ -812,55 +808,70 @@ templ PartialLikePost(postID string, like string) {
 
 templ replyBody(currentUser *users.User, reply posts.Reply, highlight string) {
 	<div
+		id={ "reply-" + reply.ID.String() }
 		if reply.ID.String() == highlight {
-			class="w-full rounded-xl border border-neutral/10 bg-white/70 animate-highlight-comment-main p-4"
+			class="h-auto w-full animate-highlight-comment-main rounded-xl border border-neutral/10 bg-white/70 p-4"
 		} else {
-			class="w-full rounded-xl border border-neutral/10 bg-white/70 p-4"
+			class="h-auto w-full rounded-xl border border-neutral/10 bg-white/70 p-4"
 		}
 	>
-		<div class="flex">
-			<div class="flex grow items-center">
-				<div class="avatar me-4">
-					<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
-						<img src={ string(templ.URL(reply.AvatarPath())) } class="scale-125" alt={ reply.PreferredName + "'s Avatar" }/>
-					</div>
-				</div>
-				<div>
-					<div class="text-xl font-bold">
-						{ reply.PreferredName }
-					</div>
-					<div class="text-xs text-base-content/60">
-						{ reply.CreatedAt.Process() }
-					</div>
-				</div>
-			</div>
-			<div class="flex items-center text-base">
-				if reply.UserID == currentUser.UserID {
-					<div class="dropdown dropdown-end ms-8">
-						<div tabindex="0" role="button" class="flex items-center justify-center rounded-lg text-neutral/70">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols-more-horiz inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14q-.825 0-1.412-.587T4 12t.588-1.412T6 10t1.413.588T8 12t-.587 1.413T6 14m6 0q-.825 0-1.412-.587T10 12t.588-1.412T12 10t1.413.588T14 12t-.587 1.413T12 14m6 0q-.825 0-1.412-.587T16 12t.588-1.412T18 10t1.413.588T20 12t-.587 1.413T18 14"></path></svg>
+		<div id={ "reply-delete-loader-" + reply.ID.String() } class="absolute left-1/2 top-1/2 z-10 hidden h-full w-full -translate-x-1/2 -translate-y-1/2 justify-center rounded-xl bg-red-400/50 backdrop-blur-[1px]"><span class="loading loading-spinner loading-md text-error"></span></div>
+		<div>
+			<div class="flex">
+				<div class="flex grow items-center">
+					<div class="avatar me-4">
+						<div class="w-16 rounded-full border border-neutral/20 bg-base-100">
+							<img src={ string(templ.URL(reply.AvatarPath())) } class="scale-125" alt={ reply.PreferredName + "'s Avatar" }/>
 						</div>
-						<ul tabindex="0" class="menu dropdown-content z-[1] w-52 rounded-box bg-white/70 p-2 shadow-lg backdrop-blur-[40px]">
-							<li
-								class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
-							>
-								<button class="flex">
-									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
-									</svg>Edit comment
-								</button>
-							</li>
-							<li>
-								<button class="flex">
-									<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
-									</svg>
-									Delete comment
-								</button>
-							</li>
-						</ul>
 					</div>
-				}
+					<div>
+						<div class="text-xl font-bold">
+							{ reply.PreferredName }
+						</div>
+						<div class="text-xs text-base-content/60">
+							{ reply.CreatedAt.Process() }
+						</div>
+					</div>
+				</div>
+				<div class="flex items-center text-base">
+					if reply.UserID == currentUser.UserID {
+						<div id={ "reply-dropdown-" + reply.ID.String() } class="dropdown dropdown-end ms-8">
+							<div tabindex="0" role="button" class="flex items-center justify-center rounded-lg text-neutral/70">
+								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols-more-horiz inline-block h-6 w-6" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14q-.825 0-1.412-.587T4 12t.588-1.412T6 10t1.413.588T8 12t-.587 1.413T6 14m6 0q-.825 0-1.412-.587T10 12t.588-1.412T12 10t1.413.588T14 12t-.587 1.413T12 14m6 0q-.825 0-1.412-.587T16 12t.588-1.412T18 10t1.413.588T20 12t-.587 1.413T18 14"></path></svg>
+							</div>
+							<ul tabindex="0" class="menu dropdown-content z-[5] w-52 rounded-box border-2 border-accent/20 bg-primary/15 p-2 shadow-lg backdrop-blur-[50px]">
+								<li
+									hx-target="#comment-form"
+									hx-swap="outerHTML"
+									class="flex rounded-md hover:bg-accent hover:text-accent-content focus:text-accent-content active:text-accent-content"
+								>
+									// hx-get={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/edit", reply.PostID, comments[i].ID.String()))) }
+									<button class="flex">
+										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"></path>
+										</svg>Edit comment
+									</button>
+								</li>
+								<li
+									data-parent-reply-id={ reply.ID.String() }
+									hx-delete={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply/%s/delete", reply.PostID, reply.CommentID.String(), reply.ID.String()))) }
+									hx-target="#posts"
+									hx-trigger="click"
+									hx-swap="outerHTML swap:1s"
+									hx-target-403="#toast"
+									class="reply-delete-button rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content"
+								>
+									<button class="flex">
+										<svg xmlns="http://www.w3.org/2000/svg" class="me-2 inline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+										</svg>
+										Delete comment
+									</button>
+								</li>
+							</ul>
+						</div>
+					}
+				</div>
 			</div>
 		</div>
 		<div class="comment-content pt-4 text-base">{ reply.Content }</div>

@@ -591,10 +591,9 @@ func (k *keycloak) deleteCommentHandler() http.Handler {
 	})
 }
 
-func (k *keycloak) replyCommentHandler() http.Handler {
+func (k *keycloak) replyHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
-		fmt.Println(postID)
 		commentID, err := uuid.Parse(r.PathValue("commentID"))
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
@@ -617,6 +616,25 @@ func (k *keycloak) replyCommentHandler() http.Handler {
 		TemplRender(w, r, templates.Comments(k.currentUser, comments, replyID))
 
 		// TemplRender(w, r, templates.Toast("success", "Reply saved!"))
+	})
+}
+
+func (k *keycloak) deleteReplyHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		replyID := r.PathValue("replyID")
+		if err := posts.DeleteReply(replyID, k.currentUser.UserID); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Error deleting reply!"))
+			return
+		}
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			TemplRender(w, r, templates.Toast("error", "Error displaying comments!"))
+			return
+		}
+		TemplRender(w, r, templates.Comments(k.currentUser, comments, replyID))
 	})
 }
 

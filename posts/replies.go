@@ -67,3 +67,14 @@ func GetReplies(postID string) (ReplyCollection, error) {
 	}
 	return replyCollection, nil
 }
+
+func DeleteReply(replyID string, userID string) error {
+	UUID, err := uuid.Parse(replyID)
+	if err != nil {
+		return fmt.Errorf("error: parse uuid: %w", err)
+	}
+	if _, err = database.DB.Exec(`DELETE FROM replies WHERE reply_id=$1 AND user_id=$2`, UUID, userID); err != nil {
+		return fmt.Errorf("error: delete reply: %w", err)
+	}
+	return nil
+}

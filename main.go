@@ -83,7 +83,8 @@ func main() {
 	mux.Handle("POST /posts/{postID}/comment/{commentID}/attachment/delete", k.CheckAuthentication()(k.deleteCommentAttachmentHandler(r2)))
 
 	// Reply routes
-	mux.Handle("POST /posts/{postID}/comment/{commentID}/reply", k.CheckAuthentication()(k.replyCommentHandler()))
+	mux.Handle("POST /posts/{postID}/comment/{commentID}/reply", k.CheckAuthentication()(k.replyHandler()))
+	mux.Handle("DELETE /posts/{postID}/comment/{commentID}/reply/{replyID}/delete", k.CheckAuthentication()(k.deleteReplyHandler()))
 
 	// Live
 	mux.Handle("GET /live", k.CheckAuthentication()(k.mainLivePageHandler()))
