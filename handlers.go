@@ -602,7 +602,8 @@ func (k *keycloak) replyCommentHandler() http.Handler {
 		}
 		message := r.FormValue("message")
 		reply := &posts.Reply{UserID: k.currentUser.UserID, Content: message, PostID: postID, CommentID: commentID}
-		if err := reply.Insert(); err != nil {
+		replyID, err := reply.Insert()
+		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			TemplRender(w, r, templates.Toast("error", "Error saving reply!"))
 			return
@@ -613,7 +614,7 @@ func (k *keycloak) replyCommentHandler() http.Handler {
 			TemplRender(w, r, templates.Toast("error", "Error displaying comments!"))
 			return
 		}
-		TemplRender(w, r, templates.Comments(k.currentUser, comments, ""))
+		TemplRender(w, r, templates.Comments(k.currentUser, comments, replyID))
 
 		// TemplRender(w, r, templates.Toast("success", "Reply saved!"))
 	})

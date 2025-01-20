@@ -209,31 +209,37 @@ function handleDrop(evt: DragEvent) {
 	}
 }
 
-// document.addEventListener('load', () => {
-// 	replyButtonListener();
-// });
+initReplyButton();
 
-replyButtonListener();
+function initReplyButton() {
+	window.addEventListener('load', replyButtonListener);
+
+	/**
+	 * Cannot listen to afterSettle or afterSwap, else it'd trigger twice.
+	 * Even listening on afterRequest triggers twice, but only on the same loop and same values,
+	 * so it's not like flicking a switch on/off back and forth.
+	 */
+	window.addEventListener('htmx:afterRequest', replyButtonListener);
+}
 
 function replyButtonListener() {
-	console.log('start');
 	const replyButtons = document.getElementsByClassName('reply-button') as HTMLCollectionOf<HTMLDivElement>;
 	for (const button of replyButtons) {
-		const commentReplyForm = document.getElementById(
-			'comment-' + button.dataset.commentId + '-reply-form',
-		) as HTMLFormElement;
+		const commentReplyFormId = 'comment-' + button.dataset.commentId + '-reply-form';
+		const commentReplyForm = document.getElementById(commentReplyFormId) as HTMLFormElement;
 		const commentReplyInput = document.getElementById(
 			'comment-' + button.dataset.commentId + '-reply-input',
 		) as HTMLLabelElement;
-		button.addEventListener('click', (evt) => {
-			console.log('clicked! ', evt.target);
-			if (commentReplyForm.classList.contains('hidden')) {
-				commentReplyForm.classList.remove('hidden');
-				commentReplyInput.classList.remove('hidden');
-			} else {
-				commentReplyForm.classList.add('hidden');
-				commentReplyInput.classList.add('hidden');
-			}
-		});
+		if (button) {
+			button.addEventListener('click', () => {
+				if (commentReplyForm.classList.contains('hidden')) {
+					commentReplyForm.classList.remove('hidden');
+					commentReplyInput.classList.remove('hidden');
+				} else {
+					commentReplyForm.classList.add('hidden');
+					commentReplyInput.classList.add('hidden');
+				}
+			});
+		}
 	}
 }

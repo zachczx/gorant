@@ -406,6 +406,17 @@
 			width: 2rem;
 			border-inline-start: 1px solid #dbdbd9;
 		}
+
+		&:not(+ div.reply)::after {
+			z-index: 2;
+			position: absolute;
+			top: 40%;
+			left: -2rem;
+			content: '';
+			height: 2rem;
+			width: 2rem;
+			border-inline-start: 0px solid #dbdbd9;
+		}
 	}
 
 	.reply {

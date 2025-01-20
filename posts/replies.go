@@ -36,13 +36,13 @@ func (replyCollection ReplyCollection) Map() map[uuid.UUID]ReplyCollection {
 	return replyMap
 }
 
-func (reply *Reply) Insert() error {
-	q := `INSERT INTO replies (user_id, content, created_at, post_id, comment_id) VALUES ($1, $2, NOW(), $3, $4)`
-	_, err := database.DB.Exec(q, reply.UserID, reply.Content, reply.PostID, reply.CommentID)
-	if err != nil {
-		return fmt.Errorf("error: insert reply: %w", err)
+func (reply *Reply) Insert() (string, error) {
+	var replyID string
+	q := `INSERT INTO replies (user_id, content, created_at, post_id, comment_id) VALUES ($1, $2, NOW(), $3, $4) RETURNING reply_id`
+	if err := database.DB.QueryRow(q, reply.UserID, reply.Content, reply.PostID, reply.CommentID).Scan(&replyID); err != nil {
+		return replyID, fmt.Errorf("error: insert reply: %w", err)
 	}
-	return nil
+	return replyID, nil
 }
 
 func GetReplies(postID string) (ReplyCollection, error) {

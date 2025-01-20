@@ -336,40 +336,38 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 					</div>
 				</div>
 				<div class="grid gap-4">
-					if len(comments[i].Replies) > 0 {
-						<div class="grid gap-4">
-							<div class="replies-container grid gap-2">
-								<form
-									id={ "comment-" + comments[i].IDString() + "-reply-form" }
-									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply", comments[i].PostID, comments[i].IDString()))) }
-									hx-swap="outerHTML"
-									hx-target="#posts"
-									hx-target-error="#toast"
-									class="reply-input hidden"
-								>
-									<label
-										id={ "comment-" + comments[i].IDString() + "-reply-input" }
-										class="input relative flex w-full items-center gap-2 border border-neutral/20 bg-primary/10 focus-within:outline-accent/30 focus:outline-accent/30"
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:reply text-base-content/50" viewBox="0 0 24 24">
-											<path fill="currentColor" d="M19 19v-4q0-1.25-.875-2.125T16 12H6.825l3.6 3.6L9 17l-6-6l6-6l1.425 1.4l-3.6 3.6H16q2.075 0 3.538 1.463T21 15v4z"></path>
-										</svg>
-										<input type="text" class="grow" name="message" placeholder="Reply to comment"/>
-										<button class="top-1.75 absolute right-2">
-											<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="material-symbols:send-rounded text-accent" viewBox="0 0 24 24">
-												<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
-											</svg>
-										</button>
-									</label>
-								</form>
-								for j := 0; j < len(comments[i].Replies); j++ {
-									<div class="reply">
-										@replyBody(currentUser, comments[i].Replies[j])
-									</div>
-								}
-							</div>
-						</div>
-					}
+					<div class="replies-container grid gap-2">
+						<form
+							id={ "comment-" + comments[i].IDString() + "-reply-form" }
+							hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply", comments[i].PostID, comments[i].IDString()))) }
+							hx-swap="outerHTML"
+							hx-target="#posts"
+							hx-target-error="#toast"
+							class="reply-input hidden"
+						>
+							<label
+								id={ "comment-" + comments[i].IDString() + "-reply-input" }
+								class="input relative flex w-full items-center gap-2 border border-neutral/20 bg-primary/10 focus-within:outline-accent/30 focus:outline-accent/30"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:reply text-base-content/50" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M19 19v-4q0-1.25-.875-2.125T16 12H6.825l3.6 3.6L9 17l-6-6l6-6l1.425 1.4l-3.6 3.6H16q2.075 0 3.538 1.463T21 15v4z"></path>
+								</svg>
+								<input type="text" class="grow" name="message" placeholder="Reply to comment"/>
+								<button class="top-1.75 absolute right-2">
+									<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="material-symbols:send-rounded text-accent" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
+									</svg>
+								</button>
+							</label>
+						</form>
+						if len(comments[i].Replies) > 0 {
+							for j := 0; j < len(comments[i].Replies); j++ {
+								<div class="reply">
+									@replyBody(currentUser, comments[i].Replies[j], highlight)
+								</div>
+							}
+						}
+					</div>
 				</div>
 			}
 		} else {
@@ -812,8 +810,14 @@ templ PartialLikePost(postID string, like string) {
 	</button>
 }
 
-templ replyBody(currentUser *users.User, reply posts.Reply) {
-	<div class="w-full rounded-xl border border-neutral/10 bg-white/70 p-4">
+templ replyBody(currentUser *users.User, reply posts.Reply, highlight string) {
+	<div
+		if reply.ID.String() == highlight {
+			class="w-full rounded-xl border border-neutral/10 bg-white/70 animate-highlight-comment-main p-4"
+		} else {
+			class="w-full rounded-xl border border-neutral/10 bg-white/70 p-4"
+		}
+	>
 		<div class="flex">
 			<div class="flex grow items-center">
 				<div class="avatar me-4">
