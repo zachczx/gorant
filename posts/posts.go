@@ -161,7 +161,8 @@ var listPostsQuery = `SELECT posts.post_id, posts.user_id, posts.post_title, pos
 										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 												FROM posts_tags
 														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`
+												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+									ORDER BY posts.created_at DESC`
 
 func ListPosts() (PostCollection, error) {
 	return scanPosts(listPostsQuery)
@@ -203,7 +204,8 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood)
+											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+								ORDER BY posts.created_at DESC`, mood)
 	} else if len(mood) == 0 && len(tags) != 0 {
 		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
@@ -224,7 +226,8 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, tags)
+											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+								ORDER BY posts.created_at DESC`, tags)
 	} else {
 		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
@@ -246,7 +249,8 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id`, mood, tags)
+											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+								ORDER BY posts.created_at DESC`, mood, tags)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("error executing sqlx.In: %w", err)
