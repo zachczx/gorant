@@ -29,7 +29,7 @@ type resetSQL struct {
 
 var tables = resetTables{
 	{name: "users", query: `CREATE TABLE users (user_id VARCHAR(255) PRIMARY KEY, email VARCHAR(100) NOT NULL, preferred_name VARCHAR(255) DEFAULT '', contact_me INT DEFAULT 1, avatar VARCHAR(255) DEFAULT 'default', sort_comments VARCHAR(15) DEFAULT 'upvote;desc');`},
-	{name: "posts", query: `CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, post_title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TIMESTAMPTZ, mood VARCHAR(15) DEFAULT 'neutral');`},
+	{name: "posts", query: `CREATE TABLE posts (post_id VARCHAR(255) PRIMARY KEY, post_title VARCHAR(255) NOT NULL, user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, description VARCHAR(255) DEFAULT '', protected INT DEFAULT 0, created_at TIMESTAMPTZ, mood VARCHAR(15) DEFAULT 'neutral', ts tsvector GENERATED ALWAYS AS (to_tsvector('english', post_title)) STORED);`},
 	{name: "files", query: `CREATE TABLE files (file_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, file_key VARCHAR(2000) NOT NULL, file_thumbnail_key VARCHAR(2000), file_store VARCHAR(255) NOT NULL, file_bucket VARCHAR(255) NOT NULL, file_base_url VARCHAR(2000) NOT NULL, uploaded_at TIMESTAMPTZ);`},
 	{name: "comments", query: `CREATE TABLE comments (comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE, content TEXT, created_at TIMESTAMPTZ, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, file_id UUID REFERENCES files(file_id) ON DELETE SET NULL, ts tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED);`},
 	{name: "posts_likes", query: `CREATE TABLE posts_likes (like_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE, post_id VARCHAR(255) REFERENCES posts(post_id) ON DELETE CASCADE ON UPDATE CASCADE, score INT);`},
@@ -45,6 +45,8 @@ var tables = resetTables{
 }
 
 var indexes = resetIndexes{
+	{name: "GIN_index_posts_ts-tsvector", query: `CREATE INDEX idx_posts_ts ON posts USING GIN (ts);`},
+	{name: "GIN_index_posts_gist_trgm", query: `CREATE INDEX idx_posts_gist_trgm ON posts USING GIST (post_title gist_trgm_ops, post_id);`},
 	{name: "idx_comments_post_id", query: `CREATE INDEX idx_comments_post_id ON comments (post_id);`},
 	{name: "GIN_index_comments_ts-tsvector", query: `CREATE INDEX idx_comments_ts ON comments USING GIN (ts);`},
 	{name: "GIN_index_replies_ts-tsvector", query: `CREATE INDEX idx_replies_ts ON replies USING GIN (ts);`},
@@ -54,6 +56,8 @@ var indexes = resetIndexes{
 
 var baseQueries = insertBase{
 	{name: "created_user_anonymous", query: `INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')`},
+	{name: "pg_trgm", query: `CREATE EXTENSION IF NOT EXISTS pg_trgm;`},
+	{name: "btree_gist", query: `CREATE EXTENSION btree_gist;`},
 }
 
 func (t *resetTables) dropTables() error {

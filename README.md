@@ -21,6 +21,12 @@
 1. Framework - Tailwind
 2. Components - DaisyUI
 
+## Postgres
+
+1. Full text search
+2. pg_trgm
+3. btree_gist
+
 ## Other tools
 
 1. Docker

@@ -132,6 +132,7 @@ window.addEventListener('htmx:validation:failed', ((evt: HtmxEvent) => {
 		if (commentFormMessageInput.value.length < 10) {
 			commentFormMessageInput.classList.add('border-error');
 			formMessageLabel.classList.add('text-error');
+			commentFormErrorMessage.classList.remove('hidden');
 			commentFormErrorMessage.innerText = 'Message must be at least 10 characters long.';
 		}
 	}

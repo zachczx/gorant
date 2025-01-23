@@ -38,6 +38,7 @@ type Post struct {
 	Protected     int    `db:"protected"`
 	CreatedAt     CreatedAt
 	Mood          string `db:"mood"`
+	Similarity    float32
 	Tags          Tags
 	PostStats     PostStats
 	PreferredName string // PreferredName of Author
@@ -746,4 +747,45 @@ func NullIntToString(n sql.NullInt64) string {
 		s = "0"
 	}
 	return s
+}
+
+func RelatedPosts(postTitle string, results int) (PostCollection, error) {
+	rs := strconv.Itoa(results)
+	query := `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.created_at, posts.mood, similarity(post_title, 'chinese astrology') AS similarity, comments_cnt, replies_cnt, likes_cnt, tags
+				FROM posts
+					LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+							FROM comments
+							GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+					LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+							FROM replies
+							GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
+					LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+							FROM posts_likes
+							GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
+					LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+							FROM posts_tags
+									LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+							GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+				WHERE post_title % $1
+				ORDER BY similarity DESC
+				LIMIT $2;`
+	rows, err := database.DB.Query(query, postTitle, rs)
+	if err != nil {
+		return nil, fmt.Errorf("error: relatedposts query: %w", err)
+	}
+	defer rows.Close()
+	var posts PostCollection
+	for rows.Next() {
+		var p Post
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.CreatedAt.Time, &p.Mood, &p.Similarity, &p.PostStats.CommentsCount, &p.PostStats.RepliesCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
+			return nil, fmt.Errorf("error scanning list-post-filter: %w", err)
+		}
+		if p.Tags.TagsNullString.Valid {
+			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
+		} else {
+			p.Tags.Tags = []string{}
+		}
+		posts = append(posts, p)
+	}
+	return posts, nil
 }

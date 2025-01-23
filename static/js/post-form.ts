@@ -187,3 +187,22 @@ function setBubbleMenuButtonColor(editor: Editor, mark: string | textAlign, el: 
 		el?.classList.remove(className);
 	}
 }
+
+(function initAttachButtonListener() {
+	window.addEventListener('load', attachButtonListener);
+	window.addEventListener('htmx:afterRequest', attachButtonListener);
+})();
+
+function attachButtonListener() {
+	const commentFormAttachmentButton = document.getElementById('comment-form-attachment-button') as HTMLButtonElement;
+	const commentFormAttachmentAccordion = document.getElementById('comment-form-attachment-accordion') as HTMLDivElement;
+	if (commentFormAttachmentButton) {
+		commentFormAttachmentButton.addEventListener('click', () => {
+			if (commentFormAttachmentAccordion.classList.contains('hidden')) {
+				commentFormAttachmentAccordion.classList.remove('hidden');
+			} else {
+				commentFormAttachmentAccordion.classList.add('hidden');
+			}
+		});
+	}
+}
