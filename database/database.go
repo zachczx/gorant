@@ -54,10 +54,13 @@ var indexes = resetIndexes{
 	{name: "idx_comments_votes_comment_id", query: `CREATE INDEX idx_comments_votes_comment_id ON comments_votes (comment_id);`},
 }
 
-var baseQueries = insertBase{
-	{name: "created_user_anonymous", query: `INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')`},
+var pgExtensions = insertBase{
 	{name: "pg_trgm", query: `CREATE EXTENSION IF NOT EXISTS pg_trgm;`},
 	{name: "btree_gist", query: `CREATE EXTENSION btree_gist;`},
+}
+
+var baseQueries = insertBase{
+	{name: "created_user_anonymous", query: `INSERT INTO users (user_id, email, preferred_name) VALUES ('anonymous@rantkit.com', 'anonymous@rantkit.com', 'anonymous')`},
 }
 
 func (t *resetTables) dropTables() error {
@@ -94,6 +97,9 @@ func (t insertBase) create() error {
 }
 
 func Reset() error {
+	if err := pgExtensions.create(); err != nil {
+		return fmt.Errorf("reset: %w", err)
+	}
 	if err := tables.dropTables(); err != nil {
 		return fmt.Errorf("reset: %w", err)
 	}
