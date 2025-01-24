@@ -749,8 +749,8 @@ func NullIntToString(n sql.NullInt64) string {
 	return s
 }
 
-func RelatedPosts(postTitle string, results int) (PostCollection, error) {
-	rs := strconv.Itoa(results)
+func RelatedPosts(post Post, results int) (PostCollection, error) {
+	limit := strconv.Itoa(results)
 	query := `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.created_at, posts.mood, similarity(post_title, 'chinese astrology') AS similarity, comments_cnt, replies_cnt, likes_cnt, tags
 				FROM posts
 					LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
@@ -766,10 +766,10 @@ func RelatedPosts(postTitle string, results int) (PostCollection, error) {
 							FROM posts_tags
 									LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 							GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
-				WHERE post_title % $1
+				WHERE posts.post_title % $1 AND NOT posts.post_id=$2
 				ORDER BY similarity DESC
-				LIMIT $2;`
-	rows, err := database.DB.Query(query, postTitle, rs)
+				LIMIT $3;`
+	rows, err := database.DB.Query(query, post.Title, post.ID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("error: relatedposts query: %w", err)
 	}

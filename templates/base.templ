@@ -35,7 +35,7 @@ templ Base(title string, currentUser *users.User) {
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
 				// </div>
 			</header>
-			<div id="container" class="grid justify-items-center px-4" preload>
+			<div id="container" class="grid content-start justify-items-center px-4" preload>
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
@@ -414,7 +414,7 @@ templ ListPosts(posts posts.PostCollection) {
 						</span>
 					</div>
 					<div class="grow pe-4 ps-6">
-						<h3 class="line-clamp-1 text-xl font-medium leading-loose">
+						<h3 class="line-clamp-1 text-xl font-medium leading-loose text-accent/70 underline hover:text-accent">
 							{ posts[i].Title }
 						</h3>
 						<div class="text-sm text-base-content/60">by { posts[i].PreferredName }</div>

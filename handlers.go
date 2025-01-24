@@ -159,7 +159,7 @@ func (k *keycloak) viewPostHandler() http.Handler {
 			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
 			return
 		}
-		related, err := posts.RelatedPosts(post.Title, 3)
+		related, err := posts.RelatedPosts(post, 3)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))

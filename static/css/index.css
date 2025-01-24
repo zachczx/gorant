@@ -448,9 +448,15 @@
 
 	/* Sidebar nav */
 	.sidebar-menu {
-		padding: 2rem 2rem 0 2rem;
+		padding-top: 2rem;
 
 		& > li {
+			padding: 1.5rem 1.5rem 0 1.5rem;
+			&:hover {
+				background-color: rgba(27, 81, 15, 0.5);
+				color: rgba(253, 253, 253);
+				border-radius: 0.5rem;
+			}
 			& > a {
 				display: flex;
 				align-items: center;
@@ -458,32 +464,30 @@
 			}
 			padding-top: 0.5rem;
 			padding-bottom: 0.5rem;
-			&:not(:first-child) {
+			/* &:not(:first-child) {
 				border-top: 1px solid rgba(38, 41, 49, 0.05);
-			}
+			} */
 		}
 	}
-	.sidebar-recent {
-		padding-left: 2rem;
-		padding-right: 2rem;
 
-		& > ul {
+	/* .sidebar-recent {
+		border-top: 2px solid rgba(38, 41, 49, 0.1);
+		margin: 0 2rem 0 2rem;
+		padding-top: 1rem;
+		& > a {
 			border-left: 4px solid rgba(38, 41, 49, 0.05);
 			margin-left: 4px;
-			padding-left: 3rem;
+			padding-left: 0.5rem;
 			margin-bottom: 1rem;
-			& > li {
-				padding-top: 0.5rem;
-				padding-bottom: 0.5rem;
-				&:first-child {
-					padding-top: 0rem;
-				}
-				&:last-child {
-					padding-bottom: 0rem;
-				}
+			&:first-child {
+				padding-top: 0rem;
 			}
+			&:last-child {
+				padding-bottom: 0rem;
+			}
+		
 		}
-	}
+	} */
 }
 
 @layer utilities {

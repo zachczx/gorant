@@ -8,11 +8,12 @@ import (
 
 templ Post(currentUser *users.User, message string, post posts.Post, related posts.PostCollection, comments []posts.Comment, highlight string, sortComments string) {
 	@Base("Grumplr - Post", currentUser) {
+		<div class="grid h-full"></div>
 		<main class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1600px] lg:grid-cols-5">
-			<div class="relative z-[1] w-full">
+			<aside class="grid w-full">
 				@PostSidebar(currentUser, post, related)
-			</div>
-			<div class="w-full lg:col-span-4">
+			</aside>
+			<div class="h-full w-full lg:col-span-4">
 				<!-- title -->
 				<div class="grid w-full content-start px-1 pt-8 lg:px-8">
 					// <div class="w-full overflow-hidden">
@@ -203,8 +204,8 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 }
 
 templ PostSidebar(currentUser *users.User, post posts.Post, related posts.PostCollection) {
-	<div class="grid h-full w-full content-start gap-8 border-l border-r border-l-neutral/10 border-r-neutral/10 lg:max-w-2xl">
-		<ul class="sidebar-menu">
+	<div class="grid h-full w-full content-start gap-8 overflow-x-auto px-2 lg:max-w-2xl">
+		<ul class="sidebar-menu text-lg">
 			<li>
 				<a href="/">
 					<svg
@@ -246,51 +247,48 @@ templ PostSidebar(currentUser *users.User, post posts.Post, related posts.PostCo
 				</a>
 			</li>
 		</ul>
-		<ul class="p-8">
-			// class="sidebar-recent">
-			<li class="flex items-center gap-4">
-				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="lucide-lab:venn" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="12" r="6"></circle><circle cx="16" cy="12" r="6"></circle></g></svg>Related Posts
+		<ul class="mx-2 grid border-t border-t-neutral/20 px-4 pt-8">
+			<li class="mb-4 flex items-center gap-4 text-lg">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="lucide-lab:venn" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="12" r="6"></circle><circle cx="16" cy="12" r="6"></circle></g></svg>Similar
 			</li>
-			<div class="grid gap-4 mt-4">
-				for i:=0; i < len(related); i++ {
-					<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block border border-neutral/20 rounded-xl p-4">
-						<h3 class="leading-tighter line-clamp-2 text-lg font-medium">{ related[i].Title }</h3>
-						// <div class="text-sm text-base-content/60 mt-2">{ related[i].CreatedAt.Process() }</div>
-						<div class="flex items-center gap-x-8 mt-2">
-							<div class="flex">
-								if len(related[i].Tags.Tags) == 0 {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-neutral/70" viewBox="0 0 24 24">
-										<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
-									</svg>0
-								} else {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-secondary" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path>
-									</svg>len(related[i].Tags.Tags)
-								}
-							</div>
-							<div class="flex items-center gap-x-2">
-								if related[i].PostStats.LikesCountString() == "0" {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-neutral/60" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125M11.05 6.75q-.725-1.025-1.55-1.563t-2-.537q-1.5 0-2.5 1t-1 2.5q0 1.3.925 2.763t2.213 2.837t2.65 2.575T12 18.3q.85-.775 2.213-1.975t2.65-2.575t2.212-2.837T20 8.15q0-1.5-1-2.5t-2.5-1q-1.175 0-2 .538T12.95 6.75q-.175.25-.425.375T12 7.25t-.525-.125t-.425-.375m.95 4.725"></path>
-									</svg>0
-								} else {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-error/60" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
-									</svg>{ related[i].PostStats.LikesCountString() }
-								}
-							</div>
-							<div class="flex items-center gap-x-2">
-								if related[i].PostStats.CommentsRepliesCountString()  == "0" {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-outline me-1 text-neutral/60" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14h8v-2H6zm0-3h12V9H6zm0-3h12V6H6zM2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm3.15-6H20V4H4v13.125zM4 16V4z"></path></svg>0
-								} else {
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-rounded me-1 text-info/60" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ related[i].PostStats.CommentsRepliesCountString() }
-								}
-								<span class="text-error"></span>
-							</div>
+			for i:=0; i < len(related); i++ {
+				<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block py-2">
+					<h3 class="leading-tighter line-clamp-2 hyphens-auto break-words font-medium text-accent/70 underline hover:text-accent">{ related[i].Title }</h3>
+					// <div class="mt-2 text-sm text-base-content/60">{ related[i].CreatedAt.Process() }</div>
+					<div class="mt-1 flex items-center gap-x-8 text-xs">
+						// <div class="flex items-center gap-x-1">
+						// 	if len(related[i].Tags.Tags) == 0 {
+						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag text-neutral/70" viewBox="0 0 24 24">
+						// 			<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
+						// 		</svg>0
+						// 	} else {
+						// 		<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-secondary" viewBox="0 0 24 24">
+						// 			<path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path>
+						// 		</svg>len(related[i].Tags.Tags)
+						// 	}
+						// </div>
+						<div class="flex items-center gap-x-1">
+							if related[i].PostStats.LikesCountString() == "0" {
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-neutral/60" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125M11.05 6.75q-.725-1.025-1.55-1.563t-2-.537q-1.5 0-2.5 1t-1 2.5q0 1.3.925 2.763t2.213 2.837t2.65 2.575T12 18.3q.85-.775 2.213-1.975t2.65-2.575t2.212-2.837T20 8.15q0-1.5-1-2.5t-2.5-1q-1.175 0-2 .538T12.95 6.75q-.175.25-.425.375T12 7.25t-.525-.125t-.425-.375m.95 4.725"></path>
+								</svg>0
+							} else {
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="text-error/60" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
+								</svg>{ related[i].PostStats.LikesCountString() }
+							}
 						</div>
-					</a>
-				}
-			</div>
+						<div class="flex items-center gap-x-1">
+							if related[i].PostStats.CommentsRepliesCountString()  == "0" {
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-outline text-neutral/60" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14h8v-2H6zm0-3h12V9H6zm0-3h12V6H6zM2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm3.15-6H20V4H4v13.125zM4 16V4z"></path></svg>0
+							} else {
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-rounded text-info/60" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ related[i].PostStats.CommentsRepliesCountString() }
+							}
+							<span class="text-error"></span>
+						</div>
+					</div>
+				</a>
+			}
 		</ul>
 	</div>
 }
