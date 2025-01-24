@@ -4,17 +4,16 @@
 
 1. Templating - Templ
 2. SQL - SQLx, pgx
-3. Live Reload - Air
-4. Authentication/Authorization - Keyclock, GoCloak
-5. Cookies/Sessions - Gorilla Sessions
-6. Compression - Brotli, Gzip
+3. Authentication/Authorization - Keyclock, GoCloak
+4. Cookies/Sessions - Gorilla Sessions
+5. Compression - Brotli, Gzip
 
 ## JS tools
 
 1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets, SSE)
 2. WYSIWYG Editor - Tiptap Editor
 3. Formatting - Prettier
-4. Bundling - ESBuild
+4. Bundling + Minification - ESBuild
 
 ## CSS tools
 
