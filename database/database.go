@@ -54,6 +54,7 @@ var indexes = resetIndexes{
 	{name: "idx_comments_votes_comment_id", query: `CREATE INDEX idx_comments_votes_comment_id ON comments_votes (comment_id);`},
 }
 
+// See: https://stackoverflow.com/questions/41312594/scalable-way-to-search-for-similar-strings-in-a-database
 var pgExtensions = insertBase{
 	{name: "pg_trgm", query: `CREATE EXTENSION IF NOT EXISTS pg_trgm;`},
 	{name: "btree_gist", query: `CREATE EXTENSION btree_gist;`},
