@@ -18,7 +18,7 @@ templ Base(title string, currentUser *users.User) {
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
-		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/10 p-0">
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
@@ -39,7 +39,6 @@ templ Base(title string, currentUser *users.User) {
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
-			@Footer()
 		</body>
 	</html>
 }
@@ -182,11 +181,11 @@ templ NavProfileBadge(currentUser *users.User) {
 }
 
 templ Footer() {
-	<footer id="footer" class="mt-16 text-center text-sm">
-		<p>Copyright © 2024-2025 Grumplr. All rights reserved.</p>
-		<div>
-			<a href="https://zixianchen.com/projects" class="underline">Other Stuff</a> | <button id="credit-modal" class="underline" onclick="credit_modal.showModal()">Credits</button>
-		</div>
+	<footer id="footer" class="py-4 px-8 text-sm saturate-[0.2]">
+		<p>
+			🦖 <button id="credit-modal" class="font-medium hover:underline" onclick="credit_modal.showModal()">Credits</button> 🦕 <a href="https://zixianchen.com/projects" class="font-medium hover:underline">Other Stuff</a>
+		</p>
+		<p>© Zixian Chen</p>
 	</footer>
 	<dialog id="credit_modal" class="modal">
 		<div class="modal-box p-8">
@@ -212,6 +211,21 @@ templ Footer() {
 	</dialog>
 }
 
+templ GrumplrHead() {
+	<div class="grid w-full content-start justify-items-center">
+		<div class="h-full min-h-[7rem] py-8">
+			<h1 class="text-5xl font-extrabold text-accent xl:text-7xl">Grumplr...</h1>
+			<div class="flex items-end">
+				<span class="text-3xl font-bold"><b>grumpy</b></span>[adjective]
+				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:circle hidden" viewBox="0 0 24 24">
+					<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
+				</svg>
+				<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
+			</div>
+		</div>
+	</div>
+}
+
 templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div
@@ -221,18 +235,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 				class="grid h-full w-full content-center justify-items-center"
 			}
 		>
-			<div class="grid w-full content-start justify-items-center">
-				<div class="h-full min-h-[7rem] py-8">
-					<h1 class="text-5xl font-extrabold text-accent xl:text-7xl">Grumplr...</h1>
-					<div class="flex items-end">
-						<span class="text-3xl font-bold"><b>grumpy</b></span>[adjective]
-						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:circle hidden" viewBox="0 0 24 24">
-							<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
-						</svg>
-						<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
-					</div>
-				</div>
-			</div>
+			@GrumplrHead()
 			<div
 				id="content"
 				class="w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
@@ -387,6 +390,9 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 				@ListPosts(posts)
 			</div>
 			<script src="/static/js/output/index.js"></script>
+			<div class="pt-4 text-center">
+				@Footer()
+			</div>
 		</div>
 	}
 }

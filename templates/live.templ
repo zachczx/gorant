@@ -18,7 +18,7 @@ templ BaseLive(title string, currentUser *users.User) {
 			<link href="/static/css/output/styles.css" rel="stylesheet"/>
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
-		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr_auto] overflow-x-hidden font-sans" hx-ext="preload">
+		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr] overflow-x-hidden font-sans" hx-ext="preload">
 			<header id="navbar" class="navbar border-b border-b-neutral/10 p-0">
 				<div class="navbar-start" preload="mouseover">
 					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
@@ -35,11 +35,13 @@ templ BaseLive(title string, currentUser *users.User) {
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
 				// </div>
 			</header>
-			<div id="container" class="grid justify-items-center px-4 pt-4" preload>
+			<div id="container" class="grid content-start justify-items-center px-4 pt-8" preload>
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
-			@Footer()
+			<div class="pt-8 text-center">
+				@Footer()
+			</div>
 		</body>
 	</html>
 }
@@ -47,18 +49,6 @@ templ BaseLive(title string, currentUser *users.User) {
 templ LiveScreenBase(currentUser *users.User) {
 	@BaseLive("Grumplr", currentUser) {
 		<div class="grid h-full w-full content-start justify-items-center">
-			<div class="grid w-full content-start justify-items-center">
-				<div class="h-full min-h-[7rem] py-8">
-					<h1 class="text-5xl font-extrabold text-accent xl:text-7xl">Grumplr...</h1>
-					<div class="flex items-end">
-						<span class="text-3xl font-bold"><b>grumpy</b></span>[adjective]
-						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:circle hidden" viewBox="0 0 24 24">
-							<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
-						</svg>
-						<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
-					</div>
-				</div>
-			</div>
 			<div
 				id="content"
 				class="w-full max-w-[1200px] space-y-8 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
@@ -125,13 +115,6 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 				</div>
 			</div>
 		</div>
-		//{ string(templ.URL(fmt.Sprintf("/live/%s/new", "1"))) }
-		// <div>
-		// 	<h3 class="text-lg font-bold">Instant Comments</h3>
-		// 	<div id="instant-comments-list">
-		// 		@ViewListInstantComments(instantComments)
-		// 	</div>
-		// </div>
 	}
 }
 
@@ -193,7 +176,7 @@ templ ListInstantPosts(instPosts []live.InstantPost) {
 		for i := 0; i < len(instPosts); i++ {
 			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].ID.String())) } class="flex rounded-lg border border-neutral/10 bg-white/70 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
 				<div class="group grid min-w-10 place-items-center overflow-hidden pe-4 text-center text-lg font-bold lg:min-w-14 lg:text-2xl">
-					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary">{ instPosts[i].TitleInitials() }</span>
+					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-neutral text-neutral-content">{ instPosts[i].TitleInitials() }</span>
 				</div>
 				<div class="max-w-48 grow">
 					<h3 class="truncate text-xl font-medium leading-loose">

@@ -488,6 +488,10 @@
 		
 		}
 	} */
+
+	.sidebar-min-h-offset {
+		min-height: calc(100vh - 64px);
+	}
 }
 
 @layer utilities {

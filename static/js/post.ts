@@ -47,6 +47,7 @@ postTitleTruncated.addEventListener('click', (evt) => {
 
 /**
  * Utility to close post settings dropdown menu when clicking outside.
+ * DELETED THE DROPDOWN MENU BUT KEEPING THIS HERE FOR NOW.
  */
 (() => {
 	document.addEventListener('click', (evt) => {
