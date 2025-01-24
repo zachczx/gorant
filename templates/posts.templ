@@ -359,7 +359,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 												hx-trigger="click"
 												hx-swap="outerHTML swap:1s"
 												hx-target-403="#toast"
-												hx-delete={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", comments[i].PostID, comments[i].ID.String()))) }
+												hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/delete", comments[i].PostID, comments[i].ID.String()))) }
 												class="comment-delete-button rounded-md text-error hover:bg-error hover:text-error-content focus:text-error-content active:text-error-content"
 											>
 												<button class="flex">
@@ -957,7 +957,7 @@ templ replyBody(currentUser *users.User, reply posts.Reply, highlight string) {
 								</li>
 								<li
 									data-parent-reply-id={ reply.ID.String() }
-									hx-delete={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply/%s/delete", reply.PostID, reply.CommentID.String(), reply.ID.String()))) }
+									hx-post={ string(templ.URL(fmt.Sprintf("/posts/%s/comment/%s/reply/%s/delete", reply.PostID, reply.CommentID.String(), reply.ID.String()))) }
 									hx-target="#posts"
 									hx-trigger="click"
 									hx-swap="outerHTML swap:1s"
