@@ -46,18 +46,17 @@ postTitleTruncated.addEventListener('click', (evt) => {
 });
 
 /**
- * Utility to close post settings dropdown menu when clicking outside.
- * DELETED THE DROPDOWN MENU BUT KEEPING THIS HERE FOR NOW.
+ * Delete button listener for modal.
  */
 (() => {
-	document.addEventListener('click', (evt) => {
-		const moreActionsDropdown = document.getElementById('more-actions-dropdown') as HTMLDetailsElement;
-		if (moreActionsDropdown) {
-			if (evt.target !== moreActionsDropdown && moreActionsDropdown.open) {
-				moreActionsDropdown.open = false;
-			}
-		}
-	});
+	const deletePostButton = document.getElementById('delete-post-button') as HTMLButtonElement;
+	const deletePostModal = document.getElementById('delete_post_modal') as HTMLDialogElement;
+	if (deletePostButton && deletePostModal) {
+		console.log('inside');
+		deletePostButton.addEventListener('click', () => {
+			deletePostModal.showModal();
+		});
+	}
 })();
 
 /**

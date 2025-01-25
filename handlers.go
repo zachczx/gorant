@@ -181,7 +181,6 @@ func (k *keycloak) deletePostHandler() http.Handler {
 			fmt.Println(err)
 			http.Redirect(w, r, "/error", http.StatusSeeOther)
 		}
-
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 }

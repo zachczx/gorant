@@ -38,13 +38,39 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 							}
 						</div>
 						if post.UserID == currentUser.UserID {
-							<form method="post" action={ templ.URL(fmt.Sprintf("/posts/%s/delete", post.ID)) }>
-								<button class="flex text-error">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" width="1em" height="1em" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
-									</svg>
-								</button>
-							</form>
+							<button id="delete-post-button" type="button" class="flex text-error delete-post">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" width="1em" height="1em" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
+								</svg>
+							</button>
+							<dialog id="delete_post_modal" class="modal">
+								<div class="modal-box overflow-auto p-2">
+									<form method="dialog" class="grid justify-items-end">
+										<button>
+											<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="material-symbols:close text-base-content/70" viewBox="0 0 24 24">
+												<path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z"></path>
+											</svg>
+										</button>
+									</form>
+									<div class="grid max-w-[1600px] p-4 text-base gap-8 justify-items-center">
+										<svg xmlns="http://www.w3.org/2000/svg" width="4em" height="4em" class="material-symbols:cancel w-24 h-24 text-error" viewBox="0 0 24 24">
+											<path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
+										</svg>
+										<h3 class="text-3xl font-bold">Confirm Deletion</h3>
+										<p class="">This action cannot be undone. Do you wish to continue?</p>
+										<div class="grid gap-2 w-full">
+											<form method="post" action={ templ.URL(fmt.Sprintf("/posts/%s/delete", post.ID)) }>
+												<button class="btn btn-error delete-post w-full">
+													Delete
+												</button>
+											</form>
+											<form method="dialog">
+												<button class="btn btn-neutral btn-outline w-full">Close</button>
+											</form>
+										</div>
+									</div>
+								</div>
+							</dialog>
 						}
 					</div>
 				</div>
@@ -180,14 +206,14 @@ templ PostSidebar(related posts.PostCollection) {
 	@Sidebar() {
 		if len(related) > 0 {
 			<ul class="mx-2 grid border-t border-t-neutral/20 px-4 pt-6">
-				<li class="flex items-center font-bold gap-4 text-lg">
+				<li class="flex items-center gap-4 text-lg font-bold">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="lucide-lab:venn" viewBox="0 0 24 24">
 						<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="12" r="6"></circle><circle cx="16" cy="12" r="6"></circle></g>
 					</svg>Similar
 				</li>
 				for i:=0; i < len(related); i++ {
 					<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block py-2">
-						<h3 class="leading-tighter line-clamp-2 hyphens-auto break-words hover:underline text-sm">{ related[i].Title }</h3>
+						<h3 class="leading-tighter line-clamp-2 hyphens-auto break-words text-sm hover:underline">{ related[i].Title }</h3>
 						// <div class="mt-2 text-sm text-base-content/60">{ related[i].CreatedAt.Process() }</div>
 						<div class="mt-1 flex items-center gap-x-8 text-xs">
 							// <div class="flex items-center gap-x-1">
@@ -229,9 +255,9 @@ templ PostSidebar(related posts.PostCollection) {
 }
 
 templ Sidebar() {
-	<div class="grid border-l border-l-neutral/15 border-r border-r-neutral/15 h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto px-2 lg:max-w-2xl">
+	<div class="grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto border-l border-r border-l-neutral/15 border-r-neutral/15 px-2 lg:max-w-2xl">
 		<div>
-			<ul class="sidebar-menu text-lg pb-6 font-bold">
+			<ul class="sidebar-menu pb-6 text-lg font-bold text-base-content/80">
 				<li>
 					<a href="/">
 						<svg
@@ -709,7 +735,7 @@ templ TiptapMenu() {
 templ MoodMapper(currentUser *users.User, postID string, postUserID string, mood string) {
 	if postUserID == currentUser.UserID {
 		<div id="mood" class="dropdown-start dropdown dropdown-bottom">
-			<div tabindex="0" role="button" class="flex items-center p-0 text-xl">
+			<div tabindex="0" role="button" class="flex items-center p-0 text-2xl">
 				if mood == "elated" {
 					😄
 				} else if mood == "happy" {
@@ -900,7 +926,7 @@ templ PartialLikePost(postID string, like string) {
 		hx-target-403="#toast"
 	>
 		if like == "1" {
-			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-6 w-6 text-error/60" viewBox="0 0 24 24">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="h-7 w-7 text-error/60" viewBox="0 0 24 24">
 				<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
 			</svg>
 		} else {
