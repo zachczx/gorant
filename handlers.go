@@ -153,7 +153,7 @@ func (k *keycloak) viewPostHandler() http.Handler {
 			return
 		}
 		var filter string
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			TemplRender(w, r, templates.Error(k.currentUser, "Error!"))
@@ -230,7 +230,7 @@ func (k *keycloak) filterSortPostHandler() http.Handler {
 				return
 			}
 		}
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, filter)
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, filter)
 		if err != nil {
 			fmt.Println(err)
 			w.Header().Set("Hx-Redirect", "/error")
@@ -313,7 +313,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 
 		if v := posts.Validate(c); v != nil {
 			fmt.Println("Error: ", v)
-			comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+			comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 			if err != nil {
 				fmt.Println("Error fetching posts")
 				TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
@@ -330,7 +330,7 @@ func (k *keycloak) newCommentHandler(bc *upload.BucketConfig) http.Handler {
 			fmt.Println("Error inserting: ", err)
 		}
 
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 		if err != nil {
 			TemplRender(w, r, templates.Error(k.currentUser, "Oops, something went wrong."))
 			return
@@ -458,7 +458,7 @@ func (k *keycloak) upvoteCommentHandler() http.Handler {
 		}
 
 		var comments []posts.Comment
-		comments, err = posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		comments, err = posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -589,7 +589,7 @@ func (k *keycloak) deleteCommentHandler() http.Handler {
 			return
 		}
 
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 		if err != nil {
 			fmt.Println("Error fetching posts", err)
 		}
@@ -613,7 +613,7 @@ func (k *keycloak) replyHandler() http.Handler {
 			TemplRender(w, r, templates.Toast("error", "Error saving reply!"))
 			return
 		}
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			TemplRender(w, r, templates.Toast("error", "Error displaying comments!"))
@@ -634,7 +634,7 @@ func (k *keycloak) deleteReplyHandler() http.Handler {
 			TemplRender(w, r, templates.Toast("error", "Error deleting reply!"))
 			return
 		}
-		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.UserID, k.currentUser.SortComments, "")
+		comments, err := posts.ListCommentsFilterSort(postID, k.currentUser.SortComments, "")
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			TemplRender(w, r, templates.Toast("error", "Error displaying comments!"))
