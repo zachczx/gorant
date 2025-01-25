@@ -19,7 +19,6 @@ postTitleTruncated.addEventListener('click', (evt) => {
 	const deletePostButton = document.getElementById('delete-post-button') as HTMLButtonElement;
 	const deletePostModal = document.getElementById('delete_post_modal') as HTMLDialogElement;
 	if (deletePostButton && deletePostModal) {
-		console.log('inside');
 		deletePostButton.addEventListener('click', () => {
 			deletePostModal.showModal();
 		});

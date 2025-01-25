@@ -145,7 +145,6 @@ function tagsUi(tagsConfig: TagsConfig = defaultTagsConfig) {
 				}
 			}
 		}
-		console.log('tags data', evt.detail.parameters['tags-data']);
 	}) as EventListener);
 
 	//Keyboard shortcuts for tags UI
