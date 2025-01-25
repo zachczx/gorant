@@ -1,4 +1,4 @@
-# RantKit
+# Grumplr Repository
 
 ## Go tools
 
@@ -39,7 +39,6 @@
 ## TODO
 
 1. Need a way to disconnect live clients (remnant browser tabs causing panics)
-2. Comment replies
 
 ## Notes for Choice of Auth
 
