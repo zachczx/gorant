@@ -60,8 +60,8 @@ function tagsUi(tagsConfig: TagsConfig = defaultTagsConfig) {
 	const classes: string[] = [
 		'user-tag',
 		'btn',
-		'bg-secondary',
-		'text-secondary-content',
+		'bg-neutral/80',
+		'text-neutral-content',
 		'border-0',
 		'hover:bg-secondary',
 		'btn-sm',

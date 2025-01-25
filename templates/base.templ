@@ -638,11 +638,6 @@ templ PartialEditTags(post posts.Post) {
 		hx-trigger="keyup[ctrlKey&&key=='Enter'], click from:#tags-save-button"
 	>
 		<label class="form-control w-full">
-			<div class="label">
-				<span class="label-text font-medium text-neutral/70">
-					Add Tags
-				</span>
-			</div>
 			<div class="input input-bordered h-auto rounded-xl bg-white/70 py-2">
 				<input id="tags-input" type="text" name="tags-input" placeholder="Key in your tags" class="mb-2 block" autocomplete="off"/>
 				<ul id="tags-list" class="flex flex-wrap items-center"></ul>
