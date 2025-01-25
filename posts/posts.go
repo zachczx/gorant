@@ -156,13 +156,13 @@ var listPostsQuery = `SELECT posts.post_id, posts.user_id, posts.post_title, pos
 										LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
 												FROM replies 
 												GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
-										LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+										LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
 												FROM posts_likes
-												GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+												GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+										LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
 												FROM posts_tags
 														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-												GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+												GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
 									ORDER BY posts.created_at DESC`
 
 func ListPosts() (PostCollection, error) {
@@ -185,7 +185,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	if len(mood) != 0 && len(tags) == 0 {
 		// This is different because 2 INNER JOINs are now LEFT JOINs
 		// Specifically: (SELECT DISTINCT... and SELECT posts_tags.post_id...)
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments.comments_cnt, replies.replies_cnt, posts_likes.likes_cnt, posts_tags.tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
 									WHERE mood IN (?)) AS posts
@@ -199,38 +199,38 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
 											FROM replies 
 											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
-									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+									LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
 											FROM posts_likes
-											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-									LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+											GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+									LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+											GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
 								ORDER BY posts.created_at DESC`, mood)
 	} else if len(mood) == 0 && len(tags) != 0 {
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
-								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
-									FROM posts AS posts
-									INNER JOIN(SELECT DISTINCT posts_tags.post_id
-											from posts_tags
-													INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags WHERE tags.tag IN (?)) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id
-									LEFT JOIN users ON users.user_id=posts.user_id
-									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
-											FROM comments
-											GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
-									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
-											FROM replies 
-											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
-									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
-											FROM posts_likes
-											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
-											FROM posts_tags
-													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
-								ORDER BY posts.created_at DESC`, tags)
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments.comments_cnt, replies.replies_cnt, posts_likes.likes_cnt, posts_tags.tags
+									FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
+										FROM posts
+											INNER JOIN(SELECT DISTINCT posts_tags.post_id
+														FROM posts_tags
+															INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags WHERE tags.tag IN (?)) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id) AS posts
+										LEFT JOIN users ON users.user_id=posts.user_id
+										LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+												FROM comments
+												GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+										LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+												FROM replies
+												GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
+										LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
+												FROM posts_likes
+												GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+										INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
+												FROM posts_tags
+														LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+												GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
+									ORDER BY posts.created_at DESC`, tags)
 	} else {
-		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
+		query, args, err = sqlx.In(`SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments.comments_cnt, replies.replies_cnt, posts_likes.likes_cnt, posts_tags.tags
 								FROM(SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood
 									FROM posts
 									WHERE mood IN (?)) AS posts
@@ -244,13 +244,13 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
 											FROM replies 
 											GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
-									LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+									LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
 											FROM posts_likes
-											GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+											GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+									INNER JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
 											FROM posts_tags
 													LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-											GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+											GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
 								ORDER BY posts.created_at DESC`, mood, tags)
 	}
 	if err != nil {
@@ -287,7 +287,7 @@ func ListTags() ([]string, error) {
 	var tagID uuid.UUID
 	var tag string
 	rows, err := database.DB.Query(`SELECT posts_tags.tag_id, tags.tag
-									FROM(SELECT DISTINCT posts_tags.tag_id FROM posts_tags) as posts_tags
+									FROM(SELECT DISTINCT posts_tags.tag_id FROM posts_tags) AS posts_tags
 										LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
 									ORDER BY tags.tag`)
 	if err != nil {
@@ -767,13 +767,13 @@ func RelatedPosts(post Post, results int) (PostCollection, error) {
 					LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
 							FROM replies
 							GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
-					LEFT JOIN(SELECT post_id, COUNT(1) as likes_cnt
+					LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
 							FROM posts_likes
-							GROUP BY posts_likes.post_id) as posts_likes ON posts.post_id=posts_likes.post_id
-					LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') as tags
+							GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+					LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
 							FROM posts_tags
 									LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
-							GROUP BY posts_tags.post_id) as posts_tags ON posts.post_id=posts_tags.post_id
+							GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
 				WHERE posts.post_title % $1 AND NOT posts.post_id=$2
 				ORDER BY similarity DESC
 				LIMIT $3;`
