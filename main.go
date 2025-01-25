@@ -65,7 +65,7 @@ func main() {
 	mux.Handle("GET /posts/{postID}", k.CheckAuthentication()(k.viewPostHandler()))
 	mux.Handle("POST /posts/{postID}", k.CheckAuthentication()(k.filterSortPostHandler()))
 	mux.Handle("POST /posts/{postID}/delete", k.CheckAuthentication()(k.deletePostHandler()))
-	mux.HandleFunc("GET /posts/{postID}/tags", getTagsHandler)
+	mux.Handle("GET /posts/{postID}/tags", k.CheckAuthentication()(k.getTagsHandler()))
 	mux.Handle("GET /posts/{postID}/tags/edit", k.CheckAuthentication()(k.editTagsHandler()))
 	mux.Handle("POST /posts/{postID}/tags/save", k.RequireAuthentication()(k.saveTagsHandler()))
 	mux.Handle("POST /posts/{postID}/mood/edit/{newMood}", k.CheckAuthentication()(k.editMoodHandler()))

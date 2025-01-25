@@ -35,7 +35,7 @@ templ Base(title string, currentUser *users.User) {
 				// 	<span class="loading loading-spinner loading-sm text-accent"></span>
 				// </div>
 			</header>
-			<div id="container" class="grid content-start justify-items-center px-4" preload>
+			<div id="container" class="grid justify-items-center px-4" preload>
 				{ children... }
 			</div>
 			<div id="toast" class="hidden"></div>
@@ -228,7 +228,7 @@ templ GrumplrHead() {
 
 templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
-		<div class="grid grid-rows-[1fr_auto] w-full sidebar-min-h-offset ">
+		<div class="sidebar-min-h-offset grid w-full grid-rows-[1fr_auto]">
 			<div
 				if len(posts) > 0 {
 					class="grid h-full w-full content-start justify-items-center"
@@ -373,7 +373,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 										for i := 0; i < len(tags); i++ {
 											<label>
 												<input type="checkbox" name="tags" class="hidden" value={ tags[i] }/>
-												<span class="btn btn-xs me-2 border border-neutral/30 bg-primary/5 text-neutral/70 hover:border-accent/50 hover:bg-primary/60">
+												<span class="btn btn-xs me-2 border border-neutral/30 bg-transparent text-neutral/70 hover:border-neutral hover:bg-neutral/80 hover:text-neutral-content">
 													{ tags[i] }
 												</span>
 											</label>
@@ -435,9 +435,9 @@ templ ListPosts(posts posts.PostCollection) {
 											<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
 										</svg>0
 									} else {
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-secondary" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-1 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
 										for o := 0; o < len(posts[i].Tags.Tags); o++ {
-											<span class="text-md btn btn-xs me-2 flex items-center border-0 bg-secondary text-secondary-content hover:bg-secondary">{ posts[i].Tags.Tags[o] }</span>
+											<span class="text-md btn btn-xs me-2 flex items-center border-0 bg-neutral/70 text-neutral-content hover:bg-neutral/70">{ posts[i].Tags.Tags[o] }</span>
 										}
 									}
 								</div>
@@ -447,7 +447,7 @@ templ ListPosts(posts posts.PostCollection) {
 											<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125M11.05 6.75q-.725-1.025-1.55-1.563t-2-.537q-1.5 0-2.5 1t-1 2.5q0 1.3.925 2.763t2.213 2.837t2.65 2.575T12 18.3q.85-.775 2.213-1.975t2.65-2.575t2.212-2.837T20 8.15q0-1.5-1-2.5t-2.5-1q-1.175 0-2 .538T12.95 6.75q-.175.25-.425.375T12 7.25t-.525-.125t-.425-.375m.95 4.725"></path>
 										</svg>0
 									} else {
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-error/60" viewBox="0 0 24 24">
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 text-neutral/70" viewBox="0 0 24 24">
 											<path fill="currentColor" d="M12 20.325q-.35 0-.712-.125t-.638-.4l-1.725-1.575q-2.65-2.425-4.788-4.812T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.325 0 2.5.562t2 1.538q.825-.975 2-1.537t2.5-.563q2.35 0 3.925 1.575T22 8.15q0 2.875-2.125 5.275T15.05 18.25l-1.7 1.55q-.275.275-.637.4t-.713.125"></path>
 										</svg>{ posts[i].PostStats.LikesCountString() }
 									}
@@ -456,7 +456,7 @@ templ ListPosts(posts posts.PostCollection) {
 									if posts[i].PostStats.CommentsRepliesCountString()  == "0" {
 										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-outline me-1 text-neutral/60" viewBox="0 0 24 24"><path fill="currentColor" d="M6 14h8v-2H6zm0-3h12V9H6zm0-3h12V6H6zM2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm3.15-6H20V4H4v13.125zM4 16V4z"></path></svg>0
 									} else {
-										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-rounded me-1 text-info/60" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ posts[i].PostStats.CommentsRepliesCountString() }
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:chat-rounded me-1 text-neutral/70" viewBox="0 0 24 24"><path fill="currentColor" d="M2 22V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18H6zm4-8h8v-2H6zm0-3h12V9H6zm0-3h12V6H6z"></path></svg>{ posts[i].PostStats.CommentsRepliesCountString() }
 									}
 									<span class="text-error"></span>
 								</div>

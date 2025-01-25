@@ -364,15 +364,17 @@ func (k *keycloak) uploaderHandler(r *http.Request, bc *upload.BucketConfig) (mu
 	return uploadedFile, fileName, thumbnailFileName, uniqueKey, nil
 }
 
-func getTagsHandler(w http.ResponseWriter, r *http.Request) {
-	postID := r.PathValue("postID")
-	p, err := posts.GetTags(postID)
-	if err != nil {
-		fmt.Println(err)
-	}
-	p.ID = postID
+func (k *keycloak) getTagsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postID := r.PathValue("postID")
+		p, err := posts.GetTags(postID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		p.ID = postID
 
-	TemplRender(w, r, templates.ShowTags(p))
+		TemplRender(w, r, templates.ShowTags(k.currentUser, p))
+	})
 }
 
 func (k *keycloak) editTagsHandler() http.Handler {
@@ -391,25 +393,20 @@ func (k *keycloak) saveTagsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")
 		t := r.FormValue("tags-data")
-		fmt.Println("Form data: ", t)
-
 		var tags []string
 		if t != "" {
 			tags = strings.Split(t, ",")
 		}
-
 		err := posts.EditTags(postID, tags)
 		if err != nil {
 			fmt.Println(err)
 		}
-
 		p, err := posts.GetTags(postID)
 		if err != nil {
 			fmt.Println(err)
 		}
 		p.ID = postID
-
-		TemplRender(w, r, templates.ShowTags(p))
+		TemplRender(w, r, templates.ShowTags(k.currentUser, p))
 	})
 }
 

@@ -195,7 +195,7 @@
 
 	/* For the filter tag bar on main page */
 	label > input:checked + span {
-		@apply border-primary/50 bg-primary/50;
+		@apply bg-neutral/80 text-neutral-content;
 	}
 
 	/* Post form validation */
@@ -453,7 +453,7 @@
 		& > li {
 			padding: 1.5rem 1.5rem 0 1.5rem;
 			&:hover {
-				background-color: rgba(27, 81, 15, 0.5);
+				background-color: rgba(27, 81, 15, 0.8);
 				color: rgba(253, 253, 253);
 				border-radius: 0.5rem;
 			}

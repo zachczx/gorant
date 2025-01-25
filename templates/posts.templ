@@ -18,13 +18,13 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 					// <div class="w-full overflow-hidden">
 					// 	@MoodBar(post.Mood, "false")
 					// </div>
-					<div class="mb-4 grid gap-2">
+					<div class="mb-2 grid gap-2">
 						<button id="post-title-truncated" class="">
 							<h2 class="line-clamp-2 max-h-[6.3rem] overflow-hidden break-all text-start text-3xl font-extrabold capitalize">
 								{ post.Title }
 							</h2>
 						</button>
-						@ShowTags(post)
+						@ShowTags(currentUser, post)
 					</div>
 					<div class="flex items-center">
 						<div class="flex grow items-center gap-4">
@@ -38,7 +38,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 							}
 						</div>
 						if post.UserID == currentUser.UserID {
-							<button id="delete-post-button" type="button" class="flex text-error delete-post">
+							<button id="delete-post-button" type="button" class="delete-post flex text-neutral/60 hover:text-error">
 								<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" width="1em" height="1em" viewBox="0 0 24 24">
 									<path fill="currentColor" d="M9 17h2V8H9zm4 0h2V8h-2zm-8 4V6H4V4h5V3h6v1h5v2h-1v15z"></path>
 								</svg>
@@ -52,20 +52,20 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 											</svg>
 										</button>
 									</form>
-									<div class="grid max-w-[1600px] p-4 text-base gap-8 justify-items-center">
-										<svg xmlns="http://www.w3.org/2000/svg" width="4em" height="4em" class="material-symbols:cancel w-24 h-24 text-error" viewBox="0 0 24 24">
+									<div class="grid max-w-[1600px] justify-items-center gap-8 p-4 text-base">
+										<svg xmlns="http://www.w3.org/2000/svg" width="4em" height="4em" class="material-symbols:cancel h-24 w-24 text-error" viewBox="0 0 24 24">
 											<path fill="currentColor" d="m8.4 17l3.6-3.6l3.6 3.6l1.4-1.4l-3.6-3.6L17 8.4L15.6 7L12 10.6L8.4 7L7 8.4l3.6 3.6L7 15.6zm3.6 5q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
 										</svg>
 										<h3 class="text-3xl font-bold">Confirm Deletion</h3>
 										<p class="">This action cannot be undone. Do you wish to continue?</p>
-										<div class="grid gap-2 w-full">
+										<div class="grid w-full gap-2">
 											<form method="post" action={ templ.URL(fmt.Sprintf("/posts/%s/delete", post.ID)) }>
-												<button class="btn btn-error delete-post w-full">
+												<button class="delete-post btn btn-error w-full">
 													Delete
 												</button>
 											</form>
 											<form method="dialog">
-												<button class="btn btn-neutral btn-outline w-full">Close</button>
+												<button class="btn btn-outline btn-neutral w-full">Close</button>
 											</form>
 										</div>
 									</div>
@@ -313,7 +313,7 @@ templ Sidebar() {
 }
 
 templ Comments(currentUser *users.User, comments []posts.Comment, highlight string) {
-	<article id="posts" class="w-full space-y-2" hx-ext="response-targets">
+	<article id="posts" class="w-full space-y-2 pb-4" hx-ext="response-targets">
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
 				<div
@@ -650,7 +650,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 					</div>
 					<div class="flex items-center justify-end gap-8">
 						<div class="text-sm italic"><span id="form-message-chars"></span>/2000</div>
-						<button id="comment-submit-button" class="btn btn-accent btn-xs float-right flex items-center gap-2 rounded-full px-2 text-sm">
+						<button id="comment-submit-button" class="btn btn-accent btn-xs float-right flex items-center gap-2 rounded-lg px-2 text-sm">
 							<span>Send</span>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -827,7 +827,7 @@ templ MoodMapper(currentUser *users.User, postID string, postUserID string, mood
 			</ul>
 		</div>
 	} else {
-		<div id="mood" class="flex items-center text-xl">
+		<div id="mood" class="flex items-center text-2xl">
 			if mood == "elated" {
 				😄
 			} else if mood == "happy" {
@@ -1009,7 +1009,7 @@ templ replyBody(currentUser *users.User, reply posts.Reply, highlight string) {
 	</div>
 }
 
-templ ShowTags(p posts.Post) {
+templ ShowTags(currentUser *users.User, p posts.Post) {
 	<div
 		id="tags-container"
 		class="group flex cursor-pointer flex-wrap items-center gap-2"
@@ -1021,13 +1021,15 @@ templ ShowTags(p posts.Post) {
 			// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-neutral/70" viewBox="0 0 24 24">
 			// 	<path fill="currentColor" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"></path>
 			// </svg>
-			<button class="btn btn-xs rounded-lg border-0 bg-secondary text-secondary-content hover:bg-secondary">
-				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>Add Tags
-			</button>
+			if currentUser.UserID == p.UserID {
+				<button class="btn btn-xs rounded-lg border-0 bg-neutral text-neutral-content hover:bg-neutral">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:add-2" viewBox="0 0 24 24"><path fill="currentColor" d="M11 21v-8H3v-2h8V3h2v8h8v2h-8v8z"></path></svg>Add Tags
+				</button>
+			}
 		} else {
-			<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-secondary" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
+			// <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="mdi:tag me-2 text-secondary" viewBox="0 0 24 24"><path fill="currentColor" d="M5.5 7A1.5 1.5 0 0 1 4 5.5A1.5 1.5 0 0 1 5.5 4A1.5 1.5 0 0 1 7 5.5A1.5 1.5 0 0 1 5.5 7m15.91 4.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.11 0-2 .89-2 2v7c0 .55.22 1.05.59 1.41l8.99 9c.37.36.87.59 1.42.59s1.05-.23 1.41-.59l7-7c.37-.36.59-.86.59-1.41c0-.56-.23-1.06-.59-1.42"></path></svg>
 			for i := 0; i < len(p.Tags.Tags); i++ {
-				<span class="text-md btn btn-sm border-0 bg-secondary text-secondary-content hover:bg-secondary">{ p.Tags.Tags[i] }</span>
+				<span class="text-md btn btn-sm border-0 bg-neutral/80 text-neutral-content hover:bg-neutral/80">{ p.Tags.Tags[i] }</span>
 			}
 		}
 	</div>
