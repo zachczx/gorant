@@ -118,7 +118,7 @@ function initTiptap() {
 	window.addEventListener('htmx:afterSwap', ((evt: HtmxAfterSwap) => {
 		// Destroy the instance after the swap, else there'll be 2 Tiptap editors.
 		// But there's no need to destroy it if we're deleting stuff, because there won't be text in the editor.
-		if (evt.detail.requestConfig.verb === 'post') {
+		if (evt.detail.requestConfig.verb === 'post' || evt.detail.requestConfig.verb === 'get') {
 			editor.destroy();
 		}
 	}) as EventListener);

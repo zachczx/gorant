@@ -338,19 +338,27 @@ func NewPost(p Post, tags []string) error {
 func GetTags(postID string) (Post, error) {
 	var t string
 	var p Post
-	rows, err := database.DB.Query(`SELECT tags.tag
-									FROM(SELECT posts_tags.post_id, posts_tags.tag_id
-										FROM posts_tags
-										WHERE posts_tags.post_id=$1) AS posts_tags
-										LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id`, postID)
+
+	// Splitting into 2 queries because its easier instead of querying by posts then left join
+	if err := database.DB.QueryRow(`SELECT posts.user_id FROM posts WHERE posts.post_id=$1`, postID).Scan(&p.UserID); err != nil {
+		if err == sql.ErrNoRows {
+			return p, fmt.Errorf("error: postID no rows: %w", err)
+		}
+		return p, fmt.Errorf("error querying for UserID: %w", err)
+	}
+	rows, err := database.DB.Query(`SELECT tags.tag FROM (SELECT posts_tags.post_id, posts_tags.tag_id
+															FROM posts_tags
+															WHERE posts_tags.post_id=$1) AS posts_tags
+									LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id`, postID)
 	if err != nil {
 		return p, fmt.Errorf("error querying for gettags(): %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&t); err != nil {
+		if err = rows.Scan(&p.UserID, &t); err != nil {
 			return p, fmt.Errorf("error scanning for gettags(): %w", err)
 		}
+
 		p.Tags.Tags = append(p.Tags.Tags, t)
 	}
 	return p, nil

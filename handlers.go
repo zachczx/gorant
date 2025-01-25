@@ -371,8 +371,8 @@ func (k *keycloak) getTagsHandler() http.Handler {
 		if err != nil {
 			fmt.Println(err)
 		}
-		p.ID = postID
-
+		fmt.Println("Current user: ", k.currentUser.UserID)
+		fmt.Println("Post userid: ", p.UserID)
 		TemplRender(w, r, templates.ShowTags(k.currentUser, p))
 	})
 }
@@ -384,7 +384,6 @@ func (k *keycloak) editTagsHandler() http.Handler {
 		if err != nil {
 			fmt.Println(err)
 		}
-
 		TemplRender(w, r, templates.PartialEditTags(post))
 	})
 }
