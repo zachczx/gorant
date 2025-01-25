@@ -340,7 +340,7 @@ func GetTags(postID string) (Post, error) {
 	var p Post
 
 	// Splitting into 2 queries because its easier instead of querying by posts then left join
-	if err := database.DB.QueryRow(`SELECT posts.user_id FROM posts WHERE posts.post_id=$1`, postID).Scan(&p.UserID); err != nil {
+	if err := database.DB.QueryRow(`SELECT posts.post_id, posts.user_id FROM posts WHERE posts.post_id=$1`, postID).Scan(&p.ID, &p.UserID); err != nil {
 		if err == sql.ErrNoRows {
 			return p, fmt.Errorf("error: postID no rows: %w", err)
 		}
