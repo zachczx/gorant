@@ -5,6 +5,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
+	{ ignores: ['**/static/js/output/**'] },
 	eslint.configs.recommended,
 	tseslint.configs.strict,
 	tseslint.configs.stylistic,
@@ -14,8 +15,10 @@ export default tseslint.config(
 			'func-style': ['warn', 'declaration'],
 			'no-unused-vars': ['error', { args: 'after-used' }],
 			'@typescript-eslint/consistent-type-definitions': 'off',
+			'no-undef': 'off',
 		},
 	},
+
 	eslintConfigPrettier,
 );
 
