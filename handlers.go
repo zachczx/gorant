@@ -489,6 +489,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 		postID := r.PathValue("postID")
 		commentID, err := uuid.Parse(r.PathValue("commentID"))
 		if err != nil {
+			fmt.Println(err)
 			w.Header().Set("Hx-Redirect", "/error")
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20+1024) // (32 * 2^20) + 1024 bytes
@@ -501,7 +502,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 		uploadedFile, fileName, thumbnailFileName, uniqueKey, err := k.uploaderHandler(r, bc)
 		if err != nil {
 			fmt.Println(err)
-			if err.Error() == "http: no such file" || err.Error() == "empty file" {
+			if err.Error() == "formfile error: http: no such file" || err.Error() == "error empty file: empty file" {
 				c = posts.Comment{
 					ID:      commentID,
 					UserID:  k.currentUser.UserID,
@@ -513,6 +514,7 @@ func (k *keycloak) editCommentSaveHandler(bc *upload.BucketConfig) http.Handler 
 				TemplRender(w, r, templates.Toast("error", "Uploaded file type not allowed!"))
 				return
 			} else {
+				fmt.Println("in else")
 				w.Header().Set("Hx-Redirect", "/error")
 				return
 			}
