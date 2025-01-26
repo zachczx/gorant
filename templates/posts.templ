@@ -244,7 +244,7 @@ templ Sidebar() {
 }
 
 templ Comments(currentUser *users.User, comments []posts.Comment, highlight string) {
-	<article id="posts" class="w-full grid gap-2 pb-2" hx-ext="response-targets">
+	<article id="posts" class="grid w-full gap-2 pb-2" hx-ext="response-targets">
 		// pb-2 instead of pb-4, because each reply div after the content will always trigger gap-2
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
@@ -334,7 +334,7 @@ templ Comments(currentUser *users.User, comments []posts.Comment, highlight stri
 								}
 							</div>
 						</div>
-						<div id={ "comment-" + comments[i].ID.String() + "-content" } class="comment-content hyphenate whitespace-pre-line pt-4 text-base">
+						<div id={ "comment-" + comments[i].ID.String() + "-content" } class="comment-content hyphenate whitespace-pre-line pt-4 text-base" data-comment-id={ comments[i].ID.String() }>
 							{ comments[i].Content }
 							<div class="mt-4 grid grid-cols-2 content-center">
 								if len(comments[i].File.Key) > 0 {

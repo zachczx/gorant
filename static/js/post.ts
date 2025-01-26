@@ -164,7 +164,9 @@ function handleDrop(evt: DragEvent) {
 }
 
 /**
- * Edit post listeners
+ * Edit comment listeners
+ * Can't collapse this with afterRequest listeners that rely on commentID parameter,
+ * because the attach button listener needs to be placed on window load.
  */
 
 (function initRepliesAttachButtonListener() {
@@ -173,25 +175,54 @@ function handleDrop(evt: DragEvent) {
 })();
 
 function commentAttachButtonListener() {
-	const replyFormAttachmentButton = document.getElementsByClassName(
-		'reply-form-attachment-button',
+	const editCommentFormAttachmentButton = document.getElementsByClassName(
+		'edit-comment-form-attachment-button',
 	) as HTMLCollectionOf<HTMLButtonElement>;
 
-	for (const button of replyFormAttachmentButton) {
+	for (const button of editCommentFormAttachmentButton) {
 		const parentReplyId = button.dataset.parentReplyId;
-		console.log(parentReplyId);
-
-		const replyFormAttachmentAccordion = document.getElementById(
+		const editCommentFormAttachmentAccordion = document.getElementById(
 			'comment-' + parentReplyId + '-edit-form-attachment-accordion',
 		) as HTMLDivElement;
+		console.log(editCommentFormAttachmentAccordion);
 		if (button) {
 			button.addEventListener('click', () => {
-				if (replyFormAttachmentAccordion.classList.contains('hidden')) {
-					replyFormAttachmentAccordion.classList.remove('hidden');
+				if (editCommentFormAttachmentAccordion.classList.contains('hidden')) {
+					editCommentFormAttachmentAccordion.classList.remove('hidden');
 				} else {
-					replyFormAttachmentAccordion.classList.add('hidden');
+					editCommentFormAttachmentAccordion.classList.add('hidden');
 				}
 			});
 		}
+	}
+}
+
+/**
+ * Edit Comment calculation feature for remaining chars. This will only happen after a hx-swap.
+ * TODO: Getting the comment ID from dataset is repetitive, can consider consolidating all these listeners into 1.
+ */
+window.addEventListener('htmx:afterRequest', ((evt: HtmxAfterRequest) => {
+	const commentId = evt.detail.target.dataset.commentId;
+	if (commentId) {
+		calculateFormMessageChars(commentId);
+	}
+}) as EventListener);
+
+function calculateFormMessageChars(commentId: string) {
+	const commentFormMessageInputEl = document.getElementById(
+		'comment-' + commentId + '-form-message-input',
+	) as HTMLTextAreaElement;
+	const commentFormCharsRemainingEl = document.getElementById(
+		'comment-' + commentId + '-form-message-chars',
+	) as HTMLSpanElement;
+	if (commentFormMessageInputEl && commentFormCharsRemainingEl) {
+		if (!commentFormMessageInputEl.value || commentFormMessageInputEl.value.length < 1) {
+			commentFormCharsRemainingEl.innerText = '0';
+		} else {
+			commentFormCharsRemainingEl.innerText = String(commentFormMessageInputEl.value.trim().length);
+		}
+		commentFormMessageInputEl.addEventListener('keydown', () => {
+			commentFormCharsRemainingEl.innerText = String(commentFormMessageInputEl.value.trim().length);
+		});
 	}
 }

@@ -196,7 +196,7 @@ templ PartialSettingsEditSuccess(s users.User) {
 }
 
 templ PartialCommentEdit(c posts.Comment) {
-	<div id={ "comment-" + c.ID.String() + "-content" } class="mt-4 rounded-xl border border-neutral/10 bg-primary/10 p-4">
+	<div id={ "comment-" + c.ID.String() + "-content" } class="mt-4 rounded-xl border border-neutral/10 bg-primary/10 p-4" data-comment-id={ c.ID.String() }>
 		<form
 			method="post"
 			id={ "comment-" + c.ID.String() + "-edit-form" }
@@ -211,7 +211,7 @@ templ PartialCommentEdit(c posts.Comment) {
 				<div class="relative w-full">
 					<textarea
 						name="message"
-						id="comment-form-message-input"
+						id={ "comment-" + c.ID.String() + "-form-message-input" }
 						placeholder="Enter a message of at least 10 chars"
 						class="textarea textarea-bordered w-full bg-white/70"
 						minlength="10"
@@ -233,7 +233,7 @@ templ PartialCommentEdit(c posts.Comment) {
 				</div>
 				<div class="grid grid-cols-2 content-center">
 					<div class="flex w-full items-center gap-8">
-						<button class="reply-form-attachment-button flex items-center gap-1 text-sm text-base-content/60" data-parent-reply-id={ c.ID.String() } type="button">
+						<button class="edit-comment-form-attachment-button flex items-center gap-1 text-sm text-base-content/60" data-parent-reply-id={ c.ID.String() } type="button">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								width="1.3em"
@@ -246,7 +246,7 @@ templ PartialCommentEdit(c posts.Comment) {
 						</button>
 					</div>
 					<div class="flex items-center justify-end gap-8">
-						<div class="text-sm italic"><span id="form-message-chars"></span>/2000</div>
+						<div class="text-sm italic"><span id={ "comment-" + c.ID.String() + "-form-message-chars" }></span>/2000</div>
 					</div>
 				</div>
 			</label>
@@ -260,7 +260,7 @@ templ PartialCommentEdit(c posts.Comment) {
 					<div class="text-xs">Allowed: .jpg, .gif, .png, .webp, .avif</div>
 				</div>
 			} else {
-				<div id="comment-form-attachment-accordion" class="grid gap-2 text-base-content/70 transition-all duration-500">
+				<div id={ "comment-" + c.ID.String() + "-edit-form-attachment-accordion" } class="grid gap-2 text-base-content/70 transition-all duration-500">
 					<label id="comment-file-input-droparea" class="grid min-h-14 cursor-pointer content-center justify-items-center rounded-lg py-4 outline-dashed outline-2 outline-base-content/30">
 						<div class="grid grid-cols-2 content-center py-2 text-base-content/70">
 							<button type="button" onclick="comment_edit_attachment.showModal()" class="placeholder-image-icon flex w-full items-center justify-center overflow-hidden rounded-lg border border-neutral/30 bg-neutral text-sm text-base-content/70 underline hover:text-accent">
@@ -311,7 +311,7 @@ templ PartialCommentEdit(c posts.Comment) {
 }
 
 templ PartialCommentEditSuccess(currentUser *users.User, c posts.Comment) {
-	<div id={ "comment-" + c.ID.String() + "-content" } class="comment-content hyphenate whitespace-pre-line pt-4 text-base">
+	<div id={ "comment-" + c.ID.String() + "-content" } class="comment-content hyphenate whitespace-pre-line pt-4 text-base" data-comment-id={ c.ID.String() }>
 		{ c.Content }
 		<div class="mt-4 grid grid-cols-2 content-center">
 			if len(c.File.Key) > 0 {
