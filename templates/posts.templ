@@ -244,7 +244,8 @@ templ Sidebar() {
 }
 
 templ Comments(currentUser *users.User, comments []posts.Comment, highlight string) {
-	<article id="posts" class="w-full space-y-2 pb-4" hx-ext="response-targets">
+	<article id="posts" class="w-full grid gap-2 pb-2" hx-ext="response-targets">
+		// pb-2 instead of pb-4, because each reply div after the content will always trigger gap-2
 		if len(comments) > 0 {
 			for i := 0; i < len(comments); i++ {
 				<div
@@ -550,7 +551,7 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 						rows="2"
 						required
 					></textarea>
-					<button id="comment-submit-button" class="text-accent absolute bottom-3 right-0 rounded-lg px-2 text-lg">
+					<button id="comment-submit-button" class="absolute bottom-3 right-0 rounded-lg px-2 text-lg text-accent">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="1.3em"

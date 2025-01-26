@@ -41,18 +41,22 @@
  * Even listening on afterRequest triggers twice, but only on the same loop and same values,
  * so it's not like flicking a switch on/off back and forth.
  */
-/* (function commentReplyButton() {
-	window.addEventListener('load', replyButtonListener);
 
-
-	window.addEventListener('htmx:afterRequest', replyButtonListener);
-})(); */
+(function initReplyListeners() {
+	window.addEventListener('load', () => {
+		commentReplyButtonListeners();
+		replyDeleteButtonListeners();
+	});
+	window.addEventListener('htmx:afterRequest', () => {
+		commentReplyButtonListeners();
+		replyDeleteButtonListeners();
+	});
+})();
 
 /**
  * This function sets listeners for comment reply buttons to show input field for reply.
- * Using a closure since this gets swapped into the DOM after every request.
  */
-(function CommentReplyButtonListeners() {
+function commentReplyButtonListeners() {
 	const replyButtons = document.getElementsByClassName('reply-button') as HTMLCollectionOf<HTMLDivElement>;
 	for (const button of replyButtons) {
 		const commentReplyFormId = 'comment-' + button.dataset.commentId + '-reply-form';
@@ -72,9 +76,9 @@
 			});
 		}
 	}
-})();
+}
 
-(function replyDeleteButtonListeners() {
+function replyDeleteButtonListeners() {
 	const deleteButtons = document.getElementsByClassName('reply-delete-button') as HTMLCollectionOf<HTMLElement>;
 	for (const button of deleteButtons) {
 		button.addEventListener('click', () => {
@@ -99,4 +103,4 @@
 			deleteLoader?.classList.add('flex');
 		});
 	}
-})();
+}
