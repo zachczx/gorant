@@ -150,7 +150,7 @@ func (bc *BucketConfig) UploadToBucket(file multipart.File, fileName string, fil
 	var buf bytes.Buffer
 	var bufThumb bytes.Buffer
 	var thumbnailFileName string
-	maxWidthThumbnail := 100
+	maxWidthThumbnail := 200
 	switch fileType {
 	case "image/jpeg", "image/png":
 		buf, err = ImagetoWebp(file)

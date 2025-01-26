@@ -13,7 +13,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rezakhademix/govalidator/v2"
-	"github.com/sym01/htmlsanitizer"
 )
 
 type Comment struct {
@@ -108,39 +107,11 @@ func (c *SearchComment) IDString() string {
 	return c.ID.String()
 }
 
-func sanitizeHTML(HTML string) (string, error) {
-	sanitizer := htmlsanitizer.NewHTMLSanitizer()
-	sanitizer.AllowList.Tags = allowedHTMLTags
-	sHTML, err := sanitizer.SanitizeString(HTML)
-	if err != nil {
-		return "", fmt.Errorf("error with SanitizeString(): %w", err)
-	}
-	return sHTML, nil
-}
-
-var allowedHTMLTags = []*htmlsanitizer.Tag{
-	{Name: "a", Attr: nil, URLAttr: []string{"href"}},
-	{Name: "h1", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "h2", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "li", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "strong", Attr: nil, URLAttr: nil},
-	{Name: "ol", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "p", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "ul", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "b", Attr: nil, URLAttr: nil},
-	{Name: "span", Attr: []string{"style"}, URLAttr: nil},
-	{Name: "i", Attr: nil, URLAttr: nil},
-	{Name: "u", Attr: nil, URLAttr: nil},
-}
-
 func Insert(c Comment) (string, error) {
 	var returnCommentID uuid.UUID
 	var insertedCommentID string
 	var err error
-	c.Content, err = sanitizeHTML(c.Content)
-	if err != nil {
-		fmt.Println(err)
-	}
+
 	// Insert into DB record if there's no uploaded file. By this time, the upload would have completed successfully.
 	if c.File.File == nil && c.File.Key == "" {
 		err := database.DB.QueryRow(`INSERT INTO comments (user_id, content, created_at, post_id) VALUES ($1, $2, NOW(), $3) RETURNING comment_id`, c.UserID, c.Content, c.PostID).Scan(&returnCommentID)
@@ -234,13 +205,9 @@ func GetComment(commentID string, currentUser string) (Comment, error) {
 func EditComment(c Comment) error {
 	var err error
 	var returnID uuid.UUID
-	sanitizedHTML, err := sanitizeHTML(c.Content)
-	if err != nil {
-		return fmt.Errorf("error using sanitizeHTML for edit comment: %w", err)
-	}
 
 	if c.File.Key == "" {
-		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, sanitizedHTML, c.ID, c.UserID)
+		_, err = database.DB.Exec(`UPDATE comments SET content=$1 WHERE comment_id=$2 AND user_id=$3`, c.Content, c.ID, c.UserID)
 		if err != nil {
 			return fmt.Errorf("error updating comments table without file: %w", err)
 		}
@@ -251,7 +218,7 @@ func EditComment(c Comment) error {
 	if err != nil {
 		return fmt.Errorf("error inserting file for edit comment: %w", err)
 	}
-	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, sanitizedHTML, returnID.String(), c.ID, c.UserID)
+	_, err = database.DB.Exec(`UPDATE comments SET content=$1, file_id=$2 WHERE comment_id=$3 AND user_id=$4`, c.Content, returnID.String(), c.ID, c.UserID)
 	if err != nil {
 		return fmt.Errorf("error editing comment after inserting file: %w", err)
 	}

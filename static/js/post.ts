@@ -162,3 +162,36 @@ function handleDrop(evt: DragEvent) {
 		commentFileInputDroparea?.classList.remove('bg-primary/30');
 	}
 }
+
+/**
+ * Edit post listeners
+ */
+
+(function initRepliesAttachButtonListener() {
+	window.addEventListener('load', commentAttachButtonListener);
+	window.addEventListener('htmx:afterRequest', commentAttachButtonListener);
+})();
+
+function commentAttachButtonListener() {
+	const replyFormAttachmentButton = document.getElementsByClassName(
+		'reply-form-attachment-button',
+	) as HTMLCollectionOf<HTMLButtonElement>;
+
+	for (const button of replyFormAttachmentButton) {
+		const parentReplyId = button.dataset.parentReplyId;
+		console.log(parentReplyId);
+
+		const replyFormAttachmentAccordion = document.getElementById(
+			'comment-' + parentReplyId + '-edit-form-attachment-accordion',
+		) as HTMLDivElement;
+		if (button) {
+			button.addEventListener('click', () => {
+				if (replyFormAttachmentAccordion.classList.contains('hidden')) {
+					replyFormAttachmentAccordion.classList.remove('hidden');
+				} else {
+					replyFormAttachmentAccordion.classList.add('hidden');
+				}
+			});
+		}
+	}
+}

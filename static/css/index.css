@@ -304,46 +304,6 @@
 		}
 	}
 
-	/* Tiptap */
-
-	.element > div.tiptap {
-		@apply rounded-lg border border-neutral/30 p-4;
-	}
-
-	.tiptap.ProseMirror {
-		min-height: 2rem;
-		@apply bg-white/70;
-	}
-
-	.tiptap,
-	.comment-content {
-		h1 {
-			@apply text-xl font-bold;
-		}
-		h2 {
-			@apply text-base font-medium;
-		}
-		p.is-editor-empty:first-child::before {
-			color: #adb5bd;
-			content: attr(data-placeholder);
-			float: left;
-			height: 0;
-			pointer-events: none;
-		}
-		a {
-			@apply text-accent underline;
-		}
-		ul {
-			@apply ms-4;
-		}
-		ul > li {
-			@apply ms-4 list-disc;
-		}
-		ol > li {
-			@apply ms-4 list-decimal;
-		}
-	}
-
 	.placeholder-image-icon {
 		min-height: 7rem;
 		opacity: 90%;

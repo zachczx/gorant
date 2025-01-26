@@ -11,9 +11,8 @@
 ## JS tools
 
 1. Hypermedia/AJAX - HTMX (+Extensions: Preload, Response Targets, SSE)
-2. WYSIWYG Editor - Tiptap Editor
-3. Formatting - Prettier
-4. Bundling + Minification - ESBuild
+2. Formatting - Prettier
+3. Bundling + Minification - ESBuild
 
 ## CSS tools
 

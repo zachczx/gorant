@@ -19,7 +19,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pterm/pterm v0.12.80
 	github.com/rezakhademix/govalidator/v2 v2.1.0
-	github.com/sym01/htmlsanitizer v1.1.0
 	golang.org/x/image v0.23.0
 )
 
