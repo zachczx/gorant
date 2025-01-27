@@ -13,7 +13,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 				<div id="settings-message"></div>
 				// Children placeholder is for first time login users
 				{ children... }
-				<div class="space-y-8 rounded-lg border border-neutral/30 p-8 shadow-lg">
+				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
 					<form
 						method="post"
@@ -113,7 +113,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 							</div>
 						</div>
 						<div class="grid w-full justify-items-center gap-y-2 pt-8 lg:col-span-2">
-							<button class="btn btn-accent mt-4 w-full rounded-lg text-lg lg:max-w-[400px]">Save</button>
+							<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Save</button>
 							<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
 						</div>
 					</form>

@@ -702,9 +702,78 @@ func ValidateMood(mood string) error {
 	return errors.New("new mood is not in allowed list")
 }
 
-func SanitizeTitleToID(title string) (string, error) {
-	ss := strings.Fields(title)
-	title = strings.Join(ss, " ")
+// Stopwords from Bow (libbow, rainbow, arrow, crossbow).
+// List from https://github.com/igorbrigadir/stopwords?tab=readme-ov-file
+var stopWords = [48]string{
+	"about",
+	"all",
+	"am",
+	"an",
+	"and",
+	"are",
+	"as",
+	"at",
+	"be",
+	"been",
+	"but",
+	"by",
+	"can",
+	"cannot",
+	"did",
+	"do",
+	"does",
+	"doing",
+	"done",
+	"for",
+	"from",
+	"had",
+	"has",
+	"have",
+	"having",
+	"if",
+	"in",
+	"is",
+	"it",
+	"its",
+	"of",
+	"on",
+	"that",
+	"the",
+	"these",
+	"they",
+	"this",
+	"those",
+	"to",
+	"too",
+	"want",
+	"wants",
+	"was",
+	"what",
+	"which",
+	"will",
+	"with",
+	"would",
+}
+
+func SanitizeTitleToID(inputTitle string) (string, error) {
+	title := strings.Fields(inputTitle)
+	var titleNoStopWords []string
+
+out:
+	for _, titleWord := range title {
+		for _, word := range stopWords {
+			if strings.EqualFold(titleWord, word) {
+				continue out
+			}
+		}
+		titleNoStopWords = append(titleNoStopWords, titleWord)
+	}
+
+	// If the title is purely stop words only, then revert to the title with stopwords.
+	if len(titleNoStopWords) == 0 {
+		titleNoStopWords = title
+	}
+	titleJoined := strings.Join(titleNoStopWords, " ")
 	r := strings.NewReplacer(
 		" ", "-",
 		".", "",
@@ -740,10 +809,10 @@ func SanitizeTitleToID(title string) (string, error) {
 		"+", "",
 		",", "",
 	)
-
-	ID := r.Replace(strings.ToLower(title))
-	fmt.Println(ID)
-
+	ID := r.Replace(strings.ToLower(titleJoined))
+	if len(ID) > 60 {
+		ID = ID[:60]
+	}
 	return ID, nil
 }
 

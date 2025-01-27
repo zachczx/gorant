@@ -196,7 +196,7 @@ templ PartialSettingsEditSuccess(s users.User) {
 }
 
 templ PartialCommentEdit(c posts.Comment) {
-	<div id={ "comment-" + c.ID.String() + "-content" } class="mt-4 rounded-xl border border-neutral/10 bg-primary/10 p-4" data-comment-id={ c.ID.String() }>
+	<div id={ "comment-" + c.ID.String() + "-content" } class="mt-4 rounded-xl border border-neutral/10 textarea-highlight bg-primary/10" data-comment-id={ c.ID.String() }>
 		<form
 			method="post"
 			id={ "comment-" + c.ID.String() + "-edit-form" }
@@ -208,18 +208,19 @@ templ PartialCommentEdit(c posts.Comment) {
 			class="w-full space-y-4"
 		>
 			<label class="form-control">
-				<div class="relative w-full">
+				<div class="flex items-end">
 					<textarea
 						name="message"
-						id={ "comment-" + c.ID.String() + "-form-message-input" }
-						placeholder="Enter a message of at least 10 chars"
-						class="textarea textarea-bordered w-full bg-white/70"
+						id="comment-form-message-input"
+						placeholder="Write your thoughts here!"
+						class="scroller textarea border-0 outline-0 focus:border-0 focus:outline-0 w-full bg-transparent grow"
 						minlength="10"
 						maxlength="2000"
+						rows="4"
 						value={ c.Content }
 						required
 					>{ c.Content }</textarea>
-					<button id="comment-submit-button" class="absolute bottom-3 right-0 rounded-lg px-2 text-lg text-accent">
+					<button id="comment-submit-button" class="text-lg text-accent pe-4 ps-4">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="1.3em"
@@ -231,7 +232,7 @@ templ PartialCommentEdit(c posts.Comment) {
 						</svg>
 					</button>
 				</div>
-				<div class="grid grid-cols-2 content-center">
+				<div class="grid grid-cols-2 content-center px-4 py-2">
 					<div class="flex w-full items-center gap-8">
 						<button class="edit-comment-form-attachment-button flex items-center gap-1 text-sm text-base-content/60" data-parent-reply-id={ c.ID.String() } type="button">
 							<svg

@@ -12,7 +12,7 @@ templ FullSearchResults(currentUser *users.User, query string, sort string, resu
 		<main class="mt-12 grid w-full content-start justify-items-center gap-4 justify-self-center lg:max-w-[1600px]">
 			<div
 				id="search-results"
-				class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-12 rounded-2xl border border-neutral/10 bg-white/70 py-8 shadow-lg"
+				class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-12 rounded-2xl border border-neutral/10 bg-white/40 py-8 shadow-lg"
 			>
 				<div class="flex items-center">
 					<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
@@ -31,7 +31,7 @@ templ FullSearchResults(currentUser *users.User, query string, sort string, resu
 						// 
 						<div class="grid w-full justify-items-center">
 							<label
-								class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/70"
+								class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/40"
 							>
 								<input type="text" class="grow" name="q" value={ query } placeholder="Search"/>
 								<button class="-me-2.5 rounded-full bg-neutral/90 p-1.5 text-accent-content">

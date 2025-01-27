@@ -165,6 +165,7 @@
 
 	.drawer-content:has(~ .drawer-handle:checked) {
 		max-height: 400px;
+		overflow: visible;
 	}
 
 	.drawer-handle:checked ~ .drawer-button > :first-of-type {
@@ -451,6 +452,45 @@
 
 	.sidebar-min-h-offset {
 		min-height: calc(100vh - 64px);
+	}
+
+	.scroller {
+		--scrollbar-color-thumb: #1b510f;
+		--scrollbar-color-track: rgba(245, 245, 245, 1);
+		--scrollbar-width: thin;
+		--scrollbar-width-legacy: 3px;
+	}
+
+	/* Modern browsers with `scrollbar-*` support */
+	@supports (scrollbar-width: auto) {
+		.scroller {
+			scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
+			scrollbar-width: var(--scrollbar-width);
+		}
+	}
+	/* Legacy browsers with `::-webkit-scrollbar-*` support */
+	@supports selector(::-webkit-scrollbar) {
+		.scroller::-webkit-scrollbar-thumb {
+			background: var(--scrollbar-color-thumb);
+			border-radius: 10px;
+		}
+		.scroller::-webkit-scrollbar-track {
+			background: var(--scrollbar-color-track);
+			border-radius: 10px;
+		}
+		.scroller::-webkit-scrollbar {
+			max-width: var(--scrollbar-width-legacy);
+			max-height: var(--scrollbar-width-legacy);
+		}
+	}
+
+	.textarea-highlight {
+		&:focus-within,
+		&:active {
+			border: 1px solid rgba(27, 81, 15, 0.3);
+			outline: 2px solid rgba(27, 81, 15, 0.4);
+			outline-offset: 2px;
+		}
 	}
 }
 

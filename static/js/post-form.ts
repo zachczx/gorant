@@ -14,18 +14,21 @@ function calculateFormMessageChars() {
 		} else {
 			commentFormCharsRemainingEl.innerText = String(commentFormMessageInputEl.value.trim().length);
 		}
-		commentFormMessageInputEl.addEventListener('keydown', () => {
+
+		// This needs to be keyup, for some reason keydown doesn't start counting for the first character,
+		// so it ends up inaccurate by at least 1.
+		commentFormMessageInputEl.addEventListener('keyup', () => {
 			commentFormCharsRemainingEl.innerText = String(commentFormMessageInputEl.value.trim().length);
 		});
 	}
 }
 
-(function initAttachButtonListener() {
-	window.addEventListener('load', attachButtonListener);
-	window.addEventListener('htmx:afterRequest', attachButtonListener);
+(function initCommentAttachButtonListener() {
+	window.addEventListener('load', commentAttachButtonListener);
+	window.addEventListener('htmx:afterRequest', commentAttachButtonListener);
 })();
 
-function attachButtonListener() {
+function commentAttachButtonListener() {
 	const commentFormAttachmentButton = document.getElementById('comment-form-attachment-button') as HTMLButtonElement;
 	const commentFormAttachmentAccordion = document.getElementById('comment-form-attachment-accordion') as HTMLDivElement;
 	if (commentFormAttachmentButton) {
