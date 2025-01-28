@@ -7,51 +7,57 @@ import (
 	"strconv"
 )
 
-templ FullSearchResults(currentUser *users.User, query string, sort string, results []posts.SearchComment) {
+templ FullSearchResults(currentUser *users.User, query string, coverage string, sort string, results []posts.SearchComment) {
 	@Base("Search Results - "+query, currentUser) {
-		<main class="mt-12 grid w-full content-start justify-items-center gap-4 justify-self-center lg:max-w-[1600px]">
-			<div
-				id="search-results"
-				class="grid w-full max-w-[1200px] content-start justify-items-center gap-y-12 rounded-2xl border border-neutral/10 bg-white/40 py-8 shadow-lg"
-			>
-				<div class="flex items-center">
-					<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
+		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
+			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
+				@Sidebar()
+			</aside>
+			<main class="h-full w-full lg:col-span-4 lg:max-w-[1100px]">
+				<div
+					id="search-results"
+					class="grid w-full max-w-[1200px] content-start justify-items-center py-8"
+				>
+					<div class="flex items-center pb-8">
+						<h2 class="grow px-8 text-center text-3xl font-extrabold">Search</h2>
+					</div>
+					<div class="grid w-full px-8 py-8">
+						<form
+							class="grid gap-8"
+							id="search-label"
+							hx-include="#search-label, #search-sort"
+							hx-get="/search"
+							hx-replace-url="true"
+							hx-target="#search-results-list"
+							hx-trigger="keyup delay:0.5s, change from:#search-sort"
+							hx-swap="outerHTML"
+						>
+							// 
+							<div class="grid w-full justify-items-center">
+								<label
+									class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/40"
+								>
+									<input type="text" class="grow" name="q" value={ query } placeholder="Search"/>
+									<button class="-me-2.5 rounded-full bg-accent p-1.5 text-accent-content">
+										<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
+											<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
+										</svg>
+									</button>
+								</label>
+							</div>
+							@SearchSort(coverage, sort)
+						</form>
+						@ResultsList(results, query, sort, "false")
+					</div>
 				</div>
-				<div class="grid w-full px-8">
-					<form
-						class="grid gap-8"
-						id="search-label"
-						hx-include="#search-label, #search-sort"
-						hx-get="/search"
-						hx-replace-url="true"
-						hx-target="#search-results-list"
-						hx-trigger="keyup delay:0.5s, change from:#search-sort"
-						hx-swap="outerHTML"
-					>
-						// 
-						<div class="grid w-full justify-items-center">
-							<label
-								class="input input-bordered flex w-full max-w-xl items-center gap-1 rounded-full bg-white/40"
-							>
-								<input type="text" class="grow" name="q" value={ query } placeholder="Search"/>
-								<button class="-me-2.5 rounded-full bg-neutral/90 p-1.5 text-accent-content">
-									<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
-										<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
-									</svg>
-								</button>
-							</label>
-						</div>
-						@SearchSort(sort)
-					</form>
-					@ResultsList(results, query)
-				</div>
-			</div>
-			<script src="/static/js/output/search.js"></script>
-		</main>
+				<script src="/static/js/output/search.js"></script>
+			</main>
+		</div>
 	}
 }
 
-templ ResultsList(results []posts.SearchComment, query string) {
+// oobSwap needed because I'm using oob swap for text in sort by dropdown, and not swapping directly.
+templ ResultsList(results []posts.SearchComment, query string, sort string, oobSwap string) {
 	<div id="search-results-list" data-query={ query }>
 		<div>
 			<div class="my-4 text-base-content/70">
@@ -87,39 +93,99 @@ templ ResultsList(results []posts.SearchComment, query string) {
 			}
 		</div>
 	</div>
+	if oobSwap == "true" {
+		<span id="search-sort-button-text" class="min-w-24 font-bold" hx-swap-oob="true">
+			if sort == "recent" {
+				Recent
+			} else {
+				Relevance
+			}
+		</span>
+	}
 }
 
-templ SearchSort(sort string) {
+templ SearchSort(coverage string, sort string) {
 	<div
 		id="search-sort"
-		class="flex items-start gap-8 border-b-2 border-b-neutral/10 text-base-content/100"
+		class="grid grid-cols-2 gap-8 border-b-2 border-b-neutral/10 pb-1 text-base-content/100"
 	>
-		<div>Sort By:</div>
-		<div class="flex gap-2">
+		<div class="flex items-end gap-2">
+			<div>Search:</div>
 			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
-				<span class="search-sort-highlight">Relevance</span>
+				<span class="search-sort-highlight">Posts</span>
 				<input
 					type="radio"
-					value="relevance"
-					name="s"
+					value="posts"
+					name="c"
 					class="hidden"
-					if sort != "recent" {
+					if coverage == "posts" {
 						checked="checked"
 					}
 				/>
 			</label>
 			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
-				<span class="search-sort-highlight">Most Recent</span>
+				<span class="search-sort-highlight">Comments</span>
 				<input
 					type="radio"
-					value="recent"
-					name="s"
+					value="comments"
+					name="c"
 					class="hidden"
-					if sort == "recent" {
+					if coverage == "comments" {
 						checked="checked"
 					}
 				/>
 			</label>
+		</div>
+		<div class="flex gap-2 justify-self-end">
+			<div class="dropdown dropdown-end active:bg-transparent">
+				<div tabindex="0" role="button" class="group btn btn-outline btn-sm flex items-center border-neutral/10 bg-white/40 text-neutral/70 hover:bg-primary/30 hover:text-primary-content focus:bg-primary/30 focus:text-primary-content active:bg-primary/30 active:text-primary-content">
+					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ci-sort-ascending me-1" viewBox="0 0 24 24">
+						<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M4 17h6m-6-5h9m5-1v8m0 0l3-3m-3 3l-3-3M4 7h12"></path>
+					</svg>
+					<span id="search-sort-button-text" class="min-w-24 font-bold">
+						if sort == "recent" {
+							Recent
+						} else {
+							Relevance
+						}
+					</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="" viewBox="0 0 24 24"><path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4z"></path></svg>
+				</div>
+				<ul tabindex="0" class="zdropdown-style menu dropdown-content z-[1] w-64 max-w-96 rounded-box border border-neutral/30 bg-white/40 p-2 shadow-lg backdrop-blur-[40px]">
+					<li class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content">
+						<label class="sort-button-menu flex h-full w-full gap-4 hover:bg-transparent">
+							<svg xmlns="http://www.w3.org/2000/svg" class="carbon:improve-relevance" width="1.3em" height="1.3em" viewBox="0 0 32 32">
+								<path fill="currentColor" d="M22 26.59L19.41 24L18 25.41l4 4l8-8L28.59 20z"></path><circle cx="16" cy="16" r="2" fill="currentColor"></circle><path fill="currentColor" d="M16 22a6 6 0 1 1 6-6a6.007 6.007 0 0 1-6 6m0-10a4 4 0 1 0 4 4a4.005 4.005 0 0 0-4-4"></path><path fill="currentColor" d="M28 16a12 12 0 1 0-12 12v-2a10 10 0 1 1 10-10Z"></path>
+							</svg><span>Relevance</span>
+							<input
+								type="radio"
+								name="s"
+								class="hidden"
+								value="relevance"
+								if sort != "recent" {
+									checked="checked"
+								}
+							/>
+						</label>
+					</li>
+					<li class="flex rounded-md hover:bg-primary/30 hover:text-primary-content focus:text-primary-content active:text-primary-content">
+						<label class="sort-button-menu flex h-full w-full gap-4 hover:bg-transparent">
+							<svg xmlns="http://www.w3.org/2000/svg" class="material-symbols:alarm-outline" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M12 22q-1.875 0-3.512-.712t-2.85-1.925t-1.925-2.85T3 13t.713-3.512t1.924-2.85t2.85-1.925T12 4t3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22m2.8-4.8l1.4-1.4l-3.2-3.2V8h-2v5.4zM5.6 2.35L7 3.75L2.75 8l-1.4-1.4zm12.8 0l4.25 4.25l-1.4 1.4L17 3.75zM12 20q2.925 0 4.963-2.037T19 13t-2.037-4.962T12 6T7.038 8.038T5 13t2.038 4.963T12 20"></path>
+							</svg><span>Recent</span>
+							<input
+								type="radio"
+								name="s"
+								class="hidden"
+								value="recent"
+								if sort == "recent" {
+									checked="checked"
+								}
+							/>
+						</label>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</div>
 }

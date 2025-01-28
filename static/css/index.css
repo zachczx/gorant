@@ -156,30 +156,10 @@
 		hyphens: auto;
 	}
 
-	/* Drawer Handle for Guest Mode */
-	.drawer-content {
-		max-height: 0;
-		overflow: hidden;
-		transition: max-height 0.4s ease-out;
-	}
-
-	.drawer-content:has(~ .drawer-handle:checked) {
-		max-height: 400px;
-		overflow: visible;
-	}
-
-	.drawer-handle:checked ~ .drawer-button > :first-of-type {
-		display: flex;
-	}
-	.drawer-handle:checked ~ .drawer-button > :last-of-type {
-		display: none;
-	}
-
-	.drawer-handle:not(checked) ~ .drawer-button > :first-of-type {
-		display: none;
-	}
-	.drawer-handle:not(checked) ~ .drawer-button > :last-of-type {
-		display: flex;
+	#drawer-content {
+		@starting-style {
+			opacity: 0;
+		}
 	}
 
 	/* Override .menu list item :active state */
@@ -294,14 +274,22 @@
 
 		&::after {
 			content: '';
-			height: 0.15rem;
+			height: 0.3rem;
 			width: 100%;
 			background-color: #1b510f;
 			opacity: 0.5;
 			position: absolute;
-			bottom: -0.05rem;
+			bottom: -0.3rem;
 			left: 0;
-			transform: translate(0%, 0); /* translate(50%, 0) */
+			transform: translate(0%, 0);
+		}
+	}
+
+	/* Using css to highlight dropdown */
+	.zdropdown-style {
+		& > li:has(> label > input:checked) {
+			font-weight: 700;
+			color: #1b510f;
 		}
 	}
 

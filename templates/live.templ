@@ -51,11 +51,8 @@ templ LiveScreenBase(currentUser *users.User) {
 			</aside>
 			<div
 				id="content"
-				class="w-full max-w-[1100px] lg:col-span-4 space-y-8 rounded-2xl py-8 mb-4 mt-8"
+				class="mb-4 w-full max-w-[1100px] rounded-2xl py-8 lg:col-span-4"
 			>
-				<div class="flex items-center">
-					<h2 class="grow px-8 text-center text-3xl font-extrabold">Live</h2>
-				</div>
 				<div id="loader" class="htmx-indicator-none">
 					<div class="min-h-[20dvh] py-20 text-center">
 						<span class="loading loading-spinner text-accent"></span>
@@ -72,10 +69,13 @@ templ LiveScreenBase(currentUser *users.User) {
 
 templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, instantComments []live.InstantComment) {
 	@LiveScreenBase(currentUser) {
+		<div class="flex items-center">
+			<h2 class="grow px-8 text-center text-3xl font-extrabold">Live</h2>
+		</div>
 		if currentUser.UserID != "" {
 			<form class="grid gap-4" hx-post="/live/new" hx-target="#instant-posts-list" hx-swap="innerHTML">
 				// Padding end for label is to prevent input from overflowing under the button
-				<label class="lg:max-w-11/12 input input-lg relative flex h-16 w-full items-center rounded-full border-neutral/20 bg-white/40 shadow-lg pe-20 text-base-content focus:shadow-lg focus-within:shadow-lg outline-[0] focus:outline-[0] focus-within:outline-[0] justify-self-center lg:w-[750px] lg:pe-[8.6rem]">
+				<label class="lg:max-w-11/12 input input-lg relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/40 pe-20 text-base-content shadow-lg outline-[0] focus-within:shadow-lg focus-within:outline-[0] focus:shadow-lg focus:outline-[0] lg:w-[750px] lg:pe-[8.6rem]">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 					<input
 						type="text"
@@ -116,25 +116,25 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 	}
 }
 
-templ ViewInstantPost(currentUser *users.User, id string) {
+templ ViewInstantPost(currentUser *users.User, p live.InstantPost) {
 	@LiveScreenBase(currentUser) {
+		<h2 class="line-clamp-2 max-h-[6.3rem] overflow-hidden text-start text-3xl font-extrabold capitalize">{ p.Title }</h2>
 		if currentUser.UserID != "" {
 			<form
 				id="live-comment-form"
 				class="grid gap-4"
-				hx-post={ string(templ.URL(fmt.Sprintf("/live/%s/new", id))) }
+				hx-post={ string(templ.URL(fmt.Sprintf("/live/%s/new", p.ID))) }
 				hx-swap="none"
 				hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#post-button"
 			>
 				// Padding end for label is to prevent input from overflowing under the button
-				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/40 pe-20 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px] lg:pe-[8.2rem]">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
+				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-12 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/40 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
 					<input
 						id="content-input"
 						type="text"
 						name="content"
-						placeholder="Add Comment"
-						class="w-full grow text-xl"
+						placeholder="Write something here"
+						class="w-full grow"
 						minlength="1"
 						maxlength="2550"
 						autocomplete="off"
@@ -142,14 +142,11 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 					/>
 					<button
 						id="post-button"
-						class="top-1.75 btn btn-accent absolute right-2 min-w-20 rounded-full text-xl"
+						class="-me-2 text-xl text-accent"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:send-rounded ms-1" viewBox="0 0 24 24">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:send-rounded ms-1" viewBox="0 0 24 24">
 							<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
 						</svg>
-						<span class="hidden pe-1 lg:flex">
-							Send
-						</span>
 					</button>
 				</label>
 			</form>
@@ -163,7 +160,7 @@ templ ViewInstantPost(currentUser *users.User, id string) {
 				<div id="spinner" class="grid content-center justify-items-center">
 					<span class="loading loading-spinner loading-lg text-accent"></span>
 				</div>
-				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", id))) } hx-ext="sse" sse-swap="instant" class="message-style grid hidden w-full content-start justify-self-start"></ul>
+				<ul id="instant-sse" sse-connect={ string(templ.URL(fmt.Sprintf("/event/%s", p.ID))) } hx-ext="sse" sse-swap="instant" class="message-style grid hidden w-full content-start justify-self-start"></ul>
 			</div>
 		</div>
 	}

@@ -76,7 +76,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 				</div>
 				<!-- content -->
 				<div class="grid w-full px-1 py-8 lg:px-8" hx-ext="response-targets">
-					<div class="rounded-xl border border-neutral/10 textarea-highlight bg-primary/10">
+					<div class="textarea-highlight rounded-xl border border-neutral/10 bg-primary/10">
 						@PostForm(currentUser, post.ID, "false")
 						<script src="/static/js/output/post-form.js" defer></script>
 					</div>
@@ -545,13 +545,13 @@ templ PostForm(currentUser *users.User, postID string, oobSwap string) {
 						name="message"
 						id="comment-form-message-input"
 						placeholder="Write your thoughts here!"
-						class="scroller textarea border-0 outline-0 focus:border-0 focus:outline-0 w-full bg-transparent grow"
+						class="scroller textarea w-full grow border-0 bg-transparent outline-0 focus:border-0 focus:outline-0"
 						minlength="10"
 						maxlength="2000"
 						rows="2"
 						required
 					></textarea>
-					<button id="comment-submit-button" class="text-lg text-accent pe-4 ps-4">
+					<button id="comment-submit-button" class="pe-4 ps-4 text-lg text-accent">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="1.3em"

@@ -383,26 +383,33 @@ func ListCommentsFilterSort(postID string, sort string, filter string) ([]Commen
 	return comments, nil
 }
 
-func SearchComments(query string, sort string) ([]SearchComment, error) {
+func Search(query string, coverage string, sort string) ([]SearchComment, error) {
 	var results []SearchComment
 	var rows *sql.Rows
 	var err error
+
+	sql := `SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
+			LEFT JOIN users
+			ON comments.user_id = users.user_id
+			LEFT JOIN posts
+			ON posts.post_id = comments.post_id` + ` ` // Adding space here to be more obvious in future there's a space
 	if sort == "recent" {
-		rows, err = database.DB.Query(`SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
-										LEFT JOIN users
-										ON comments.user_id = users.user_id
-										LEFT JOIN posts
-										ON posts.post_id = comments.post_id
-										WHERE ts @@ websearch_to_tsquery('english', $1)
-										ORDER BY comments.created_at DESC`, query)
-	} else {
-		rows, err = database.DB.Query(`SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
-										LEFT JOIN users
-										ON comments.user_id = users.user_id
-										LEFT JOIN posts
-										ON posts.post_id = comments.post_id
-										WHERE ts @@ websearch_to_tsquery('english', $1)`, query)
+		if coverage == "posts" {
+			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
+		}
+		if coverage == "comments" {
+			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
+		}
 	}
+	if sort == "relevance" {
+		if coverage == "posts" {
+			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1)`
+		}
+		if coverage == "comments" {
+			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1)`
+		}
+	}
+	rows, err = database.DB.Query(sql, query)
 	if err != nil {
 		return results, fmt.Errorf("error querying db for search comments: %w", err)
 	}

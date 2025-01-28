@@ -196,7 +196,7 @@ templ PartialSettingsEditSuccess(s users.User) {
 }
 
 templ PartialCommentEdit(c posts.Comment) {
-	<div id={ "comment-" + c.ID.String() + "-content" } class="mt-4 rounded-xl border border-neutral/10 textarea-highlight bg-primary/10" data-comment-id={ c.ID.String() }>
+	<div id={ "comment-" + c.ID.String() + "-content" } class="textarea-highlight mt-4 rounded-xl border border-neutral/10 bg-primary/10" data-comment-id={ c.ID.String() }>
 		<form
 			method="post"
 			id={ "comment-" + c.ID.String() + "-edit-form" }
@@ -213,14 +213,14 @@ templ PartialCommentEdit(c posts.Comment) {
 						name="message"
 						id="comment-form-message-input"
 						placeholder="Write your thoughts here!"
-						class="scroller textarea border-0 outline-0 focus:border-0 focus:outline-0 w-full bg-transparent grow"
+						class="scroller textarea w-full grow border-0 bg-transparent outline-0 focus:border-0 focus:outline-0"
 						minlength="10"
 						maxlength="2000"
 						rows="4"
 						value={ c.Content }
 						required
 					>{ c.Content }</textarea>
-					<button id="comment-submit-button" class="text-lg text-accent pe-4 ps-4">
+					<button id="comment-submit-button" class="pe-4 ps-4 text-lg text-accent">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="1.3em"

@@ -795,20 +795,25 @@ func (k *keycloak) viewErrorUnauthorizedHandler(w http.ResponseWriter, r *http.R
 func (k *keycloak) searchHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("q")
+		coverage := r.URL.Query().Get("c")
 		sort := r.URL.Query().Get("s")
+		if coverage == "" {
+			coverage = "posts"
+		}
 		if sort == "" {
 			sort = "relevance"
 		}
-		results, err := posts.SearchComments(query, sort)
+		results, err := posts.Search(query, coverage, sort)
 		if err != nil {
 			fmt.Println(err)
 			w.Header().Set("Hx-Redirect", "/error")
 		}
 		if r.Header.Get("Hx-Request") == "" {
-			TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, sort, results))
+			TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, coverage, sort, results))
 			return
 		}
-		TemplRender(w, r, templates.ResultsList(results, query))
+		oobSwap := "true"
+		TemplRender(w, r, templates.ResultsList(results, query, sort, oobSwap))
 	})
 }
 

@@ -110,6 +110,14 @@ func ListLiveComments() ([]InstantComment, error) {
 	return instComments, nil
 }
 
+func GetInstantPost(id uuid.UUID) (InstantPost, error) {
+	var p InstantPost
+	if err := database.DB.QueryRow(`SELECT id, title, user_id, created_at FROM instant_posts WHERE id=$1`, id).Scan(&p.ID, &p.Title, &p.UserID, &p.CreatedAt); err != nil {
+		return p, fmt.Errorf("error fetching instant post: %w", err)
+	}
+	return p, nil
+}
+
 func ViewLivePost(id uuid.UUID) ([]InstantComment, error) {
 	rows, err := database.DB.Query(`SELECT instant_comments.id, instant_comments.instant_post_id, instant_comments.title, instant_comments.content, instant_comments.user_id, instant_comments.created_at, users.preferred_name FROM instant_comments 
 										LEFT JOIN users

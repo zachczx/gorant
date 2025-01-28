@@ -133,3 +133,20 @@ function BlockSpecialChars(newPostConfig: NewPostConfig = defaultNewPostConfig) 
 
 /** Init tags for new post tags input in drawer. */
 tags();
+
+/**
+ * Shows/hides drawer content for create post functionality.
+ */
+showHideDrawer();
+
+function showHideDrawer() {
+	const drawerContent = document.getElementById('drawer-content') as HTMLDivElement;
+	const drawerButton = document.getElementById('drawer-button') as HTMLButtonElement;
+	drawerButton.addEventListener('click', () => {
+		if (drawerContent.classList.contains('hidden')) {
+			drawerContent.classList.remove('hidden');
+		} else {
+			drawerContent.classList.add('hidden');
+		}
+	});
+}

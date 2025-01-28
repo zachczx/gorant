@@ -51,8 +51,19 @@ func (k *keycloak) newInstantPostHandler() http.Handler {
 func (k *keycloak) viewInstantCommentsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("instPID")
-		// TemplRender(w, r, templates.LiveScreenBase(k.currentUser))
-		TemplRender(w, r, templates.ViewInstantPost(k.currentUser, id))
+		uuid, err := uuid.Parse(id)
+		if err != nil {
+			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		post, err := live.GetInstantPost(uuid)
+		if err != nil {
+			fmt.Println(err)
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		TemplRender(w, r, templates.ViewInstantPost(k.currentUser, post))
 	})
 }
 
@@ -130,7 +141,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
 			sb.Reset()
 			if len(instComments) == 0 {
 				fmt.Println("No live comments")
-				sb.WriteString("event:instant\ndata:No data found!\n\n")
+				sb.WriteString("event:instant\ndata:<div class='grid justify-items-center my-12 gap-4'><img src='/static/images/error-lochness.svg' width='478' height='276' class='h-32 lg:h-72' alt='Nothing!'/><h2 class='text-center text-xl font-bold'>Nothing found!</h2></div>\n\n")
 				if _, err := w.Write([]byte(sb.String())); err != nil {
 					log.Fatal(err)
 				}
