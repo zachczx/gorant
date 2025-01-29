@@ -275,6 +275,7 @@
 		bottom: -0.3rem;
 		left: 0;
 		transform: translate(0%, 0); /* translate(50%, 0) */
+		view-transition-name: tab-highlight-line;
 	}
 
 	#search-sort {

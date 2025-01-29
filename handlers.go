@@ -718,7 +718,7 @@ func (k *keycloak) viewSettingsHandler() http.Handler {
 
 		switch ref {
 		case "firstlogin":
-			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, a))
+			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, page, a))
 			return
 		}
 		TemplRender(w, r, templates.ViewSettings(k.currentUser, page, a))
