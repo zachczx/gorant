@@ -693,6 +693,18 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 	})
 }
 
+func (k *keycloak) profileHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		posts, err := posts.GetUser(k.currentUser.UserID)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		page := "profile"
+		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts))
+	})
+}
+
 func (k *keycloak) viewSettingsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ref := r.URL.Query().Get("r")
@@ -702,14 +714,14 @@ func (k *keycloak) viewSettingsHandler() http.Handler {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
 		a := users.ReturnAvatars()
+		page := "settings"
 
 		switch ref {
 		case "firstlogin":
-			fmt.Println("in switch")
 			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, a))
 			return
 		}
-		TemplRender(w, r, templates.Settings(k.currentUser, a))
+		TemplRender(w, r, templates.ViewSettings(k.currentUser, page, a))
 	})
 }
 

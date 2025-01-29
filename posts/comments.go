@@ -86,27 +86,6 @@ func (cs *CommentStats) CheckUpvoted(userID string) bool {
 	return false
 }
 
-type SearchComment struct {
-	ID                 uuid.UUID `db:"comment_id"`
-	UserID             string    `db:"user_id"`
-	Content            string    `db:"content"`
-	CreatedAt          CreatedAt `db:"created_at"`
-	PostID             string    `db:"post_id"`
-	PostTitle          string    `db:"post_title"`
-	Initials           string
-	PreferredName      string `db:"preferred_name"`
-	Avatar             string `db:"avatar"`
-	CommentStats       CommentStats
-	CreatedAtProcessed string
-	AvatarPath         string
-	File               upload.LookupFile
-	NullFile           upload.NullFile
-}
-
-func (c *SearchComment) IDString() string {
-	return c.ID.String()
-}
-
 func Insert(c Comment) (string, error) {
 	var returnCommentID uuid.UUID
 	var insertedCommentID string
@@ -381,50 +360,6 @@ func ListCommentsFilterSort(postID string, sort string, filter string) ([]Commen
 	}
 
 	return comments, nil
-}
-
-func Search(query string, coverage string, sort string) ([]SearchComment, error) {
-	var results []SearchComment
-	var rows *sql.Rows
-	var err error
-
-	sql := `SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
-			LEFT JOIN users
-			ON comments.user_id = users.user_id
-			LEFT JOIN posts
-			ON posts.post_id = comments.post_id` + ` ` // Adding space here to be more obvious in future there's a space
-	if sort == "recent" {
-		if coverage == "posts" {
-			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
-		}
-		if coverage == "comments" {
-			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
-		}
-	}
-	if sort == "relevance" {
-		if coverage == "posts" {
-			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1)`
-		}
-		if coverage == "comments" {
-			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1)`
-		}
-	}
-	rows, err = database.DB.Query(sql, query)
-	if err != nil {
-		return results, fmt.Errorf("error querying db for search comments: %w", err)
-	}
-	defer rows.Close()
-	var row SearchComment
-	for rows.Next() {
-		if err := rows.Scan(&row.ID, &row.UserID, &row.PreferredName, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
-			return results, fmt.Errorf("error scanning db for search comments: %w", err)
-		}
-		if row.NullFile.ID.Valid {
-			row.File.ID = row.NullFile.ID.UUID
-		}
-		results = append(results, row)
-	}
-	return results, nil
 }
 
 // This exists to reduce copy pasting in the rows.Next()/rows.Scan() parts after executing SQL.

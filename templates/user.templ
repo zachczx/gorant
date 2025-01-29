@@ -1,0 +1,323 @@
+package templates
+
+import (
+	"fmt"
+	"gorant/posts"
+	"gorant/users"
+	"strings"
+)
+
+templ Settings(currentUser *users.User, avatars []string) {
+	@Base("User Settings", currentUser) {
+		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
+			<div id="settings-container" class="space-y-4">
+				<div id="settings-message"></div>
+				// Children placeholder is for first time login users
+				{ children... }
+				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
+					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
+					<form
+						method="post"
+						class="grid gap-x-8"
+						hx-post="/settings/edit"
+						hx-target="#settings-message"
+						hx-swap="outerHTML"
+						hx-target-error="#toast"
+						id="settings-form"
+					>
+						<div>
+							<label class="form-control">
+								<div class="label">
+									<span class="label-text font-medium">Email</span>
+								</div>
+								<input type="text" name="username" value={ currentUser.Email } class="input input-bordered w-full" disabled/>
+							</label>
+							<label class="form-control w-full">
+								<div class="label">
+									<span class="label-text font-medium">Display Name</span>
+								</div>
+								<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
+								<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
+							</label>
+							<label class="form-control w-full">
+								<div class="label">
+									<span class="label-text font-medium">Sort Comments</span>
+								</div>
+								<select class="select select-bordered w-full" name="sort-comments">
+									<option
+										value="date;desc"
+										if currentUser.SortComments == "date;desc" {
+											selected
+										}
+									>Upvotes (highest first)</option>
+									<option
+										value="upvote;asc"
+										if currentUser.SortComments == "upvote;asc" {
+											selected
+										}
+									>Upvotes (lowest first)</option>
+									<option
+										value="date;desc"
+										if currentUser.SortComments == "date;desc" {
+											selected
+										}
+									>Date (latest first)</option>
+									<option
+										value="date;asc"
+										if currentUser.SortComments == "date;asc" {
+											selected
+										}
+									>Date (oldest first)</option>
+								</select>
+							</label>
+							<div class="form-control mt-1">
+								<label class="label cursor-pointer">
+									<span class="label-text me-4 font-medium">Only send me essential emails.</span>
+									<input
+										name="contact-me"
+										type="checkbox"
+										if currentUser.ContactMeString == "0" {
+											checked="checked"
+										}
+										class="checkbox-accent checkbox"
+									/>
+								</label>
+							</div>
+						</div>
+						<div class="form-control">
+							<div class="label">
+								<div class="label-text font-medium">Choose an Avatar</div>
+							</div>
+							<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-auto px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
+								for i := 0; i < len(avatars); i ++ {
+									<label
+										id={ avatars[i] }
+										class="avatar grid cursor-pointer justify-items-center space-y-2"
+										if i > 6 {
+											loading="lazy"
+										}
+									>
+										<input
+											type="radio"
+											name="avatar-radio"
+											value={ avatars[i] }
+											class="radio-accent radio radio-sm hidden"
+											if currentUser.Avatar == avatars[i] || (currentUser.Avatar == "default" && avatars[i] == "bird") {
+												checked="checked"
+											}
+										/>
+										<div class="w-24 rounded-full bg-primary/20">
+											<img src={ string(templ.URL(fmt.Sprintf("/static/images/avatars/%s.svg", avatars[i]))) } class="scale-125" alt={ strings.ToTitle(avatars[i]) }/>
+										</div>
+									</label>
+								}
+							</div>
+						</div>
+						<div class="grid w-full justify-items-center gap-y-2 pt-8">
+							<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Save</button>
+							<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</main>
+		<script src="/static/js/output/settings.js"></script>
+	}
+}
+
+templ ShellHeader(currentUser *users.User, page string) {
+	<div class="flex items-center">
+		<h2 class="grow px-8 text-center text-3xl font-extrabold">Hi, { currentUser.PreferredName }!</h2>
+	</div>
+	<div class="grid grid-cols-2 gap-8 border-b-2 border-b-neutral/10 pb-1 text-base-content/100">
+		<div class="flex items-end gap-2">
+			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+				<a
+					href="/profile"
+					if page == "profile" {
+						class="tab-highlight font-bold text-accent"
+					}
+				>Profile</a>
+			</label>
+			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+				<a
+					href="/settings"
+					if page == "settings" {
+						class="tab-highlight font-bold text-accent"
+					}
+				>Settings</a>
+			</label>
+		</div>
+	</div>
+}
+
+templ SettingsShell(currentUser *users.User, page string) {
+	@Base("Settings", currentUser) {
+		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
+			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
+				@Sidebar()
+			</aside>
+			<main class="grid h-full w-full content-start gap-8 py-8 lg:col-span-4 lg:max-w-[1100px]">
+				@ShellHeader(currentUser, page)
+				<div id="content" class="grid w-full">
+					{ children... }
+				</div>
+			</main>
+		</div>
+	}
+}
+
+templ ViewSettings(currentUser *users.User, page string, avatars []string) {
+	@SettingsShell(currentUser, page) {
+		<div id="settings-container" class="grid px-8" hx-ext="response-targets">
+			<h2 class="text-lg font-medium">Edit Settings</h2>
+			<div id="settings-message"></div>
+			// Children placeholder is for first time login users
+			{ children... }
+			<form
+				method="post"
+				class="grid gap-x-8 pt-4"
+				hx-post="/settings/edit"
+				hx-target="#settings-message"
+				hx-swap="outerHTML"
+				hx-target-error="#toast"
+				id="settings-form"
+			>
+				<div>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text font-medium">Email</span>
+						</div>
+						<input type="text" name="username" value={ currentUser.Email } class="input input-bordered w-full" disabled/>
+					</label>
+					<label class="form-control w-full">
+						<div class="label">
+							<span class="label-text font-medium">Display Name</span>
+						</div>
+						<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
+						<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
+					</label>
+					<label class="form-control w-full">
+						<div class="label">
+							<span class="label-text font-medium">Sort Comments</span>
+						</div>
+						<select class="select select-bordered w-full" name="sort-comments">
+							<option
+								value="date;desc"
+								if currentUser.SortComments == "date;desc" {
+									selected
+								}
+							>Upvotes (highest first)</option>
+							<option
+								value="upvote;asc"
+								if currentUser.SortComments == "upvote;asc" {
+									selected
+								}
+							>Upvotes (lowest first)</option>
+							<option
+								value="date;desc"
+								if currentUser.SortComments == "date;desc" {
+									selected
+								}
+							>Date (latest first)</option>
+							<option
+								value="date;asc"
+								if currentUser.SortComments == "date;asc" {
+									selected
+								}
+							>Date (oldest first)</option>
+						</select>
+					</label>
+					<div class="form-control mt-1">
+						<label class="label cursor-pointer">
+							<span class="label-text me-4 font-medium">Only send me essential emails.</span>
+							<input
+								name="contact-me"
+								type="checkbox"
+								if currentUser.ContactMeString == "0" {
+									checked="checked"
+								}
+								class="checkbox-accent checkbox"
+							/>
+						</label>
+					</div>
+				</div>
+				<div class="form-control">
+					<div class="label">
+						<div class="label-text font-medium">Choose an Avatar</div>
+					</div>
+					<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-auto px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
+						for i := 0; i < len(avatars); i ++ {
+							<label
+								id={ avatars[i] }
+								class="avatar grid cursor-pointer justify-items-center space-y-2"
+								if i > 6 {
+									loading="lazy"
+								}
+							>
+								<input
+									type="radio"
+									name="avatar-radio"
+									value={ avatars[i] }
+									class="radio-accent radio radio-sm hidden"
+									if currentUser.Avatar == avatars[i] || (currentUser.Avatar == "default" && avatars[i] == "bird") {
+										checked="checked"
+									}
+								/>
+								<div class="w-24 rounded-full bg-primary/20">
+									<img src={ string(templ.URL(fmt.Sprintf("/static/images/avatars/%s.svg", avatars[i]))) } class="scale-125" alt={ strings.ToTitle(avatars[i]) }/>
+								</div>
+							</label>
+						}
+					</div>
+				</div>
+				<div class="grid w-full justify-items-center gap-y-2 pt-12">
+					<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Save</button>
+					<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+				</div>
+			</form>
+		</div>
+		<script src="/static/js/output/settings.js"></script>
+	}
+}
+
+templ SettingsFirstLogin(currentUser *users.User, avatars []string) {
+	@Settings(currentUser, avatars) {
+		<div id="first-login-message" class="flex w-full items-center rounded-lg border border-success bg-info p-2 text-info-content shadow-lg">
+			<h2 class="flex flex-wrap items-center px-2">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
+				Welcome! How about setting a display name below?
+			</h2>
+		</div>
+		<script>
+			(function(){
+				document.getElementById("preferred-name-input").focus()
+			}())
+		</script>
+	}
+}
+
+templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollection) {
+	@Base("Your Profile", currentUser) {
+		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
+			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
+				@Sidebar()
+			</aside>
+			<main class="grid h-full w-full content-start gap-8 py-8 lg:col-span-4 lg:max-w-[1100px]">
+				@ShellHeader(currentUser, page)
+				<div id="content" class="grid w-full">
+					{ children... }
+				</div>
+			</main>
+		</div>
+	}
+}
+
+templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection) {
+	@ProfileShell(currentUser, page, posts) {
+		<div class="grid gap-4">
+			<h2 class="px-8 text-lg font-medium">Your Latest Posts</h2>
+			@ListPosts(posts)
+		</div>
+	}
+}

@@ -97,6 +97,7 @@ func main() {
 	mux.Handle("GET /event/{instPID}", ZxCompress())
 
 	// User and misc routes
+	mux.Handle("GET /profile", k.CheckAuthentication()(k.profileHandler()))
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))
 	mux.Handle("POST /settings/edit", k.CheckAuthentication()(k.editSettingsHandler()))
 	mux.HandleFunc("GET /error", k.viewErrorHandler)

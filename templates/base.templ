@@ -230,13 +230,13 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
-				@Sidebar()
+				@MainSidebar()
 			</aside>
 			<div
 				if len(posts) > 0 {
-					class="grid h-full w-full content-start justify-items-center pb-4 lg:col-span-4 lg:max-w-[1100px]"
+					class="grid h-full w-full content-start justify-items-center px-4 pb-4 lg:col-span-4 lg:max-w-[1100px]"
 				} else {
-					class="grid h-full w-full content-center justify-items-center pb-4 lg:col-span-4 lg:max-w-[1100px]"
+					class="grid h-full w-full content-center justify-items-center px-4 pb-4 lg:col-span-4 lg:max-w-[1100px]"
 				}
 			>
 				@GrumplrHead()
@@ -593,6 +593,30 @@ templ CreatePostDrawer() {
 			@EditTags()
 		</div>
 	</div>
+}
+
+templ MainSidebar() {
+	@Sidebar() {
+		<ul class="mx-2 grid gap-4 border-t border-t-neutral/20 px-4 pb-6 pt-6">
+			<li class="flex items-center gap-4 text-lg font-bold">
+				Quick Links
+			</li>
+			<ul class="space-y-4 border-l-4 border-l-neutral/10 ps-8">
+				<li>Your Posts</li>
+				<li>Latest</li>
+				<li>Random</li>
+			</ul>
+		</ul>
+		<ul class="mx-2 grid gap-4 border-t border-t-neutral/20 px-4 pt-6">
+			<li class="flex items-center gap-4 text-lg font-bold">
+				Suggested
+			</li>
+			<ul class="">
+				<li>123</li>
+				<li>456</li>
+			</ul>
+		</ul>
+	}
 }
 
 templ EditTags() {

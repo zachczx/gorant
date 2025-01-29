@@ -190,7 +190,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									FROM posts
 									WHERE mood IN (?)) AS posts
 									LEFT JOIN(SELECT DISTINCT posts_tags.post_id
-											from posts_tags
+											FROM posts_tags
 													INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id
 									LEFT JOIN users ON users.user_id=posts.user_id
 									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
@@ -235,7 +235,7 @@ func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 									FROM posts
 									WHERE mood IN (?)) AS posts
 									INNER JOIN(SELECT DISTINCT posts_tags.post_id
-											from posts_tags
+											FROM posts_tags
 													INNER JOIN(SELECT tags.tag_id, tags.tag FROM tags WHERE tags.tag IN (?)) AS tags ON posts_tags.tag_id=tags.tag_id) AS selected_tags ON selected_tags.post_id=posts.post_id
 									LEFT JOIN users ON users.user_id=posts.user_id
 									LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt

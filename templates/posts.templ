@@ -137,11 +137,7 @@ templ PostSidebar(related posts.PostCollection) {
 	@Sidebar() {
 		if len(related) > 0 {
 			<ul class="mx-2 grid border-t border-t-neutral/20 px-4 pt-6">
-				<li class="flex items-center gap-4 text-lg font-bold">
-					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="lucide-lab:venn" viewBox="0 0 24 24">
-						<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="12" r="6"></circle><circle cx="16" cy="12" r="6"></circle></g>
-					</svg>Similar
-				</li>
+				<li class="flex items-center gap-4 text-lg font-bold">Similar</li>
 				for i:=0; i < len(related); i++ {
 					<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block py-2">
 						<h3 class="leading-tighter line-clamp-2 hyphens-auto break-words text-sm hover:underline">{ related[i].Title }</h3>
@@ -186,7 +182,7 @@ templ PostSidebar(related posts.PostCollection) {
 }
 
 templ Sidebar() {
-	<div class="grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto border-l border-r border-l-neutral/[0.01] border-r-neutral/[0.01] px-2 lg:max-w-2xl">
+	<div class="grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto border-l border-r border-l-neutral/[0.0] border-r-neutral/[0.1] px-2 lg:max-w-2xl">
 		<div>
 			<ul class="sidebar-menu pb-6 text-lg font-bold text-base-content/80">
 				<li>
