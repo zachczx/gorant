@@ -77,8 +77,17 @@ func Search(query string, coverage string, sort string) ([]SearchComment, error)
 }
 
 // Displaying user posts.
-func GetUser(userID string) (PostCollection, error) {
+func GetUser(userID string, p int) (PostCollection, bool, error) {
 	var posts PostCollection
+	var endOfList bool
+
+	limit := 5
+	var offset int
+	if p > 0 {
+		offset = (p - 1) * limit
+	} else {
+		offset = 0
+	}
 
 	query := `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments.comments_cnt, replies.replies_cnt, posts_likes.likes_cnt, posts_tags.tags
 			FROM posts
@@ -101,18 +110,18 @@ func GetUser(userID string) (PostCollection, error) {
 						GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
 			WHERE posts.user_id=$1
 			ORDER BY posts.created_at DESC
-			LIMIT 5`
+			LIMIT $2 OFFSET $3`
 
-	rows, err := database.DB.Query(query, userID)
+	rows, err := database.DB.Query(query, userID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("error executing list-post-filter query: %w", err)
+		return nil, endOfList, fmt.Errorf("error executing list-post-filter query: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var p Post
 		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Description, &p.Protected, &p.CreatedAt.Time, &p.Mood, &p.PreferredName, &p.PostStats.CommentsCount, &p.PostStats.RepliesCount, &p.PostStats.LikesCount, &p.Tags.TagsNullString); err != nil {
-			return nil, fmt.Errorf("error scanning list-post-filter: %w", err)
+			return nil, endOfList, fmt.Errorf("error scanning list-post-filter: %w", err)
 		}
 		if p.Tags.TagsNullString.Valid {
 			p.Tags.Tags = strings.Split(p.Tags.TagsNullString.String, ",")
@@ -121,5 +130,11 @@ func GetUser(userID string) (PostCollection, error) {
 		}
 		posts = append(posts, p)
 	}
-	return posts, nil
+	endOfList = checkEndOfList(posts, limit)
+
+	return posts, endOfList, nil
+}
+
+func checkEndOfList(posts PostCollection, limit int) bool {
+	return len(posts) < limit
 }

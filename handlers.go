@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -695,13 +696,48 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 
 func (k *keycloak) profileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		posts, err := posts.GetUser(k.currentUser.UserID)
+		param := r.URL.Query().Get("p")
+		var currentPostPage int
+		var err error
+		currentPostPage, err = strconv.Atoi(param)
+		if err != nil {
+			currentPostPage = 1
+		}
+		nextPostPage := currentPostPage + 1
+		fmt.Println("nextPostPage: ", nextPostPage)
+		posts, disableLoadMoreButton, err := posts.GetUser(k.currentUser.UserID, currentPostPage)
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
 		}
 		page := "profile"
-		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts))
+		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
+	})
+}
+
+func (k *keycloak) profilePostsViewMoreHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Hx-Request") == "" {
+			w.Header().Set("Hx-Redirect", "/profile")
+			return
+		}
+
+		param := r.PathValue("postPage")
+		currentPostPage, err := strconv.Atoi(param)
+		if err != nil {
+			currentPostPage = 1
+		}
+		nextPostPage := currentPostPage + 1
+		posts, disableLoadMoreButton, err := posts.GetUser(k.currentUser.UserID, currentPostPage)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		if len(posts) == 0 {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		TemplRender(w, r, templates.PartialViewProfileLoadMore(k.currentUser, posts, strconv.Itoa(nextPostPage), disableLoadMoreButton))
 	})
 }
 

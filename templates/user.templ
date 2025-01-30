@@ -8,7 +8,7 @@ import (
 )
 
 templ Settings(currentUser *users.User, avatars []string) {
-	@Base("User Settings", currentUser) {
+	@Base("Grumplr - User Settings", currentUser) {
 		<main class="grid w-full max-w-[1600px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div id="settings-container" class="space-y-4">
 				<div id="settings-message"></div>
@@ -130,7 +130,7 @@ templ ShellHeader(currentUser *users.User, page string) {
 		<h2 class="grow px-8 text-center text-3xl font-extrabold">Hi, { currentUser.PreferredName }!</h2>
 	</div>
 	<div class="grid grid-cols-2 gap-8 border-b-2 border-b-neutral/10 pb-1 text-base-content/100">
-		<div class="flex items-end gap-2" preload="mouseover">
+		<div class="flex items-end gap-2" preload>
 			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
 				<a
 					href="/profile"
@@ -152,7 +152,7 @@ templ ShellHeader(currentUser *users.User, page string) {
 }
 
 templ SettingsShell(currentUser *users.User, page string) {
-	@Base("Settings", currentUser) {
+	@Base("Grumplr - Settings", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
 				@Sidebar()
@@ -301,7 +301,7 @@ templ SettingsFirstLogin(currentUser *users.User, page string, avatars []string)
 }
 
 templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollection) {
-	@Base("Your Profile", currentUser) {
+	@Base("Grumplr - Your Profile", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
 				@Sidebar()
@@ -316,13 +316,44 @@ templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollect
 	}
 }
 
-templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection) {
+templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
 	@ProfileShell(currentUser, page, posts) {
 		<div class="grid gap-4">
 			<h2 class="px-8 text-lg font-medium">Your Latest Posts</h2>
 			@ListPosts(posts)
+			<button
+				id="view-profile-posts-load-more"
+				if disableLoadMoreButton {
+					class="hidden"
+				} else {
+					class="btn btn-accent btn-sm mt-8 mx-8 w-full max-w-48 justify-self-center"
+				}
+				type="button"
+				hx-get={ string(templ.URL(fmt.Sprintf("/profile/posts/%s", nextPostPage))) }
+				hx-swap="afterend"
+				hx-target="#posts"
+				hx-select="#posts"
+			>See more</button>
 		</div>
 	}
+}
+
+templ PartialViewProfileLoadMore(currentUser *users.User, posts posts.PostCollection, nextPostPage string, disableLoadMoreButton bool) {
+	@ListPosts(posts)
+	<button
+		id="view-profile-posts-load-more"
+		if disableLoadMoreButton {
+			class="hidden"
+		} else {
+			class="btn btn-accent btn-sm mt-8 mx-8 w-full max-w-48 justify-self-center"
+		}
+		type="button"
+		hx-get={ string(templ.URL(fmt.Sprintf("/profile/posts/%s", nextPostPage))) }
+		hx-swap="afterend"
+		hx-target="#posts"
+		hx-select="#posts"
+		hx-swap-oob="true"
+	>Load more</button>
 }
 
 templ PartialSettingsEditSuccess(s users.User) {
