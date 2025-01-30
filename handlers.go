@@ -696,22 +696,26 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 
 func (k *keycloak) profileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		postsCount, commentsCount, err := posts.GetUserEngagementCount(k.currentUser)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+
 		param := r.URL.Query().Get("p")
-		var currentPostPage int
-		var err error
-		currentPostPage, err = strconv.Atoi(param)
+		currentPostPage, err := strconv.Atoi(param)
 		if err != nil {
 			currentPostPage = 1
 		}
 		nextPostPage := currentPostPage + 1
 		fmt.Println("nextPostPage: ", nextPostPage)
-		posts, disableLoadMoreButton, err := posts.GetUser(k.currentUser.UserID, currentPostPage)
+		posts, disableLoadMoreButton, err := posts.GetUserPosts(k.currentUser.UserID, currentPostPage)
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
 		}
 		page := "profile"
-		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
+		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, strconv.Itoa(postsCount), strconv.Itoa(commentsCount), strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
 	})
 }
 
@@ -728,7 +732,7 @@ func (k *keycloak) profilePostsViewMoreHandler() http.Handler {
 			currentPostPage = 1
 		}
 		nextPostPage := currentPostPage + 1
-		posts, disableLoadMoreButton, err := posts.GetUser(k.currentUser.UserID, currentPostPage)
+		posts, disableLoadMoreButton, err := posts.GetUserPosts(k.currentUser.UserID, currentPostPage)
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 			return

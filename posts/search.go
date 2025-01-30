@@ -7,6 +7,7 @@ import (
 
 	"gorant/database"
 	"gorant/upload"
+	"gorant/users"
 
 	"github.com/google/uuid"
 )
@@ -77,7 +78,7 @@ func Search(query string, coverage string, sort string) ([]SearchComment, error)
 }
 
 // Displaying user posts.
-func GetUser(userID string, p int) (PostCollection, bool, error) {
+func GetUserPosts(userID string, p int) (PostCollection, bool, error) {
 	var posts PostCollection
 	var endOfList bool
 
@@ -137,4 +138,50 @@ func GetUser(userID string, p int) (PostCollection, bool, error) {
 
 func checkEndOfList(posts PostCollection, limit int) bool {
 	return len(posts) < limit
+}
+
+func GetUserEngagementCount(currentUser *users.User) (int, int, error) {
+	var postsCount, commentsCount int
+	var err error
+	postsCount, err = GetUserPostCount(currentUser)
+	if err != nil {
+		return postsCount, commentsCount, fmt.Errorf("error: %w", err)
+	}
+	commentsCount, err = GetUserCommentCount(currentUser)
+	if err != nil {
+		return postsCount, commentsCount, fmt.Errorf("error: %w", err)
+	}
+	return postsCount, commentsCount, nil
+}
+
+func GetUserPostCount(currentUser *users.User) (int, error) {
+	var postsCount int
+	err := database.DB.QueryRow(`SELECT COUNT(1) AS posts_cnt 
+								FROM posts 
+								WHERE posts.user_id=$1 
+								GROUP BY posts.user_id;`, currentUser.UserID).Scan(&postsCount)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			postsCount = 0
+			return postsCount, fmt.Errorf("no user posts found: %w", err)
+		}
+		return postsCount, fmt.Errorf("error: GetUserPostCount: %w", err)
+	}
+	return postsCount, nil
+}
+
+func GetUserCommentCount(currentUser *users.User) (int, error) {
+	var commentsCount int
+	err := database.DB.QueryRow(`SELECT COUNT(1) AS comment_cnt 
+								FROM comments 
+								WHERE comments.user_id=$1 
+								GROUP BY comments.user_id;`, currentUser.UserID).Scan(&commentsCount)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			commentsCount = 0
+			return commentsCount, fmt.Errorf("no user comments found: %w", err)
+		}
+		return commentsCount, fmt.Errorf("error: GetUserCommentCount: %w", err)
+	}
+	return commentsCount, nil
 }

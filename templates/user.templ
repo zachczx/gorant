@@ -316,24 +316,41 @@ templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollect
 	}
 }
 
-templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
+templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, postsCount string, commentsCount string, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
 	@ProfileShell(currentUser, page, posts) {
-		<div class="grid gap-4">
-			<h2 class="px-8 text-lg font-medium">Your Latest Posts</h2>
-			@ListPosts(posts)
-			<button
-				id="view-profile-posts-load-more"
-				if disableLoadMoreButton {
-					class="hidden"
-				} else {
-					class="btn btn-accent btn-sm mt-8 mx-8 w-full max-w-48 justify-self-center"
-				}
-				type="button"
-				hx-get={ string(templ.URL(fmt.Sprintf("/profile/posts/%s", nextPostPage))) }
-				hx-swap="afterend"
-				hx-target="#posts"
-				hx-select="#posts"
-			>See more</button>
+		<div class="grid gap-12">
+			<div class="grid grid-cols-4 gap-4 px-8">
+				<h2 class="col-span-4 text-lg font-medium">Your Stats</h2>
+				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+					<div class="text-3xl font-extrabold">{ postsCount }</div>
+					<div>
+						posts
+					</div>
+				</div>
+				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+					<div class="text-3xl font-extrabold">{ commentsCount }</div>
+					<div>
+						comments
+					</div>
+				</div>
+			</div>
+			<div class="grid">
+				<h2 class="px-8 text-lg font-medium pb-4">Your Latest Posts</h2>
+				@ListPosts(posts)
+				<button
+					id="view-profile-posts-load-more"
+					if disableLoadMoreButton {
+						class="hidden"
+					} else {
+						class="btn btn-accent btn-sm mx-8 mt-8 w-full max-w-48 justify-self-center"
+					}
+					type="button"
+					hx-get={ string(templ.URL(fmt.Sprintf("/profile/posts/%s", nextPostPage))) }
+					hx-swap="afterend"
+					hx-target="#posts"
+					hx-select="#posts"
+				>See more</button>
+			</div>
 		</div>
 	}
 }
@@ -345,7 +362,7 @@ templ PartialViewProfileLoadMore(currentUser *users.User, posts posts.PostCollec
 		if disableLoadMoreButton {
 			class="hidden"
 		} else {
-			class="btn btn-accent btn-sm mt-8 mx-8 w-full max-w-48 justify-self-center"
+			class="btn btn-accent btn-sm mx-8 mt-8 w-full max-w-48 justify-self-center"
 		}
 		type="button"
 		hx-get={ string(templ.URL(fmt.Sprintf("/profile/posts/%s", nextPostPage))) }
