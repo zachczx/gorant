@@ -696,7 +696,7 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 
 func (k *keycloak) profileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		postsCount, commentsCount, err := posts.GetUserEngagementCount(k.currentUser)
+		userStats, err := posts.GetUserEngagementCount(k.currentUser)
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
@@ -715,7 +715,7 @@ func (k *keycloak) profileHandler() http.Handler {
 			return
 		}
 		page := "profile"
-		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, strconv.Itoa(postsCount), strconv.Itoa(commentsCount), strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
+		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, userStats, strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
 	})
 }
 

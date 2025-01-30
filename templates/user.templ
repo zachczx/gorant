@@ -316,26 +316,26 @@ templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollect
 	}
 }
 
-templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, postsCount string, commentsCount string, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
+templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, stats posts.UserStats, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
 	@ProfileShell(currentUser, page, posts) {
 		<div class="grid gap-12">
 			<div class="grid grid-cols-4 gap-4 px-8">
 				<h2 class="col-span-4 text-lg font-medium">Your Stats</h2>
 				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
-					<div class="text-3xl font-extrabold">{ postsCount }</div>
+					<div class="text-3xl font-extrabold">{ stats.PostsCountString() }</div>
 					<div>
 						posts
 					</div>
 				</div>
 				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
-					<div class="text-3xl font-extrabold">{ commentsCount }</div>
+					<div class="text-3xl font-extrabold">{ stats.CommentsCountString() }</div>
 					<div>
 						comments
 					</div>
 				</div>
 			</div>
 			<div class="grid">
-				<h2 class="px-8 text-lg font-medium pb-4">Your Latest Posts</h2>
+				<h2 class="px-8 pb-4 text-lg font-medium">Your Latest Posts</h2>
 				@ListPosts(posts)
 				<button
 					id="view-profile-posts-load-more"

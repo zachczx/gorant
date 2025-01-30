@@ -3,6 +3,7 @@ package posts
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"gorant/database"
@@ -31,6 +32,24 @@ type SearchComment struct {
 
 func (c *SearchComment) IDString() string {
 	return c.ID.String()
+}
+
+type UserStats struct {
+	PostsCount    int
+	CommentsCount int
+	RepliesCount  int
+}
+
+func (u UserStats) PostsCountString() string {
+	return strconv.Itoa(u.PostsCount)
+}
+
+func (u UserStats) CommentsCountString() string {
+	return strconv.Itoa(u.CommentsCount)
+}
+
+func (u UserStats) RpliesCountString() string {
+	return strconv.Itoa(u.RepliesCount)
 }
 
 func Search(query string, coverage string, sort string) ([]SearchComment, error) {
@@ -140,18 +159,18 @@ func checkEndOfList(posts PostCollection, limit int) bool {
 	return len(posts) < limit
 }
 
-func GetUserEngagementCount(currentUser *users.User) (int, int, error) {
-	var postsCount, commentsCount int
+func GetUserEngagementCount(currentUser *users.User) (UserStats, error) {
+	var userStats UserStats
 	var err error
-	postsCount, err = GetUserPostCount(currentUser)
+	userStats.PostsCount, err = GetUserPostCount(currentUser)
 	if err != nil {
-		return postsCount, commentsCount, fmt.Errorf("error: %w", err)
+		return userStats, fmt.Errorf("error: %w", err)
 	}
-	commentsCount, err = GetUserCommentCount(currentUser)
+	userStats.CommentsCount, err = GetUserCommentCount(currentUser)
 	if err != nil {
-		return postsCount, commentsCount, fmt.Errorf("error: %w", err)
+		return userStats, fmt.Errorf("error: %w", err)
 	}
-	return postsCount, commentsCount, nil
+	return userStats, nil
 }
 
 func GetUserPostCount(currentUser *users.User) (int, error) {
