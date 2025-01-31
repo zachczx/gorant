@@ -438,6 +438,15 @@ func (k *keycloak) editMoodHandler() http.Handler {
 	})
 }
 
+func randomPostHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := posts.ListRandomPosts()
+	if err != nil {
+		w.Header().Set("Hx-Redirect", "/error")
+		return
+	}
+	TemplRender(w, r, templates.RandomPosts(posts))
+}
+
 func (k *keycloak) upvoteCommentHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postID")

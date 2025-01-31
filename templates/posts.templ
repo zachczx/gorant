@@ -847,3 +847,7 @@ templ ShowTags(currentUser *users.User, p posts.Post) {
 		}
 	</div>
 }
+
+templ RandomPosts(posts posts.PostCollection) {
+	@ListPosts(posts)
+}

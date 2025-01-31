@@ -169,6 +169,28 @@ func ListPosts() (PostCollection, error) {
 	return scanPosts(listPostsQuery)
 }
 
+func ListRandomPosts() (PostCollection, error) {
+	q := `SELECT posts.post_id, posts.user_id, posts.post_title, posts.description, posts.protected, posts.created_at, posts.mood, users.preferred_name, comments_cnt, replies_cnt, likes_cnt, tags
+			FROM posts
+				LEFT JOIN users ON users.user_id=posts.user_id
+				LEFT JOIN(SELECT comments.post_id, COUNT(1) AS comments_cnt
+						FROM comments
+						GROUP BY comments.post_id) AS comments ON comments.post_id=posts.post_id
+				LEFT JOIN(SELECT replies.post_id, COUNT(1) AS replies_cnt
+						FROM replies 
+						GROUP BY replies.post_id) AS replies ON replies.post_id=posts.post_id
+				LEFT JOIN(SELECT post_id, COUNT(1) AS likes_cnt
+						FROM posts_likes
+						GROUP BY posts_likes.post_id) AS posts_likes ON posts.post_id=posts_likes.post_id
+				LEFT JOIN(SELECT posts_tags.post_id, string_agg(tags.tag, ',') AS tags
+						FROM posts_tags
+								LEFT JOIN tags ON posts_tags.tag_id=tags.tag_id
+						GROUP BY posts_tags.post_id) AS posts_tags ON posts.post_id=posts_tags.post_id
+			ORDER BY RANDOM()
+			LIMIT 5`
+	return scanPosts(q)
+}
+
 func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	var query string
 	var args []interface{}
