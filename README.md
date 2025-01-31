@@ -35,6 +35,10 @@
 6. Webp encoding/decoding - MinGW & libwebp wrapper
 7. S3 compatible object storage - Cloudflare R2
 
+## Notes
+
+1. go get ./...
+
 ## TODO
 
 1. Need a way to disconnect live clients (remnant browser tabs causing panics)
