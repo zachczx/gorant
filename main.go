@@ -103,6 +103,7 @@ func main() {
 	mux.Handle("GET /profile/posts/{postPage}", k.CheckAuthentication()(k.profilePostsViewMoreHandler()))
 	mux.Handle("GET /settings", k.CheckAuthentication()(k.viewSettingsHandler()))
 	mux.Handle("POST /settings/edit", k.CheckAuthentication()(k.editSettingsHandler()))
+	mux.Handle("GET /credentials", k.CheckAuthentication()(k.viewCredentials()))
 	mux.HandleFunc("GET /error", k.viewErrorHandler)
 	mux.HandleFunc("GET /error-unauthorized", k.viewErrorUnauthorizedHandler)
 	mux.HandleFunc("GET /admin/reset", resetAdmin)

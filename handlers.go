@@ -823,6 +823,12 @@ func (k *keycloak) editSettingsHandler() http.Handler {
 	})
 }
 
+func (k *keycloak) viewCredentials() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.ViewCredentials(k.currentUser))
+	})
+}
+
 var mimeTypes = []string{"image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"}
 
 func checkFileType(file multipart.File) (string, error) {
