@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gorant/templates"
+
 	"github.com/andybalholm/brotli"
 	"github.com/go-swiss/compress"
 	"github.com/pterm/pterm"
@@ -224,11 +226,15 @@ func currentPageContext(next http.Handler) http.Handler {
 			return
 		}
 		path := strings.Split(r.URL.Path, "/")
+		if len(path) == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
 		section := path[1]
 		if section == "" {
 			section = "home"
 		}
-		ctx := context.WithValue(r.Context(), "currentSection", section)
+		ctx := context.WithValue(r.Context(), templates.CurrentSection, section)
 		reqWithCtx := r.WithContext(ctx)
 		next.ServeHTTP(w, reqWithCtx)
 	})

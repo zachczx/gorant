@@ -773,7 +773,7 @@ templ ErrorUnauthorized(currentUser *users.User, message string) {
 }
 
 func GetSection(ctx context.Context) string {
-	if section, ok := ctx.Value("currentSection").(string); ok {
+	if section, ok := ctx.Value(CurrentSection).(string); ok {
 		return section
 	}
 	return ""
