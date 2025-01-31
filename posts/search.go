@@ -35,21 +35,31 @@ func (c *SearchComment) IDString() string {
 }
 
 type UserStats struct {
-	PostsCount    int
-	CommentsCount int
-	RepliesCount  int
+	UserID        string
+	PostsCount    sql.NullInt64
+	CommentsCount sql.NullInt64
+	RepliesCount  sql.NullInt64
 }
 
 func (u UserStats) PostsCountString() string {
-	return strconv.Itoa(u.PostsCount)
+	if !u.PostsCount.Valid {
+		return "0"
+	}
+	return strconv.FormatInt(u.PostsCount.Int64, 10)
 }
 
 func (u UserStats) CommentsCountString() string {
-	return strconv.Itoa(u.CommentsCount)
+	if !u.CommentsCount.Valid {
+		return "0"
+	}
+	return strconv.FormatInt(u.CommentsCount.Int64, 10)
 }
 
-func (u UserStats) RpliesCountString() string {
-	return strconv.Itoa(u.RepliesCount)
+func (u UserStats) RepliesCountString() string {
+	if !u.RepliesCount.Valid {
+		return "0"
+	}
+	return strconv.FormatInt(u.RepliesCount.Int64, 10)
 }
 
 func Search(query string, coverage string, sort string) ([]SearchComment, error) {
@@ -159,48 +169,26 @@ func checkEndOfList(posts PostCollection, limit int) bool {
 	return len(posts) < limit
 }
 
-func GetUserEngagementCount(currentUser *users.User) (UserStats, error) {
-	var userStats UserStats
-	var err error
-	userStats.PostsCount, err = GetUserPostCount(currentUser)
-	if err != nil {
-		return userStats, fmt.Errorf("error: %w", err)
-	}
-	userStats.CommentsCount, err = GetUserCommentCount(currentUser)
-	if err != nil {
-		return userStats, fmt.Errorf("error: %w", err)
-	}
-	return userStats, nil
-}
+func GetEngagementStats(currentUser *users.User) (UserStats, error) {
+	var stats UserStats
 
-func GetUserPostCount(currentUser *users.User) (int, error) {
-	var postsCount int
-	err := database.DB.QueryRow(`SELECT COUNT(1) AS posts_cnt 
-								FROM posts 
-								WHERE posts.user_id=$1 
-								GROUP BY posts.user_id;`, currentUser.UserID).Scan(&postsCount)
+	err := database.DB.QueryRow(`SELECT posts.user_id, posts.posts_cnt, comments.comments_cnt, replies.replies_cnt
+							FROM(SELECT user_id, COUNT(1) AS posts_cnt
+								FROM posts
+								WHERE user_id=$1
+								GROUP BY user_id) AS posts
+								LEFT JOIN(SELECT comments.user_id, COUNT(1) AS comments_cnt
+										FROM comments
+										GROUP BY comments.user_id) AS comments ON posts.user_id=comments.user_id
+								LEFT JOIN(SELECT replies.user_id, COUNT(1) as replies_cnt
+										FROM replies
+										GROUP BY replies.user_id) AS replies ON posts.user_id=replies.user_id`, currentUser.UserID).
+		Scan(&stats.UserID, &stats.PostsCount, &stats.CommentsCount, &stats.RepliesCount)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			postsCount = 0
-			return postsCount, fmt.Errorf("no user posts found: %w", err)
+			return stats, fmt.Errorf("error: no engagement stats: %w", err)
 		}
-		return postsCount, fmt.Errorf("error: GetUserPostCount: %w", err)
+		return stats, fmt.Errorf("error: %w", err)
 	}
-	return postsCount, nil
-}
-
-func GetUserCommentCount(currentUser *users.User) (int, error) {
-	var commentsCount int
-	err := database.DB.QueryRow(`SELECT COUNT(1) AS comment_cnt 
-								FROM comments 
-								WHERE comments.user_id=$1 
-								GROUP BY comments.user_id;`, currentUser.UserID).Scan(&commentsCount)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			commentsCount = 0
-			return commentsCount, fmt.Errorf("no user comments found: %w", err)
-		}
-		return commentsCount, fmt.Errorf("error: GetUserCommentCount: %w", err)
-	}
-	return commentsCount, nil
+	return stats, nil
 }
