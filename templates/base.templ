@@ -682,7 +682,7 @@ templ MainSidebar() {
 			</li>
 			<ul class="space-y-4 border-l-4 border-l-neutral/10 ps-8">
 				<li><a href="/profile" class="text-accent hover:underline">Your Posts</a></li>
-				<li>Latest</li>
+				<li><a href="/posts/latest" hx-get="/posts/latest" hx-swap="outerHTML" hx-target="#posts" class="text-accent hover:underline">Latest</a></li>
 				<li><a href="/posts/random" hx-get="/posts/random" hx-swap="outerHTML" hx-target="#posts" class="text-accent hover:underline">Random</a></li>
 			</ul>
 		</ul>

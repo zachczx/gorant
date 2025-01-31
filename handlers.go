@@ -438,13 +438,22 @@ func (k *keycloak) editMoodHandler() http.Handler {
 	})
 }
 
-func randomPostHandler(w http.ResponseWriter, r *http.Request) {
-	posts, err := posts.ListRandomPosts()
+func randomPostsHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := posts.RandomPosts()
 	if err != nil {
 		w.Header().Set("Hx-Redirect", "/error")
 		return
 	}
-	TemplRender(w, r, templates.RandomPosts(posts))
+	TemplRender(w, r, templates.ListPosts(posts))
+}
+
+func latestPostsHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := posts.LatestPosts()
+	if err != nil {
+		w.Header().Set("Hx-Redirect", "/error")
+		return
+	}
+	TemplRender(w, r, templates.ListPosts(posts))
 }
 
 func (k *keycloak) upvoteCommentHandler() http.Handler {
