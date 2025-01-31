@@ -696,7 +696,7 @@ func (k *keycloak) deleteCommentAttachmentHandler(bc *upload.BucketConfig) http.
 
 func (k *keycloak) profileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userStats, err := posts.GetUserEngagementCount(k.currentUser)
+		stats, err := posts.GetEngagementStats(k.currentUser)
 		if err != nil {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
@@ -714,8 +714,7 @@ func (k *keycloak) profileHandler() http.Handler {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
 		}
-		page := "profile"
-		TemplRender(w, r, templates.ViewProfile(k.currentUser, page, posts, userStats, strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
+		TemplRender(w, r, templates.ViewProfile(k.currentUser, posts, stats, strconv.Itoa(currentPostPage), strconv.Itoa(nextPostPage), disableLoadMoreButton))
 	})
 }
 
@@ -754,14 +753,12 @@ func (k *keycloak) viewSettingsHandler() http.Handler {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		}
 		a := users.ReturnAvatars()
-		page := "settings"
-
 		switch ref {
 		case "firstlogin":
-			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, page, a))
+			TemplRender(w, r, templates.SettingsFirstLogin(k.currentUser, a))
 			return
 		}
-		TemplRender(w, r, templates.ViewSettings(k.currentUser, page, a))
+		TemplRender(w, r, templates.ViewSettings(k.currentUser, a))
 	})
 }
 

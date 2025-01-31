@@ -129,7 +129,7 @@ func main() {
 	// File Server
 	mux.Handle("GET /static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
-	wrappedMux := StatusLogger(ExcludeCompression(SetCacheControl(mux)))
+	wrappedMux := currentPageContext(StatusLogger(ExcludeCompression(SetCacheControl(mux))))
 
 	server := &http.Server{
 		Addr:              os.Getenv("LISTEN_ADDR"),

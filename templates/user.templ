@@ -125,7 +125,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 	}
 }
 
-templ ShellHeader(currentUser *users.User, page string) {
+templ ShellHeader(currentUser *users.User) {
 	<div class="flex items-center">
 		<h2 class="grow px-8 text-center text-3xl font-extrabold">Hi, { currentUser.PreferredName }!</h2>
 	</div>
@@ -134,7 +134,7 @@ templ ShellHeader(currentUser *users.User, page string) {
 			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
 				<a
 					href="/profile"
-					if page == "profile" {
+					if  GetSection(ctx) == "profile" {
 						class="tab-highlight font-bold text-accent"
 					}
 				>Profile</a>
@@ -142,7 +142,7 @@ templ ShellHeader(currentUser *users.User, page string) {
 			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
 				<a
 					href="/settings"
-					if page == "settings" {
+					if GetSection(ctx) == "settings" {
 						class="tab-highlight font-bold text-accent"
 					}
 				>Settings</a>
@@ -151,14 +151,14 @@ templ ShellHeader(currentUser *users.User, page string) {
 	</div>
 }
 
-templ SettingsShell(currentUser *users.User, page string) {
+templ SettingsShell(currentUser *users.User) {
 	@Base("Grumplr - Settings", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
 				@Sidebar()
 			</aside>
 			<main class="grid h-full w-full content-start gap-8 py-8 lg:col-span-4 lg:max-w-[1100px]">
-				@ShellHeader(currentUser, page)
+				@ShellHeader(currentUser)
 				<div id="content" class="grid w-full">
 					{ children... }
 				</div>
@@ -167,8 +167,8 @@ templ SettingsShell(currentUser *users.User, page string) {
 	}
 }
 
-templ ViewSettings(currentUser *users.User, page string, avatars []string) {
-	@SettingsShell(currentUser, page) {
+templ ViewSettings(currentUser *users.User, avatars []string) {
+	@SettingsShell(currentUser) {
 		<div id="settings-container" class="grid px-8" hx-ext="response-targets">
 			{ children... }
 			<div id="settings-message"></div>
@@ -281,8 +281,8 @@ templ ViewSettings(currentUser *users.User, page string, avatars []string) {
 	}
 }
 
-templ SettingsFirstLogin(currentUser *users.User, page string, avatars []string) {
-	@ViewSettings(currentUser, page, avatars) {
+templ SettingsFirstLogin(currentUser *users.User, avatars []string) {
+	@ViewSettings(currentUser, avatars) {
 		<div id="first-login-message" class="mb-4 flex w-full items-center rounded-lg border border-accent bg-accent p-2 text-accent-content shadow-lg">
 			<h2 class="flex flex-wrap items-center px-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
@@ -300,14 +300,14 @@ templ SettingsFirstLogin(currentUser *users.User, page string, avatars []string)
 		</script>
 }
 
-templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollection) {
+templ ProfileShell(currentUser *users.User, posts posts.PostCollection) {
 	@Base("Grumplr - Your Profile", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
 				@Sidebar()
 			</aside>
 			<main class="grid h-full w-full content-start gap-8 py-8 lg:col-span-4 lg:max-w-[1100px]">
-				@ShellHeader(currentUser, page)
+				@ShellHeader(currentUser)
 				<div id="content" class="grid w-full">
 					{ children... }
 				</div>
@@ -316,10 +316,10 @@ templ ProfileShell(currentUser *users.User, page string, posts posts.PostCollect
 	}
 }
 
-templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollection, stats posts.UserStats, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
-	@ProfileShell(currentUser, page, posts) {
-		<div class="grid gap-12">
-			<div class="grid grid-cols-4 gap-4 px-8">
+templ ViewProfile(currentUser *users.User, posts posts.PostCollection, stats posts.UserStats, currentPostPage string, nextPostPage string, disableLoadMoreButton bool) {
+	@ProfileShell(currentUser, posts) {
+		<div class="grid gap-12 px-8">
+			<div class="grid grid-cols-4 gap-4">
 				<h2 class="col-span-4 text-lg font-medium">Your Stats</h2>
 				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
 					<div class="text-3xl font-extrabold">{ stats.PostsCountString() }</div>
@@ -333,9 +333,15 @@ templ ViewProfile(currentUser *users.User, page string, posts posts.PostCollecti
 						comments
 					</div>
 				</div>
+				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+					<div class="text-3xl font-extrabold">{ stats.RepliesCountString() }</div>
+					<div>
+						replies
+					</div>
+				</div>
 			</div>
 			<div class="grid">
-				<h2 class="px-8 pb-4 text-lg font-medium">Your Latest Posts</h2>
+				<h2 class="pb-4 text-lg font-medium">Your Latest Posts</h2>
 				@ListPosts(posts)
 				<button
 					id="view-profile-posts-load-more"

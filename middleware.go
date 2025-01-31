@@ -2,6 +2,7 @@ package main
 
 import (
 	"compress/gzip"
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -213,5 +214,22 @@ func SetCacheControl(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func currentPageContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/static/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		path := strings.Split(r.URL.Path, "/")
+		section := path[1]
+		if section == "" {
+			section = "home"
+		}
+		ctx := context.WithValue(r.Context(), "currentSection", section)
+		reqWithCtx := r.WithContext(ctx)
+		next.ServeHTTP(w, reqWithCtx)
 	})
 }
