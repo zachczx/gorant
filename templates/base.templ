@@ -204,7 +204,8 @@ templ NavProfileBadge(currentUser *users.User) {
 templ Sidebar() {
 	<div class="grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto border-l border-r border-l-neutral/[0.0] border-r-neutral/[0.1] px-2 lg:max-w-2xl">
 		<div>
-			<ul class="sidebar-menu pb-6 text-lg font-bold text-base-content/80">
+			<ul class="sidebar-menu pb-6 text-lg text-base-content/80">
+				<li>Menu</li>
 				<li>
 					<a href="/">
 						<svg
@@ -219,6 +220,14 @@ templ Sidebar() {
 					</a>
 				</li>
 				<li>
+					<a href="/about">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:page-info" viewBox="0 0 24 24">
+							<path fill="currentColor" d="M17.75 20.25q-1.575 0-2.662-1.088T14 16.5t1.088-2.662t2.662-1.088t2.663 1.088T21.5 16.5t-1.088 2.663t-2.662 1.087M4 17.5v-2h8v2zm2.25-6.25q-1.575 0-2.662-1.088T2.5 7.5t1.088-2.662T6.25 3.75t2.663 1.088T10 7.5t-1.088 2.663T6.25 11.25M12 8.5v-2h8v2z"></path>
+						</svg>About
+					</a>
+				</li>
+				<li>Discussions</li>
+				<li>
 					<a href="/">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -231,6 +240,11 @@ templ Sidebar() {
 						</svg>Posts
 					</a>
 				</li>
+				<ul>
+					<li><a href="/profile">Your Posts</a></li>
+					<li><a href="/latest" hx-get="/latest" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true">Latest</a></li>
+					<li><a href="/random" hx-get="/random" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true">Random</a></li>
+				</ul>
 				<li>
 					<a href="/live">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="fluent:live-20-filled" viewBox="0 0 20 20">
@@ -245,6 +259,14 @@ templ Sidebar() {
 						</svg>Search
 					</a>
 				</li>
+				<li>Account</li>
+				<li>
+					<a href="/profile">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:account-box-outline" viewBox="0 0 24 24">
+							<path fill="currentColor" d="M5 17.85q1.35-1.325 3.138-2.087T12 15t3.863.763T19 17.85V5H5zM12 13q1.45 0 2.475-1.025T15.5 9.5t-1.025-2.475T12 6T9.525 7.025T8.5 9.5t1.025 2.475T12 13m-7 8q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm1.725-2h10.55q-1.1-.975-2.488-1.487T12 17t-2.812.513T6.725 19M12 11q-.625 0-1.062-.437T10.5 9.5t.438-1.062T12 8t1.063.438T13.5 9.5t-.437 1.063T12 11m0 .425"></path>
+						</svg>Profile
+					</a>
+				</li>
 				<li>
 					<a href="/settings">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="" viewBox="0 0 24 24">
@@ -252,15 +274,8 @@ templ Sidebar() {
 						</svg>Settings
 					</a>
 				</li>
-				<li>
-					<a href="/about">
-						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:page-info" viewBox="0 0 24 24">
-							<path fill="currentColor" d="M17.75 20.25q-1.575 0-2.662-1.088T14 16.5t1.088-2.662t2.662-1.088t2.663 1.088T21.5 16.5t-1.088 2.663t-2.662 1.087M4 17.5v-2h8v2zm2.25-6.25q-1.575 0-2.662-1.088T2.5 7.5t1.088-2.662T6.25 3.75t2.663 1.088T10 7.5t-1.088 2.663T6.25 11.25M12 8.5v-2h8v2z"></path>
-						</svg>About
-					</a>
-				</li>
+				{ children... }
 			</ul>
-			{ children... }
 		</div>
 		@Footer()
 	</div>
@@ -301,7 +316,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
-				@MainSidebar()
+				@Sidebar()
 			</aside>
 			<div
 				if len(posts) > 0 {
@@ -665,21 +680,6 @@ templ CreatePostDrawer() {
 	</div>
 }
 
-templ MainSidebar() {
-	@Sidebar() {
-		<ul class="mx-2 grid gap-4 border-t border-t-neutral/20 px-4 pb-6 pt-6">
-			<li class="flex items-center gap-4 text-lg font-bold">
-				Quick Links
-			</li>
-			<ul class="space-y-4 border-l-4 border-l-neutral/10 ps-8">
-				<li><a href="/profile" class="text-accent hover:underline">Your Posts</a></li>
-				<li><a href="/latest" hx-get="/latest" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true" class="text-accent hover:underline">Latest</a></li>
-				<li><a href="/random" hx-get="/random" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true" class="text-accent hover:underline">Random</a></li>
-			</ul>
-		</ul>
-	}
-}
-
 templ EditTags() {
 	<div id="tags-container" class="w-full">
 		<label class="form-control w-full">
@@ -774,7 +774,7 @@ templ QuickLinksShell(currentUser *users.User, posts posts.PostCollection) {
 	@Base("Grumplr - Latest", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
-				@MainSidebar()
+				@Sidebar()
 			</aside>
 			<main
 				id="content"

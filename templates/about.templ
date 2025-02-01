@@ -6,7 +6,7 @@ templ About(currentUser *users.User) {
 	@Base("Grumplr - About", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
 			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
-				@MainSidebar()
+				@Sidebar()
 			</aside>
 			<div class="grid h-full w-full content-start justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]">
 				<main id="content" class="w-full max-w-[1200px] py-8" hx-ext="response-targets">
@@ -14,13 +14,15 @@ templ About(currentUser *users.User) {
 						<h2 class="px-8 text-center text-3xl font-extrabold">About</h2>
 					</div>
 					<div>
+						<h3 class="pb-4 text-lg font-bold">Who are you?</h3>
+						<p class="pb-8">I'm an average joe who does web dev side projects.</p>
 						<h3 class="pb-4 text-lg font-bold">Grumplr started as a side project to create a CRUD app for ranting</h3>
 						<p class="pb-8">The idea was to let people rant their frustrations, ala Pigeonhole Q&A.</p>
 						<h3 class="pb-4 text-lg font-bold">Hence the name Grumplr</h3>
 						<p class="pb-8">
 							<span class="font-bold">Grumplr</span>
-							= <span class="font-medium">grumpy</span> <span class="font-light text-xs">[adjective]</span> + 
-							<span class="font-medium">grumbler</span> <span class="font-light text-xs">[noun]</span>
+							= <span class="font-medium">grumpy</span> <span class="text-xs font-light">[adjective]</span> + 
+							<span class="font-medium">grumbler</span> <span class="text-xs font-light">[noun]</span>
 						</p>
 						<h3 class="pb-4 text-lg font-bold">Along the way, I started to add functionality from Reddit and Bulletin Boards</h3>
 						<ul class="web">
