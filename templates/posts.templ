@@ -136,7 +136,7 @@ templ Post(currentUser *users.User, message string, post posts.Post, related pos
 templ PostSidebar(related posts.PostCollection) {
 	@Sidebar() {
 		if len(related) > 0 {
-			<li>Similar</li>
+			<li class="header">Similar</li>
 			for i:=0; i < len(related); i++ {
 				<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block font-normal px-6 py-2">
 					<h3 class="leading-tighter line-clamp-2 font-medium hyphens-auto break-words text-sm hover:underline">{ related[i].Title }</h3>
