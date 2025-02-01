@@ -438,22 +438,39 @@ func (k *keycloak) editMoodHandler() http.Handler {
 	})
 }
 
-func randomPostsHandler(w http.ResponseWriter, r *http.Request) {
-	posts, err := posts.RandomPosts()
-	if err != nil {
-		w.Header().Set("Hx-Redirect", "/error")
-		return
-	}
-	TemplRender(w, r, templates.ListPosts(posts))
+func (k *keycloak) randomPostsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		posts, err := posts.RandomPosts()
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		TemplRender(w, r, templates.QuickLinksRandom(k.currentUser, posts))
+	})
 }
 
-func latestPostsHandler(w http.ResponseWriter, r *http.Request) {
-	posts, err := posts.LatestPosts()
-	if err != nil {
-		w.Header().Set("Hx-Redirect", "/error")
-		return
-	}
-	TemplRender(w, r, templates.ListPosts(posts))
+func (k *keycloak) latestPostsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		param := r.URL.Query().Get("p")
+		page, err := strconv.Atoi(param)
+		if err != nil {
+			page = 1
+		}
+		posts, endOfList, nextPage, err := posts.LatestPosts(page)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		fmt.Println("endOfList: ", endOfList)
+		fmt.Println("nextPage: ", nextPage)
+		TemplRender(w, r, templates.QuickLinksLatest(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
+	})
+}
+
+func (k *keycloak) aboutHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		TemplRender(w, r, templates.About(k.currentUser))
+	})
 }
 
 func (k *keycloak) upvoteCommentHandler() http.Handler {

@@ -252,6 +252,13 @@ templ Sidebar() {
 						</svg>Settings
 					</a>
 				</li>
+				<li>
+					<a href="/about">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:page-info" viewBox="0 0 24 24">
+							<path fill="currentColor" d="M17.75 20.25q-1.575 0-2.662-1.088T14 16.5t1.088-2.662t2.662-1.088t2.663 1.088T21.5 16.5t-1.088 2.663t-2.662 1.087M4 17.5v-2h8v2zm2.25-6.25q-1.575 0-2.662-1.088T2.5 7.5t1.088-2.662T6.25 3.75t2.663 1.088T10 7.5t-1.088 2.663T6.25 11.25M12 8.5v-2h8v2z"></path>
+						</svg>About
+					</a>
+				</li>
 			</ul>
 			{ children... }
 		</div>
@@ -290,21 +297,6 @@ templ Footer() {
 	</dialog>
 }
 
-templ GrumplrHead() {
-	<div class="grid w-full content-start justify-items-center">
-		<div class="h-full min-h-[7rem] py-8">
-			<h1 class="text-5xl font-extrabold text-accent xl:text-7xl">Grumplr...</h1>
-			<div class="flex items-end">
-				<span class="text-3xl font-bold"><b>grumpy</b></span>[adjective]
-				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="material-symbols:circle hidden" viewBox="0 0 24 24">
-					<path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
-				</svg>
-				<span class="ms-4 text-3xl font-bold"><b>grumbler</b></span>[noun]
-			</div>
-		</div>
-	</div>
-}
-
 templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
@@ -318,7 +310,6 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 					class="grid h-full w-full content-center justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]"
 				}
 			>
-				@GrumplrHead()
 				<div
 					id="content"
 					class="w-full max-w-[1200px] space-y-8 py-8"
@@ -471,7 +462,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 }
 
 templ ListPosts(posts posts.PostCollection) {
-	<div id="posts" class="grid min-h-[20dvh] content-start gap-4">
+	<div id="posts" class="grid min-h-[20dvh] w-full content-start gap-4">
 		if len(posts) >0 {
 			for i := 0; i < len(posts); i++ {
 				<a href={ templ.URL(fmt.Sprintf("/posts/%s", posts[i].ID)) } class="flex overflow-hidden rounded-lg border border-neutral/10 bg-white/40 p-2">
@@ -682,8 +673,8 @@ templ MainSidebar() {
 			</li>
 			<ul class="space-y-4 border-l-4 border-l-neutral/10 ps-8">
 				<li><a href="/profile" class="text-accent hover:underline">Your Posts</a></li>
-				<li><a href="/posts/latest" hx-get="/posts/latest" hx-swap="outerHTML" hx-target="#posts" class="text-accent hover:underline">Latest</a></li>
-				<li><a href="/posts/random" hx-get="/posts/random" hx-swap="outerHTML" hx-target="#posts" class="text-accent hover:underline">Random</a></li>
+				<li><a href="/latest" hx-get="/latest" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true" class="text-accent hover:underline">Latest</a></li>
+				<li><a href="/random" hx-get="/random" hx-swap="outerHTML" hx-target="#content" hx-select="#content" hx-push-url="true" class="text-accent hover:underline">Random</a></li>
 			</ul>
 		</ul>
 	}
@@ -777,4 +768,56 @@ func GetSection(ctx context.Context) string {
 		return section
 	}
 	return ""
+}
+
+templ QuickLinksShell(currentUser *users.User, posts posts.PostCollection) {
+	@Base("Grumplr - Latest", currentUser) {
+		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
+			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
+				@MainSidebar()
+			</aside>
+			<main
+				id="content"
+				if len(posts) > 0 {
+					class="grid h-full w-full content-start justify-items-center gap-4 p-8 lg:col-span-4 lg:max-w-[1100px]"
+				} else {
+					class="grid h-full w-full content-center justify-items-center gap-4 p-8 lg:col-span-4 lg:max-w-[1100px]"
+				}
+			>
+				{ children... }
+			</main>
+		</div>
+	}
+}
+
+templ QuickLinksRandom(currentUser *users.User, posts posts.PostCollection) {
+	@QuickLinksShell(currentUser, posts) {
+		<div class="flex items-center">
+			<h2 class="grow px-8 pb-8 text-center text-3xl font-extrabold">Random Posts</h2>
+		</div>
+		@ListPosts(posts)
+	}
+}
+
+templ QuickLinksLatest(currentUser *users.User, posts posts.PostCollection, disableLoadMoreButton bool, nextPage string) {
+	@QuickLinksShell(currentUser, posts) {
+		<div class="flex items-center">
+			<h2 class="grow px-8 pb-8 text-center text-3xl font-extrabold">Latest Posts</h2>
+		</div>
+		@ListPosts(posts)
+		<button
+			id="latest-posts-load-more"
+			if disableLoadMoreButton {
+				class="hidden"
+			} else {
+				class="btn btn-accent btn-sm mx-8 mt-8 w-full max-w-48 justify-self-center"
+			}
+			type="button"
+			hx-get={ string(templ.URL(fmt.Sprintf("/latest?p=%s", nextPage))) }
+			hx-swap="afterend"
+			hx-target="#posts"
+			hx-select="#posts"
+			hx-swap-oob="true"
+		>See more</button>
+	}
 }

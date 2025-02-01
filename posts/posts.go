@@ -169,14 +169,33 @@ func ListPosts() (PostCollection, error) {
 	return scanPosts(q)
 }
 
-func LatestPosts() (PostCollection, error) {
-	q := listPostsQuery + `ORDER BY posts.created_at DESC LIMIT 5`
-	return scanPosts(q)
+func LatestPosts(page int) (PostCollection, bool, int, error) {
+	limit := 5
+	var offset int
+	if page > 0 {
+		offset = (page - 1) * limit
+	} else {
+		offset = 0
+	}
+	nextPage := page + 1
+	var endOfList bool
+	q := listPostsQuery + `ORDER BY posts.created_at DESC LIMIT ` + strconv.Itoa(limit) + ` OFFSET ` + strconv.Itoa(offset)
+	posts, err := scanPosts(q)
+	if err != nil {
+		return posts, endOfList, nextPage, fmt.Errorf("error: query: %w", err)
+	}
+	endOfList = checkEndOfList(posts, limit)
+	return posts, endOfList, nextPage, nil
 }
 
 func RandomPosts() (PostCollection, error) {
-	q := listPostsQuery + `ORDER BY RANDOM() LIMIT 5`
-	return scanPosts(q)
+	limit := 5
+	q := listPostsQuery + `ORDER BY RANDOM() LIMIT ` + strconv.Itoa(limit)
+	posts, err := scanPosts(q)
+	if err != nil {
+		return posts, fmt.Errorf("error: query: %w", err)
+	}
+	return posts, nil
 }
 
 func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
