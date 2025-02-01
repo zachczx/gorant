@@ -1,0 +1,78 @@
+package templates
+
+import "gorant/users"
+
+templ About(currentUser *users.User) {
+	@Base("Grumplr - About", currentUser) {
+		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
+			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
+				@MainSidebar()
+			</aside>
+			<div class="grid h-full w-full content-start justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]">
+				<main id="content" class="w-full max-w-[1200px] py-8" hx-ext="response-targets">
+					<div class="flex items-center justify-center pb-8">
+						<h2 class="px-8 text-center text-3xl font-extrabold">About</h2>
+					</div>
+					<div>
+						<h3 class="pb-4 text-lg font-bold">Grumplr started as a side project to create a CRUD app for ranting</h3>
+						<p class="pb-8">The idea was to let people rant their frustrations, ala Pigeonhole Q&A.</p>
+						<h3 class="pb-4 text-lg font-bold">Hence the name Grumplr</h3>
+						<p class="pb-8">
+							<span class="font-bold">Grumplr</span>
+							= <span class="font-medium">grumpy</span> <span class="font-light text-xs">[adjective]</span> + 
+							<span class="font-medium">grumbler</span> <span class="font-light text-xs">[noun]</span>
+						</p>
+						<h3 class="pb-4 text-lg font-bold">Along the way, I started to add functionality from Reddit and Bulletin Boards</h3>
+						<ul class="web">
+							<li>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="fluent-color:chat-more-16" viewBox="0 0 16 16"><g fill="none"><path fill="url(#fluentColorChatMore160)" d="M8 2a6 6 0 0 0-5.27 8.872l-.71 2.49a.5.5 0 0 0 .638.612l2.338-.779A6 6 0 1 0 8 2"></path><path fill="url(#fluentColorChatMore161)" d="M6 7a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 7m.5 1.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1"></path><defs><linearGradient id="fluentColorChatMore160" x1="2.429" x2="12.905" y1="4.25" y2="22.111" gradientUnits="userSpaceOnUse"><stop stop-color="#0FAFFF"></stop><stop offset="1" stop-color="#CC23D1"></stop></linearGradient><linearGradient id="fluentColorChatMore161" x1="6.35" x2="6.728" y1="6.553" y2="9.801" gradientUnits="userSpaceOnUse"><stop stop-color="#FDFDFD"></stop><stop offset="1" stop-color="#CCEAFF"></stop></linearGradient></defs></g></svg>
+								Posting
+							</li>
+							<ul>
+								<li>Threaded discussions</li>
+								<li>2-level deep threads comprising posts > comments > replies</li>
+								<li>Options to like and upvote posts</li>
+								<li>File attachments to share media</li>
+								<li>Tags to organize content</li>
+							</ul>
+							<li>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="fluent-color:chat-multiple-16" viewBox="0 0 16 16"><g fill="none"><path fill="url(#fluentColorChatMultiple160)" d="M9 4a5 5 0 0 1 4.533 7.113l.457 2.289a.5.5 0 0 1-.588.588l-2.288-.457A5 5 0 1 1 9 4"></path><path fill="url(#fluentColorChatMultiple161)" d="M7 2a5 5 0 0 0-4.533 7.113l-.457 2.289a.5.5 0 0 0 .588.588l2.288-.457A5 5 0 1 0 7 2"></path><defs><radialGradient id="fluentColorChatMultiple160" cx="0" cy="0" r="1" gradientTransform="matrix(4.60184 5.3384 -5.34296 4.60577 6.684 6.67)" gradientUnits="userSpaceOnUse"><stop offset=".63" stop-color="#3D35B1"></stop><stop offset=".85" stop-color="#6553C9"></stop><stop offset="1" stop-color="#7660D3"></stop></radialGradient><linearGradient id="fluentColorChatMultiple161" x1="2" x2="12" y1="2" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#0FAFFF"></stop><stop offset="1" stop-color="#2764E7"></stop></linearGradient></defs></g></svg>
+								Live Chat
+							</li>
+							<ul>
+								<li>Near real-time updates using Server Sent Events (in lieu of websockets)</li>
+							</ul>
+							<li>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="fluent-color:person-16" viewBox="0 0 16 16"><g fill="none"><path fill="url(#fluentColorPerson160)" d="M11.5 8A1.5 1.5 0 0 1 13 9.5v.5c0 1.971-1.86 4-5 4s-5-2.029-5-4v-.5A1.5 1.5 0 0 1 4.5 8z"></path><path fill="url(#fluentColorPerson161)" d="M11.5 8A1.5 1.5 0 0 1 13 9.5v.5c0 1.971-1.86 4-5 4s-5-2.029-5-4v-.5A1.5 1.5 0 0 1 4.5 8z"></path><path fill="url(#fluentColorPerson162)" d="M8 1.5A2.75 2.75 0 1 1 8 7a2.75 2.75 0 0 1 0-5.5"></path><defs><linearGradient id="fluentColorPerson160" x1="5.378" x2="7.616" y1="8.798" y2="14.754" gradientUnits="userSpaceOnUse"><stop offset=".125" stop-color="#9C6CFE"></stop><stop offset="1" stop-color="#7A41DC"></stop></linearGradient><linearGradient id="fluentColorPerson161" x1="8" x2="11.164" y1="7.286" y2="17.139" gradientUnits="userSpaceOnUse"><stop stop-color="#885EDB" stop-opacity="0"></stop><stop offset="1" stop-color="#E362F8"></stop></linearGradient><linearGradient id="fluentColorPerson162" x1="6.558" x2="9.361" y1="2.231" y2="6.707" gradientUnits="userSpaceOnUse"><stop offset=".125" stop-color="#9C6CFE"></stop><stop offset="1" stop-color="#7A41DC"></stop></linearGradient></defs></g></svg>
+								Users
+							</li>
+							<ul>
+								<li>User accounts with authentication and authorization</li>
+								<li>Profile and settings for customization</li>
+								<li>Incognition/guest mode</li>
+							</ul>
+							<li>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="emojione-v1:magnifying-glass-tilted-right" viewBox="0 0 64 64"><g fill="#243438"><path d="M18.354 63.39c1.554.746 3.037.886 3.314.308l15.972-33.1c.277-.577-.753-1.654-2.31-2.405c-1.551-.747-3.041-.889-3.316-.308l-15.969 33.09c-.277.577.758 1.658 2.309 2.408"></path><path d="M17.271 21.704c0 11.996 9.724 21.704 21.706 21.704c11.984 0 21.706-9.708 21.706-21.704S50.961 0 38.977 0C26.995 0 17.271 9.708 17.271 21.704"></path></g><path fill="#30434a" d="M19.476 21.704c0 10.772 8.737 19.497 19.5 19.497c10.766 0 19.498-8.725 19.498-19.497c0-10.776-8.732-19.496-19.498-19.496c-10.763 0-19.5 8.719-19.5 19.496"></path><path fill="#1e75bb" d="M21.62 21.704c0 9.588 7.773 17.355 17.357 17.355c9.58 0 17.355-7.767 17.355-17.355c0-9.59-7.775-17.355-17.355-17.355c-9.584 0-17.357 7.764-17.357 17.355"></path><g transform="translate(16)"><circle cx="22.977" cy="21.704" r="15.214" fill="#57c6e9"></circle><path fill="#27a8e0" d="M31.34 8.961a15.19 15.19 0 0 1 6.855 12.709c0 8.4-6.811 15.214-15.214 15.214c-.148 0-.297-.021-.445-.024C37.46 29.463 33.774 14.104 31.34 8.961"></path></g></svg>
+								Search
+							</li>
+							<ul>
+								<li>Full text search</li>
+								<li>Content filtering by word matching</li>
+							</ul>
+							<li>
+								<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="fluent-color:apps-16" viewBox="0 0 16 16"><g fill="none"><path fill="url(#fluentColorApps160)" d="M2 4.5A1.5 1.5 0 0 1 3.5 3h3A1.5 1.5 0 0 1 8 4.5V8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"></path><path fill="url(#fluentColorApps161)" d="M11.5 8A1.5 1.5 0 0 1 13 9.5v3a1.5 1.5 0 0 1-1.5 1.5H8a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"></path><path fill="url(#fluentColorApps162)" d="M8 13a1 1 0 0 1-1 1H3.5A1.5 1.5 0 0 1 2 12.5V9a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1z"></path><path fill="url(#fluentColorApps163)" d="M9.69 2.442a1.5 1.5 0 0 1 2.122 0l1.752 1.752a1.5 1.5 0 0 1 0 2.121l-1.75 1.75a1.5 1.5 0 0 1-2.12 0L7.942 6.311a1.5 1.5 0 0 1 0-2.121z"></path><defs><linearGradient id="fluentColorApps160" x1="2" x2="8" y1="3" y2="9" gradientUnits="userSpaceOnUse"><stop stop-color="#B9C0C7"></stop><stop offset="1" stop-color="#889096"></stop></linearGradient><linearGradient id="fluentColorApps161" x1="13" x2="7.429" y1="13.571" y2="8" gradientUnits="userSpaceOnUse"><stop stop-color="#63686E"></stop><stop offset="1" stop-color="#889096"></stop></linearGradient><linearGradient id="fluentColorApps162" x1="2" x2="8" y1="8" y2="11.857" gradientUnits="userSpaceOnUse"><stop stop-color="#55595E"></stop><stop offset="1" stop-color="#383B3D"></stop></linearGradient><linearGradient id="fluentColorApps163" x1="12.898" x2="9.178" y1="7.06" y2="2.471" gradientUnits="userSpaceOnUse"><stop stop-color="#2764E7"></stop><stop offset="1" stop-color="#36DFF1"></stop></linearGradient></defs></g></svg>
+								Misc
+							</li>
+							<ul>
+								<li>Image uploads, thumbnails, compression</li>
+								<li>Brotli and Gzip compression</li>
+							</ul>
+						</ul>
+						<h3 class="pb-4 pt-8 text-lg font-bold">There's no clear plan ahead</h3>
+						<p class="pb-8">I'm just adding new things as I go along, I definitely haven't figured out a reasonable end point</p>
+					</div>
+				</main>
+			</div>
+		</div>
+	}
+}
