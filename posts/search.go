@@ -111,7 +111,7 @@ func GetUserPosts(userID string, p int) (PostCollection, bool, error) {
 	var posts PostCollection
 	var endOfList bool
 
-	limit := 5
+	limit := 10
 	var offset int
 	if p > 0 {
 		offset = (p - 1) * limit

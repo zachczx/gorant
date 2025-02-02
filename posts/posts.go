@@ -170,7 +170,7 @@ func ListPosts() (PostCollection, error) {
 }
 
 func LatestPosts(page int) (PostCollection, bool, int, error) {
-	limit := 5
+	limit := 10
 	var offset int
 	if page > 0 {
 		offset = (page - 1) * limit
@@ -189,7 +189,7 @@ func LatestPosts(page int) (PostCollection, bool, int, error) {
 }
 
 func RandomPosts() (PostCollection, error) {
-	limit := 5
+	limit := 10
 	q := listPostsQuery + `ORDER BY RANDOM() LIMIT ` + strconv.Itoa(limit)
 	posts, err := scanPosts(q)
 	if err != nil {
