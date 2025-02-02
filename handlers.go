@@ -461,15 +461,66 @@ func (k *keycloak) latestPostsHandler() http.Handler {
 			w.Header().Set("Hx-Redirect", "/error")
 			return
 		}
-		fmt.Println("endOfList: ", endOfList)
-		fmt.Println("nextPage: ", nextPage)
 		TemplRender(w, r, templates.QuickLinksLatest(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
+	})
+}
+
+func (k *keycloak) latestPostsPagesHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		param := r.PathValue("p")
+		page, err := strconv.Atoi(param)
+		if err != nil {
+			page = 1
+		}
+		posts, endOfList, nextPage, err := posts.LatestPosts(page)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		TemplRender(w, r, templates.PartialQuickLinksLatest(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
 	})
 }
 
 func (k *keycloak) aboutHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		TemplRender(w, r, templates.About(k.currentUser))
+	})
+}
+
+func (k *keycloak) yourPostsHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		param := r.URL.Query().Get("p")
+		page, err := strconv.Atoi(param)
+		if err != nil {
+			page = 1
+		}
+		posts, endOfList, err := posts.GetUserPosts(k.currentUser.UserID, page)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		nextPage := 2
+		TemplRender(w, r, templates.QuickLinksYourPosts(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
+	})
+}
+
+func (k *keycloak) yourPostsPagesHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		param := r.PathValue("p")
+		page, err := strconv.Atoi(param)
+		if err != nil {
+			page = 1
+		}
+		posts, endOfList, err := posts.GetUserPosts(k.currentUser.UserID, page)
+		if err != nil {
+			w.Header().Set("Hx-Redirect", "/error")
+			return
+		}
+		nextPage := page + 1
+		fmt.Println("Post length: ", len(posts))
+		fmt.Println("endOfList: ", endOfList)
+		fmt.Println("nextPage: ", nextPage)
+		TemplRender(w, r, templates.PartialQuickLinksYourPosts(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
 	})
 }
 

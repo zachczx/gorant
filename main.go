@@ -59,7 +59,10 @@ func main() {
 	mux.HandleFunc("POST /anonymous", viewAnonymousHandler)
 	mux.Handle("GET /random", k.CheckAuthentication()(k.randomPostsHandler()))
 	mux.Handle("GET /latest", k.CheckAuthentication()(k.latestPostsHandler()))
+	mux.Handle("GET /latest/{p}", k.CheckAuthentication()(k.latestPostsPagesHandler()))
 	mux.Handle("GET /about", k.CheckAuthentication()(k.aboutHandler()))
+	mux.Handle("GET /yours", k.CheckAuthentication()(k.yourPostsHandler()))
+	mux.Handle("GET /yours/{p}", k.CheckAuthentication()(k.yourPostsPagesHandler()))
 
 	// Post routes
 	mux.Handle("GET /posts", k.CheckAuthentication()(k.postsHandler()))

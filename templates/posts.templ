@@ -138,8 +138,8 @@ templ PostSidebar(related posts.PostCollection) {
 		if len(related) > 0 {
 			<li class="header">Similar</li>
 			for i:=0; i < len(related); i++ {
-				<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block font-normal px-6 py-2">
-					<h3 class="leading-tighter line-clamp-2 font-medium hyphens-auto break-words text-sm hover:underline">{ related[i].Title }</h3>
+				<a href={ templ.URL(fmt.Sprintf("/posts/%s", related[i].ID)) } class="inline-block px-6 py-2 font-normal">
+					<h3 class="leading-tighter line-clamp-2 hyphens-auto break-words text-sm font-medium hover:underline">{ related[i].Title }</h3>
 					// <div class="mt-2 text-sm text-base-content/60">{ related[i].CreatedAt.Process() }</div>
 					<div class="mt-1 flex items-center gap-x-8 text-xs">
 						// <div class="flex items-center gap-x-1">
