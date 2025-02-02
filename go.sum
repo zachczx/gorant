@@ -19,8 +19,8 @@ github.com/MarvinJWendt/testza v0.5.2 h1:53KDo64C1z/h/d/stCYCPY69bt/OSwjq5KpFNwi
 github.com/MarvinJWendt/testza v0.5.2/go.mod h1:xu53QFE5sCdjtMCKk8YMQ2MnymimEctc4n3EjyIYvEY=
 github.com/Nerzal/gocloak/v13 v13.9.0 h1:YWsJsdM5b0yhM2Ba3MLydiOlujkBry4TtdzfIzSVZhw=
 github.com/Nerzal/gocloak/v13 v13.9.0/go.mod h1:YYuDcXZ7K2zKECyVP7pPqjKxx2AzYSpKDj8d6GuyM10=
-github.com/a-h/templ v0.3.819 h1:KDJ5jTFN15FyJnmSmo2gNirIqt7hfvBD2VXVDTySckM=
-github.com/a-h/templ v0.3.819/go.mod h1:iDJKJktpttVKdWoTkRNNLcllRI+BlpopJc+8au3gOUo=
+github.com/a-h/templ v0.3.833 h1:L/KOk/0VvVTBegtE0fp2RJQiBm7/52Zxv5fqlEHiQUU=
+github.com/a-h/templ v0.3.833/go.mod h1:cAu4AiZhtJfBjMY0HASlyzvkrtjnHWPeEsyGK2YYmfk=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/atomicgo/cursor v0.0.1/go.mod h1:cBON2QmmrysudxNBFthvMtN32r3jxVRIvzkUiF/RuIk=

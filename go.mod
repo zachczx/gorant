@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0
-	github.com/a-h/templ v0.3.819
+	github.com/a-h/templ v0.3.833
 	github.com/andybalholm/brotli v1.1.1
 	github.com/aws/aws-sdk-go-v2 v1.32.7
 	github.com/aws/aws-sdk-go-v2/config v1.28.7
