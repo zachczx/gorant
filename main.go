@@ -63,6 +63,7 @@ func main() {
 	mux.Handle("GET /about", k.CheckAuthentication()(k.aboutHandler()))
 	mux.Handle("GET /yours", k.CheckAuthentication()(k.yourPostsHandler()))
 	mux.Handle("GET /yours/{p}", k.CheckAuthentication()(k.yourPostsPagesHandler()))
+	mux.HandleFunc("GET /lucky", feelingLuckyHandler)
 
 	// Post routes
 	mux.Handle("GET /posts", k.CheckAuthentication()(k.postsHandler()))

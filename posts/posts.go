@@ -198,6 +198,17 @@ func RandomPosts() (PostCollection, error) {
 	return posts, nil
 }
 
+func RandomOnePost() (string, error) {
+	var postID string
+	if err := database.DB.QueryRow(`SELECT post_id FROM posts ORDER BY RANDOM() LIMIT 1`).Scan(&postID); err != nil {
+		if err == sql.ErrNoRows {
+			return postID, fmt.Errorf("error: queryrow random 1: %w", err)
+		}
+		return postID, fmt.Errorf("error: query random 1: %w", err)
+	}
+	return postID, nil
+}
+
 func ListPostsFilter(mood []string, tags []string) (PostCollection, error) {
 	var query string
 	var args []interface{}

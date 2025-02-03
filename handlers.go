@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -479,6 +480,19 @@ func (k *keycloak) latestPostsPagesHandler() http.Handler {
 		}
 		TemplRender(w, r, templates.PartialQuickLinksLatest(k.currentUser, posts, endOfList, strconv.Itoa(nextPage)))
 	})
+}
+
+func feelingLuckyHandler(w http.ResponseWriter, r *http.Request) {
+	postID, err := posts.RandomOnePost()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		w.Header().Set("Hx-Redirect", "/error")
+		return
+	}
+	http.Redirect(w, r, "/posts/"+postID, http.StatusSeeOther)
 }
 
 func (k *keycloak) aboutHandler() http.Handler {
