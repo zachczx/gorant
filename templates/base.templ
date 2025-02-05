@@ -306,13 +306,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
 				@Sidebar()
 			</aside>
-			<div
-				if len(posts) > 0 {
-					class="grid h-full w-full content-start justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]"
-				} else {
-					class="grid h-full w-full content-center justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]"
-				}
-			>
+			<div class="grid h-full w-full content-start justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]">
 				<div
 					id="content"
 					class="w-full max-w-[1200px] space-y-8 py-8"
