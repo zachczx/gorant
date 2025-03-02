@@ -395,7 +395,7 @@ func GetTags(postID string) (Post, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&p.UserID, &t); err != nil {
+		if err := rows.Scan(&t); err != nil {
 			return p, fmt.Errorf("error scanning for gettags(): %w", err)
 		}
 
