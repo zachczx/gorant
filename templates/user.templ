@@ -14,7 +14,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 				<div id="settings-message"></div>
 				// Children placeholder is for first time login users
 				{ children... }
-				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
+				<div class="border-neutral/30 space-y-8 rounded-lg border bg-white/40 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Settings</h1>
 					<form
 						method="post"
@@ -25,7 +25,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 						hx-target-error="#toast"
 						id="settings-form"
 					>
-						<div>
+						<div class="grid gap-y-8">
 							<label class="form-control">
 								<div class="label">
 									<span class="label-text font-medium">Email</span>
@@ -37,7 +37,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 									<span class="label-text font-medium">Display Name</span>
 								</div>
 								<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
-								<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
+								<span id="settings-form-error-display-name" class="text-error mt-1 hidden text-sm"></span>
 							</label>
 							<label class="form-control w-full">
 								<div class="label">
@@ -106,7 +106,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 												checked="checked"
 											}
 										/>
-										<div class="w-24 rounded-full bg-primary/20">
+										<div class="bg-primary/20 w-24 rounded-full">
 											<img src={ string(templ.URL(fmt.Sprintf("/static/images/avatars/%s.svg", avatars[i]))) } class="scale-125" alt={ strings.ToTitle(avatars[i]) }/>
 										</div>
 									</label>
@@ -115,7 +115,7 @@ templ Settings(currentUser *users.User, avatars []string) {
 						</div>
 						<div class="grid w-full justify-items-center gap-y-2 pt-8">
 							<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Save</button>
-							<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+							<div class="hover:text-accent text-center text-sm underline"><a href="/">Back to main page</a></div>
 						</div>
 					</form>
 				</div>
@@ -129,29 +129,29 @@ templ ShellHeader(currentUser *users.User) {
 	<div class="flex items-center">
 		<h2 class="grow px-8 text-center text-3xl font-extrabold">Hi, { currentUser.PreferredName }!</h2>
 	</div>
-	<div class="grid grid-cols-2 gap-8 border-b-2 border-b-neutral/10 pb-1 text-base-content/100">
+	<div class="border-b-neutral/10 text-base-content/100 grid grid-cols-2 gap-8 border-b-2 pb-1">
 		<div class="flex items-end gap-2" preload>
-			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+			<label class="hover:text-accent relative flex min-w-32 cursor-pointer items-center justify-center">
 				<a
 					href="/profile"
 					if  GetSection(ctx) == "profile" {
-						class="tab-highlight font-bold text-accent"
+						class="tab-highlight text-accent font-bold"
 					}
 				>Profile</a>
 			</label>
-			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+			<label class="hover:text-accent relative flex min-w-32 cursor-pointer items-center justify-center">
 				<a
 					href="/settings"
 					if GetSection(ctx) == "settings" {
-						class="tab-highlight font-bold text-accent"
+						class="tab-highlight text-accent font-bold"
 					}
 				>Settings</a>
 			</label>
-			<label class="relative flex min-w-32 cursor-pointer items-center justify-center hover:text-accent">
+			<label class="hover:text-accent relative flex min-w-32 cursor-pointer items-center justify-center">
 				<a
 					href="/credentials"
 					if GetSection(ctx) == "credentials" {
-						class="tab-highlight font-bold text-accent"
+						class="tab-highlight text-accent font-bold"
 					}
 				>Credentials</a>
 			</label>
@@ -191,7 +191,7 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 				hx-target-error="#toast"
 				id="settings-form"
 			>
-				<div>
+				<div class="grid gap-y-4">
 					<label class="form-control">
 						<div class="label">
 							<span class="label-text font-medium">Email</span>
@@ -203,7 +203,7 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 							<span class="label-text font-medium">Display Name</span>
 						</div>
 						<input id="settings-form-display-name" type="text" name="preferred-name" value={ currentUser.PreferredName } class="input input-bordered w-full"/>
-						<span id="settings-form-error-display-name" class="mt-1 hidden text-sm text-error"></span>
+						<span id="settings-form-error-display-name" class="text-error mt-1 hidden text-sm"></span>
 					</label>
 					<label class="form-control w-full">
 						<div class="label">
@@ -236,25 +236,12 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 							>Date (oldest first)</option>
 						</select>
 					</label>
-					<div class="form-control mt-1">
-						<label class="label cursor-pointer">
-							<span class="label-text me-4 font-medium">Only send me essential emails.</span>
-							<input
-								name="contact-me"
-								type="checkbox"
-								if currentUser.ContactMeString == "0" {
-									checked="checked"
-								}
-								class="checkbox-accent checkbox"
-							/>
-						</label>
-					</div>
 				</div>
-				<div class="form-control">
+				<div class="form-control mt-4 grid">
 					<div class="label">
 						<div class="label-text font-medium">Choose an Avatar</div>
 					</div>
-					<div id="avatar-grid" class="grid max-h-56 gap-4 overflow-auto px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
+					<div id="avatar-grid" class="border-base-content/20 p-4 rounded grid max-h-56 gap-4 overflow-auto border px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
 						for i := 0; i < len(avatars); i ++ {
 							<label
 								id={ avatars[i] }
@@ -272,16 +259,27 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 										checked="checked"
 									}
 								/>
-								<div class="w-24 rounded-full bg-primary/20">
+								<div class="bg-primary/20 w-24 rounded-full">
 									<img src={ string(templ.URL(fmt.Sprintf("/static/images/avatars/%s.svg", avatars[i]))) } class="scale-125" alt={ strings.ToTitle(avatars[i]) }/>
 								</div>
 							</label>
 						}
 					</div>
 				</div>
+				<label class="fieldset-label mt-4">
+					<input
+						name="contact-me"
+						type="checkbox"
+						if currentUser.ContactMeString == "0" {
+							checked="checked"
+						}
+						class="checkbox-accent me-2 checkbox"
+					/>
+					Only send me essential emails.
+				</label>
 				<div class="grid w-full justify-items-center gap-y-2 pt-12">
 					<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Save</button>
-					<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+					<div class="hover:text-accent text-center text-sm underline"><a href="/">Back to main page</a></div>
 				</div>
 			</form>
 		</div>
@@ -369,7 +367,7 @@ templ ViewCredentials(currentUser *users.User) {
 				</div>
 				<div class="grid w-full justify-items-center gap-y-2 pt-12">
 					<button class="btn btn-accent mt-4 w-full rounded-full text-lg lg:max-w-[300px]">Change Password</button>
-					<div class="text-center text-sm underline hover:text-accent"><a href="/">Back to main page</a></div>
+					<div class="hover:text-accent text-center text-sm underline"><a href="/">Back to main page</a></div>
 				</div>
 			</form>
 		</div>
@@ -379,7 +377,7 @@ templ ViewCredentials(currentUser *users.User) {
 
 templ SettingsFirstLogin(currentUser *users.User, avatars []string) {
 	@ViewSettings(currentUser, avatars) {
-		<div id="first-login-message" class="mb-4 flex w-full items-center rounded-lg border border-accent bg-accent p-2 text-accent-content shadow-lg">
+		<div id="first-login-message" class="border-accent bg-accent text-accent-content mb-4 flex w-full items-center rounded-lg border p-2 shadow-lg">
 			<h2 class="flex flex-wrap items-center px-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.95 18l5.65-5.65l-1.45-1.45l-4.225 4.225l-2.1-2.1L7.4 14.45zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13h5l-5-5z"></path></svg>
 				Welcome! How about setting a display name below?
@@ -417,19 +415,19 @@ templ ViewProfile(currentUser *users.User, posts posts.PostCollection, stats pos
 		<div class="grid gap-12 px-8">
 			<div class="grid grid-cols-4 gap-4">
 				<h2 class="col-span-4 text-lg font-medium">Your Stats</h2>
-				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+				<div class="border-neutral/10 grid content-center justify-items-center rounded-xl border p-4">
 					<div class="text-3xl font-extrabold">{ stats.PostsCountString() }</div>
 					<div>
 						posts
 					</div>
 				</div>
-				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+				<div class="border-neutral/10 grid content-center justify-items-center rounded-xl border p-4">
 					<div class="text-3xl font-extrabold">{ stats.CommentsCountString() }</div>
 					<div>
 						comments
 					</div>
 				</div>
-				<div class="grid content-center justify-items-center rounded-xl border border-neutral/10 p-4">
+				<div class="border-neutral/10 grid content-center justify-items-center rounded-xl border p-4">
 					<div class="text-3xl font-extrabold">{ stats.RepliesCountString() }</div>
 					<div>
 						replies
@@ -476,7 +474,7 @@ templ PartialViewProfileLoadMore(currentUser *users.User, posts posts.PostCollec
 }
 
 templ PartialSettingsEditSuccess(s users.User) {
-	<div id="settings-message" class="mb-4 flex w-full items-center rounded-lg border border-success bg-success p-2 text-success-content shadow-lg">
+	<div id="settings-message" class="border-success bg-success text-success-content mb-4 flex w-full items-center rounded-lg border p-2 shadow-lg">
 		<h2 class="flex items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="me-2" viewBox="0 0 24 24"><path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path></svg>
 			Saved!

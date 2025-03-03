@@ -14,7 +14,7 @@ build:
 	go build -ldflags="-w -s" -o ./bin/main.exe
 
 dev/tailwind:
-	npx tailwindcss -i ./static/css/index.css -o static/css/output/styles.css --minify --watch
+	npx @tailwindcss/cli -i ./static/css/index.css -o static/css/output/styles.css --minify --watch
 
 # only difference here with the Dockerfile one is sourcemap 
 dev/esbuild:
