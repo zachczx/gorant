@@ -1,4 +1,4 @@
-import daisyui from 'daisyui';
+// import daisyui from 'daisyui';
 // import themes from 'daisyui/src/theming/themes';
 
 /** @type {import('tailwindcss').Config} */
@@ -163,33 +163,33 @@ export default {
 			},
 		},
 	},
-	plugins: [daisyui],
-	daisyui: {
-		themes: [
-			{
-				custom: {
-					primary: '#97dc42',
-					'primary-content': '#081101',
-					secondary: '#2a9c56', //'#35c46c', //'#1c64d9', //https://mycolor.space/?hex=%2397DC42&sub=1
-					'secondary-content': '#ffffff', //'#d2e1fa',
-					accent: '#1b510f', //'#4de42c',
-					'accent-content': '#fdfdfd', //'#021201',
-					neutral: '#262931', //'#B8B8B3',
-					'neutral-content': '#f0f0f1', //'#cfd0d2',
-					'base-100': '#f8f6eb',
-					'base-200': '#d8d6cc',
-					'base-300': '#b8b7ae',
-					'base-content': '#151513',
-					info: '#2563EB',
-					'info-content': '#fdfdfd', //'#d2e2ff',
-					success: '#28A528', //'#16A34A',
-					'success-content': 'white', //'#ffd9d4', //'#000a02',
-					warning: '#D97706',
-					'warning-content': '#110500',
-					error: '#DC2626',
-					'error-content': '#fdfdfd', //'#ffd9d4',
-				},
-			},
-		],
-	},
+	// plugins: [daisyui],
+	// daisyui: {
+	// 	themes: [
+	// 		{
+	// 			custom: {
+	// 				primary: '#97dc42',
+	// 				'primary-content': '#081101',
+	// 				secondary: '#2a9c56', //'#35c46c', //'#1c64d9', //https://mycolor.space/?hex=%2397DC42&sub=1
+	// 				'secondary-content': '#ffffff', //'#d2e1fa',
+	// 				accent: '#1b510f', //'#4de42c',
+	// 				'accent-content': '#fdfdfd', //'#021201',
+	// 				neutral: '#262931', //'#B8B8B3',
+	// 				'neutral-content': '#f0f0f1', //'#cfd0d2',
+	// 				'base-100': '#f8f6eb',
+	// 				'base-200': '#d8d6cc',
+	// 				'base-300': '#b8b7ae',
+	// 				'base-content': '#151513',
+	// 				info: '#2563EB',
+	// 				'info-content': '#fdfdfd', //'#d2e2ff',
+	// 				success: '#28A528', //'#16A34A',
+	// 				'success-content': 'white', //'#ffd9d4', //'#000a02',
+	// 				warning: '#D97706',
+	// 				'warning-content': '#110500',
+	// 				error: '#DC2626',
+	// 				'error-content': '#fdfdfd', //'#ffd9d4',
+	// 			},
+	// 		},
+	// 	],
+	// },
 };
