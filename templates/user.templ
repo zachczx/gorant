@@ -241,7 +241,7 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 					<div class="label">
 						<div class="label-text font-medium">Choose an Avatar</div>
 					</div>
-					<div id="avatar-grid" class="border-base-content/20 p-4 rounded grid max-h-56 gap-4 overflow-auto border px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
+					<div id="avatar-grid" class="border-base-content/20 grid max-h-56 gap-4 overflow-auto rounded border p-4 px-4 md:grid-cols-3 lg:max-h-64 lg:grid-cols-5">
 						for i := 0; i < len(avatars); i ++ {
 							<label
 								id={ avatars[i] }
@@ -273,7 +273,7 @@ templ ViewSettings(currentUser *users.User, avatars []string) {
 						if currentUser.ContactMeString == "0" {
 							checked="checked"
 						}
-						class="checkbox-accent me-2 checkbox"
+						class="checkbox-accent checkbox me-2"
 					/>
 					Only send me essential emails.
 				</label>
