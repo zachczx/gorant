@@ -7,7 +7,7 @@ templ KeycloakRegister(emptyUser users.User) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
 				<div id="login-message"></div>
-				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
+				<div class="border-neutral/30 space-y-8 rounded-lg border bg-white/40 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Register</h1>
 					<form
 						method="post"
@@ -54,7 +54,7 @@ templ KeycloakRegister(emptyUser users.User) {
 							</div>
 						</label>
 						<button id="register-button" class="btn btn-accent mt-4 w-full rounded-lg text-lg">Register</button>
-						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Or login to an account?</a></div>
+						<div class="hover:text-accent text-center text-sm underline"><a href="/login">Or login to an account?</a></div>
 					</form>
 				</div>
 			</div>
@@ -68,7 +68,7 @@ templ KeycloakLogin(emptyUser users.User) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
 				<div id="login-message"></div>
-				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
+				<div class="border-neutral/30 space-y-8 rounded-lg border bg-white/40 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Login</h1>
 					<form
 						method="post"
@@ -102,9 +102,9 @@ templ KeycloakLogin(emptyUser users.User) {
 								</button>
 							</div>
 						</label>
-						<div class="flex justify-end"><a href="/reset-password" class="pt-1 text-sm text-accent underline">Forgot password?</a></div>
+						<div class="flex justify-end"><a href="/reset-password" class="text-accent pt-1 text-sm underline">Forgot password?</a></div>
 						<button id="login-button" class="btn btn-accent mt-4 w-full rounded-lg text-lg">Login</button>
-						<div class="text-center text-sm text-accent underline hover:text-accent"><a href="/register">Or register an account?</a></div>
+						<div class="text-accent hover:text-accent text-center text-sm underline"><a href="/register">Or register an account?</a></div>
 					</form>
 				</div>
 			</div>
@@ -118,7 +118,7 @@ templ KeycloakResetPassword(emptyUser users.User) {
 		<main class="grid w-full max-w-[500px] content-center justify-items-center gap-8 space-y-8" hx-ext="response-targets">
 			<div class="h-full w-full space-y-4">
 				<div id="login-message"></div>
-				<div class="space-y-8 rounded-lg border border-neutral/30 bg-white/40 p-8 shadow-lg">
+				<div class="border-neutral/30 space-y-8 rounded-lg border bg-white/40 p-8 shadow-lg">
 					<h1 class="w-full min-w-96 justify-self-center text-5xl font-extrabold">Forgot Password</h1>
 					<form
 						method="post"
@@ -136,7 +136,7 @@ templ KeycloakResetPassword(emptyUser users.User) {
 							<input type="email" name="username" value="" maxlength="50" minlength="1" class="input input-bordered w-full bg-white/40"/>
 						</label>
 						<button class="btn btn-accent mt-4 w-full rounded-lg text-lg">Send Password Reset</button>
-						<div class="text-center text-sm underline hover:text-accent"><a href="/login">Back to Login</a></div>
+						<div class="hover:text-accent text-center text-sm underline"><a href="/login">Back to Login</a></div>
 					</form>
 				</div>
 			</div>
@@ -178,7 +178,7 @@ templ LoggedOut(currentUser *users.User) {
 
 templ InvalidUsernameOrPasswordMessage() {
 	<div id="login-message">
-		<div class="rounded-lg bg-error p-4 text-error-content">
+		<div class="bg-error text-error-content rounded-lg p-4">
 			<div class="float-left me-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:error" viewBox="0 0 24 24">
 					<path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
@@ -193,7 +193,7 @@ templ InvalidUsernameOrPasswordMessage() {
 
 templ SuccessfulLoginMessage() {
 	<div id="login-message">
-		<div class="rounded-lg bg-success p-4 text-success-content">
+		<div class="bg-success text-success-content rounded-lg p-4">
 			<div class="float-left me-2">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" class="material-symbols:check-circle" viewBox="0 0 24 24">
 					<path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
@@ -222,7 +222,7 @@ templ SuccessfulLoginMessage() {
 templ CheckUsernameMessage(exists string) {
 	if exists == "exists" {
 		<div id="username-check-message" class="mt-1">
-			<div class="flex items-center text-sm text-error">
+			<div class="text-error flex items-center text-sm">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="me-1 inline" viewBox="0 0 24 24">
 					<path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16t-.288-.712T12 15t-.712.288T11 16t.288.713T12 17m-1-4h2V7h-2zm1 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
 				</svg>Username is already taken.
@@ -238,7 +238,7 @@ templ CheckUsernameMessage(exists string) {
 		</div>
 	} else if exists =="avail" {
 		<div id="username-check-message" class="mt-1">
-			<div class="flex items-center text-sm text-success">
+			<div class="text-success flex items-center text-sm">
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:check-circle me-1 inline" viewBox="0 0 24 24">
 					<path fill="currentColor" d="m10.6 16.6l7.05-7.05l-1.4-1.4l-5.65 5.65l-2.85-2.85l-1.4 1.4zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"></path>
 				</svg>Username is available.

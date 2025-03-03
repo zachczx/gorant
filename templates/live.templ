@@ -8,7 +8,7 @@ import (
 
 templ BaseLive(title string, currentUser *users.User) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" data-theme="grumplr">
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -19,9 +19,9 @@ templ BaseLive(title string, currentUser *users.User) {
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr] overflow-x-hidden font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b border-b-neutral/10 bg-primary/25 p-0">
+			<header id="navbar" class="navbar border-b-neutral/10 bg-primary/25 border-b p-0">
 				<div class="navbar-start" preload="mouseover">
-					<a href="/" class="flex ps-2 text-3xl font-bold text-accent lg:ps-6">
+					<a href="/" class="text-accent flex ps-2 text-3xl font-bold lg:ps-6">
 						<div class="me-1 scale-x-[-1]">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ri:chat-smile-2-fill text-accent/80" viewBox="0 0 24 24">
 								<path fill="currentColor" d="M7.291 20.824L2 22l1.176-5.291A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10a9.96 9.96 0 0 1-4.709-1.176M7 12a5 5 0 0 0 10 0h-2a3 3 0 1 1-6 0z"></path>
@@ -75,7 +75,7 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 		if currentUser.UserID != "" {
 			<form class="grid gap-4" hx-post="/live/new" hx-target="#instant-posts-list" hx-swap="innerHTML">
 				// Padding end for label is to prevent input from overflowing under the button
-				<label class="lg:max-w-11/12 input input-lg relative flex h-16 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/40 pe-20 text-base-content shadow-lg outline-[0] focus-within:shadow-lg focus-within:outline-[0] focus:shadow-lg focus:outline-[0] lg:w-[750px] lg:pe-[8.6rem]">
+				<label class="input input-lg border-neutral/20 text-base-content relative flex h-16 w-full items-center justify-self-center rounded-full bg-white/40 pe-20 shadow-lg outline-0 focus-within:shadow-lg focus-within:outline-0 focus:shadow-lg focus:outline-0 lg:w-[750px] lg:max-w-11/12 lg:pe-[8.6rem]">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" class="me-4 text-gray-400" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"></path></svg>
 					<input
 						type="text"
@@ -88,8 +88,8 @@ templ ViewInstantMain(currentUser *users.User, instantPosts []live.InstantPost, 
 						autocomplete="off"
 						required
 					/>
-					<button id="post-button" class="top-1.75 btn btn-accent absolute right-2 rounded-full text-xl lg:min-w-20">
-						<span class="hidden pe-2 ps-1 lg:flex">Start</span>
+					<button id="post-button" class="btn btn-accent absolute top-1.75 right-2 rounded-full text-xl lg:min-w-20">
+						<span class="hidden ps-1 pe-2 lg:flex">Start</span>
 					</button>
 				</label>
 			</form>
@@ -128,7 +128,7 @@ templ ViewInstantPost(currentUser *users.User, p live.InstantPost) {
 				hx-trigger="keydown[key=='Enter'&&ctrlKey], click from:#post-button"
 			>
 				// Padding end for label is to prevent input from overflowing under the button
-				<label class="lg:max-w-11/12 input input-lg input-accent relative flex h-12 w-full items-center justify-self-center rounded-full border-neutral/20 bg-white/40 text-base-content focus:shadow-lg focus:outline-none active:border lg:w-[750px]">
+				<label class="input input-lg input-accent border-neutral/20 text-base-content relative flex h-12 w-full items-center justify-self-center rounded-full bg-white/40 focus:shadow-lg focus:outline-hidden active:border lg:w-[750px] lg:max-w-11/12">
 					<input
 						id="content-input"
 						type="text"
@@ -142,7 +142,7 @@ templ ViewInstantPost(currentUser *users.User, p live.InstantPost) {
 					/>
 					<button
 						id="post-button"
-						class="-me-2 text-xl text-accent"
+						class="text-accent -me-2 text-xl"
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:send-rounded ms-1" viewBox="0 0 24 24">
 							<path fill="currentColor" d="M4.4 19.425q-.5.2-.95-.088T3 18.5V14l8-2l-8-2V5.5q0-.55.45-.837t.95-.088l15.4 6.5q.625.275.625.925t-.625.925z"></path>
@@ -155,7 +155,7 @@ templ ViewInstantPost(currentUser *users.User, p live.InstantPost) {
 				<a href="/login" class="btn btn-accent btn-md rounded-3xl px-8 text-lg lg:w-auto lg:min-w-48 lg:text-xl">Login to Send Messages</a>
 			</div>
 		}
-		<div class="max-w-full space-y-4 rounded-lg border border-neutral/20 bg-white/40 p-4">
+		<div class="border-neutral/20 max-w-full space-y-4 rounded-lg border bg-white/40 p-4">
 			<div class="grid min-h-24 justify-items-center">
 				<div id="spinner" class="grid content-center justify-items-center">
 					<span class="loading loading-spinner loading-lg text-accent"></span>
@@ -169,17 +169,17 @@ templ ViewInstantPost(currentUser *users.User, p live.InstantPost) {
 templ ListInstantPosts(instPosts []live.InstantPost) {
 	<div class="grid gap-4 lg:grid-cols-3">
 		for i := 0; i < len(instPosts); i++ {
-			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].ID.String())) } class="flex rounded-lg border border-neutral/10 bg-white/40 p-2 transition-all duration-200 ease-out hover:border-secondary/20 hover:bg-primary/30 hover:ring-2 hover:ring-accent/20 hover:ring-offset-2">
+			<a href={ templ.SafeURL(fmt.Sprintf("/live/%s", instPosts[i].ID.String())) } class="border-neutral/10 hover:border-secondary/20 hover:bg-primary/30 hover:ring-accent/20 flex rounded-lg border bg-white/40 p-2 transition-all duration-200 ease-out hover:ring-2 hover:ring-offset-2">
 				<div class="group grid min-w-10 place-items-center overflow-hidden pe-4 text-center text-lg font-bold lg:min-w-14 lg:text-2xl">
-					<span class="me-2 flex h-16 w-16 items-center justify-center rounded-full bg-neutral text-neutral-content">{ instPosts[i].TitleInitials() }</span>
+					<span class="bg-neutral text-neutral-content me-2 flex h-16 w-16 items-center justify-center rounded-full">{ instPosts[i].TitleInitials() }</span>
 				</div>
 				<div class="max-w-48 grow">
-					<h3 class="truncate text-xl font-medium leading-loose">
+					<h3 class="truncate text-xl leading-loose font-medium">
 						{ instPosts[i].Title }
 					</h3>
-					<div class="text-sm text-base-content/60">by { instPosts[i].UserID }</div>
+					<div class="text-base-content/60 text-sm">by { instPosts[i].UserID }</div>
 					<div class="flex items-center">
-						<div class="grow text-sm text-base-content/60">{ instPosts[i].DateString() }</div>
+						<div class="text-base-content/60 grow text-sm">{ instPosts[i].DateString() }</div>
 					</div>
 				</div>
 			</a>

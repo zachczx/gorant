@@ -1,6 +1,221 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+	name: 'grumplr';
+	default: true;
+	prefersdark: false;
+	color-scheme: light;
+
+	--color-primary: #97dc42;
+	--color-primary-content: #081101;
+	--color-secondary: #2a9c56;
+	--color-secondary-content: #ffffff;
+	--color-accent: #1b510f;
+	--color-accent-content: #fdfdfd;
+	--color-neutral: #262931;
+	--color-neutral-content: #f0f0f1;
+	--color-base-100: #f8f6eb;
+	--color-base-200: #d8d6cc;
+	--color-base-300: #b8b7ae;
+	--color-base-content: #151513;
+	--color-info: #2563eb;
+	--color-info-content: #fdfdfd;
+	--color-success: #28a528;
+	--color-success-content: white;
+	--color-warning: #d97706;
+	--color-warning-content: #110500;
+	--color-error: #dc2626;
+	--color-error-content: #fdfdfd;
+}
+
+@source '../js/output/*.js';
+
+@theme {
+	--font-*: initial;
+	--font-sans: 'Inter Variable';
+	--font-mono: 'Fira Code Variable';
+
+	--animate-slide-up-down: slide-up-down 4.8s ease-out 0s 1 forwards;
+	--animate-slide-down-up: slide-down-up 4.8s ease-out 0s 1 forwards;
+	--animate-highlight-border: highlight-border 4s linear 0s 1 forwards;
+	--animate-highlight-comment-main: highlight-comment-main 4s steps(1) 0s 1 forwards;
+	--animate-highlight-comment-side: highlight-comment-side 4s steps(1) 0s 1 forwards;
+	--animate-slide-down: slide-down 0.4s ease-out 0s 1 forwards;
+	--animate-drawer-slide-down: drawer-slide-down 0.4s ease-out 0s 1 forwards;
+	--animate-drawer-slide-up: drawer-slide-up 0.4s ease-out 0s 1 forwards;
+	--animate-delete-slide-right: delete-slide-right 1s ease-out 0s 1 forwards;
+	--animate-wiggle: wiggle 1.2s linear 0s infinite forwards;
+
+	@keyframes drawer-slide-down {
+		0% {
+			display: none;
+			opacity: 20%;
+			transform: translateY(-0.5rem);
+		}
+		100% {
+			display: inline;
+			opacity: 100%;
+			transform: translateY(0rem);
+		}
+	}
+	@keyframes drawer-slide-up {
+		0% {
+			opacity: 100%;
+			transform: translateY(0rem);
+		}
+		100% {
+			opacity: 60%;
+			transform: translateY(-0.5rem);
+		}
+	}
+	@keyframes delete-slide-right {
+		100% {
+			transform: translateX(1rem) translate3d(0, 0, 0);
+			opacity: 5%;
+		}
+	}
+	@keyframes slide-down {
+		0% {
+			transform: translateY(-0.2rem);
+			opacity: 0%;
+		}
+		100% {
+			transform: translateY(0rem);
+			opacity: 100%;
+		}
+	}
+	@keyframes slide-up-down {
+		0% {
+			transform: translateY(0.7rem);
+			opacity: 5%;
+		}
+		10% {
+			transform: translateY(-0.7rem);
+			opacity: 100%;
+		}
+		90% {
+			transform: translateY(-0.7rem);
+			opacity: 100%;
+		}
+		100% {
+			transform: translateY(0.7rem);
+			opacity: 5%;
+		}
+	}
+	@keyframes slide-down-up {
+		0% {
+			transform: translateY(-0.5rem) translateX(-50%);
+			opacity: 5%;
+		}
+		10% {
+			transform: translateY(0.5rem) translateX(-50%);
+			opacity: 100%;
+		}
+		90% {
+			transform: translateY(0.5rem) translateX(-50%);
+			opacity: 100%;
+		}
+		100% {
+			transform: translateY(-0.5rem) translateX(-50%);
+			opacity: 5%;
+		}
+	}
+	@keyframes highlight-border {
+		5%,
+		95% {
+			border: 1px solid rgba(151, 220, 66, 0.3);
+		}
+		0,
+		100% {
+			border: 1px solid rgba(38, 41, 49, 0.3);
+		}
+	}
+	@keyframes highlight-comment-main {
+		0% {
+			background-color: rgba(151, 220, 66, 0.3);
+		}
+		5%,
+		95% {
+			outline: 2px solid rgba(151, 220, 66, 0.3);
+		}
+		100% {
+			background-color: rgba(255, 255, 255, 0.7);
+		}
+	}
+	@keyframes highlight-comment-side {
+		0% {
+			background-color: #f9ae86;
+		}
+		100% {
+			background-color: rgba(151, 220, 66, 0.3);
+		}
+	}
+	@keyframes wiggle {
+		0%,
+		100% {
+			transform: rotate(0deg);
+		}
+		25% {
+			transform: rotate(20deg);
+		}
+		75% {
+			transform: rotate(-20deg);
+		}
+	}
+	@keyframes wiggle-alt {
+		0% {
+			transform: skewX(12deg);
+		}
+		10% {
+			transform: skewX(-11deg);
+		}
+		20% {
+			transform: skewX(10deg);
+		}
+		30% {
+			transform: skewX(-9deg);
+		}
+		40% {
+			transform: skewX(8deg);
+		}
+		50% {
+			transform: skewX(-7deg);
+		}
+		60% {
+			transform: skewX(6deg);
+		}
+		70% {
+			transform: skewX(-5deg);
+		}
+		80% {
+			transform: skewX(4deg);
+		}
+		90% {
+			transform: skewX(3deg);
+		}
+		100% {
+			transform: skewX(3deg);
+		}
+	}
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
+}
 
 @layer base {
 	/* * {
@@ -66,7 +281,7 @@
 	}
 
 	kbd {
-		@apply rounded-lg border border-neutral/20 bg-gray-100 px-2 font-sans;
+		@apply border-neutral/20 rounded-lg border bg-gray-100 px-2 font-sans;
 	}
 
 	.view-headline {
@@ -561,7 +776,4 @@
 			}
 		}
 	}
-}
-
-@layer utilities {
 }
