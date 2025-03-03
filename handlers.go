@@ -952,23 +952,39 @@ func (k *keycloak) searchHandler() http.Handler {
 		query := r.URL.Query().Get("q")
 		coverage := r.URL.Query().Get("c")
 		sort := r.URL.Query().Get("s")
-		if coverage == "" {
-			coverage = "posts"
-		}
+
 		if sort == "" {
 			sort = "relevance"
 		}
-		results, err := posts.Search(query, coverage, sort)
-		if err != nil {
-			fmt.Println(err)
-			w.Header().Set("Hx-Redirect", "/error")
+		if coverage == "" {
+			coverage = "posts"
 		}
-		if r.Header.Get("Hx-Request") == "" {
-			TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, coverage, sort, results))
-			return
+
+		if coverage == "comments" {
+			results, err := posts.SearchComments(query, sort)
+			if err != nil {
+				fmt.Println(err)
+				w.Header().Set("Hx-Redirect", "/error")
+			}
+			if r.Header.Get("Hx-Request") == "" {
+				TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, coverage, sort, results))
+				return
+			}
+			oobSwap := "true"
+			TemplRender(w, r, templates.ResultsList(results, query, sort, oobSwap))
+		} else {
+			results, err := posts.SearchPosts(query, sort)
+			if err != nil {
+				fmt.Println(err)
+				w.Header().Set("Hx-Redirect", "/error")
+			}
+			if r.Header.Get("Hx-Request") == "" {
+				TemplRender(w, r, templates.FullSearchResults(k.currentUser, query, coverage, sort, results))
+				return
+			}
+			oobSwap := "true"
+			TemplRender(w, r, templates.ResultsList(results, query, sort, oobSwap))
 		}
-		oobSwap := "true"
-		TemplRender(w, r, templates.ResultsList(results, query, sort, oobSwap))
 	})
 }
 

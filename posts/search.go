@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"gorant/database"
-	"gorant/upload"
 	"gorant/users"
 
 	"github.com/google/uuid"
@@ -26,11 +25,80 @@ type SearchComment struct {
 	CommentStats       CommentStats
 	CreatedAtProcessed string
 	AvatarPath         string
-	File               upload.LookupFile
-	NullFile           upload.NullFile
 }
 
-func (c *SearchComment) IDString() string {
+type SearchPost struct {
+	ID                 string    `db:"post_id"`
+	Title              string    `db:"post_title"`
+	UserID             string    `db:"user_id"`
+	Description        string    `db:"description"`
+	CreatedAt          CreatedAt `db:"created_at"`
+	Initials           string
+	PreferredName      string `db:"preferred_name"`
+	Avatar             string `db:"avatar"`
+	CommentStats       CommentStats
+	CreatedAtProcessed string
+	AvatarPath         string
+}
+
+type SearchItem interface {
+	GetPostID() string
+	GetCommentID() uuid.UUID
+	GetPostTitle() string
+	GetContent() string
+	GetCreatedAt() string
+	GetPreferredName() string
+}
+
+func (s SearchPost) GetPostID() string {
+	return s.ID
+}
+
+func (s SearchPost) GetCommentID() uuid.UUID {
+	return uuid.Nil
+}
+
+func (s SearchPost) GetPostTitle() string {
+	return s.Title
+}
+
+func (s SearchPost) GetContent() string {
+	return ""
+}
+
+func (s SearchPost) GetCreatedAt() string {
+	return s.CreatedAt.Process()
+}
+
+func (s SearchPost) GetPreferredName() string {
+	return s.PreferredName
+}
+
+func (s SearchComment) GetPostID() string {
+	return s.PostID
+}
+
+func (s SearchComment) GetCommentID() uuid.UUID {
+	return s.ID
+}
+
+func (s SearchComment) GetPostTitle() string {
+	return s.PostTitle
+}
+
+func (s SearchComment) GetContent() string {
+	return s.Content
+}
+
+func (s SearchComment) GetCreatedAt() string {
+	return s.CreatedAt.Process()
+}
+
+func (s SearchComment) GetPreferredName() string {
+	return s.PreferredName
+}
+
+func (c SearchComment) IDString() string {
 	return c.ID.String()
 }
 
@@ -62,44 +130,50 @@ func (u UserStats) RepliesCountString() string {
 	return strconv.FormatInt(u.RepliesCount.Int64, 10)
 }
 
-func Search(query string, coverage string, sort string) ([]SearchComment, error) {
-	var results []SearchComment
-	var rows *sql.Rows
-	var err error
+func SearchPosts(query string, sort string) ([]SearchItem, error) {
+	sql := `SELECT DISTINCT ON (posts.post_id) posts.post_id, posts.post_title, posts.user_id, posts.description, posts.created_at, users.preferred_name FROM posts
+				LEFT JOIN users
+				ON posts.user_id = users.user_id
+				WHERE posts.ts @@ websearch_to_tsquery('english', $1)` + ` ` // Adding space here to be more obvious in future there's a space
+	if sort == "recent" {
+		sql = sql + `ORDER BY posts.post_id, posts.created_at DESC`
+	}
+	rows, err := database.DB.Query(sql, query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying db for search post: %w", err)
+	}
+	defer rows.Close()
+	var results []SearchItem
+	var row SearchPost
+	for rows.Next() {
+		if err := rows.Scan(&row.ID, &row.Title, &row.UserID, &row.Description, &row.CreatedAt.Time, &row.PreferredName); err != nil {
+			return results, fmt.Errorf("error scanning for search posts: %w", err)
+		}
+		results = append(results, row)
+	}
+	return results, nil
+}
 
-	sql := `SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title, comments.file_id FROM comments
+func SearchComments(query string, sort string) ([]SearchItem, error) {
+	sql := `SELECT comments.comment_id, comments.user_id, users.preferred_name, comments.content, comments.created_at, comments.post_id, posts.post_title FROM comments
 			LEFT JOIN users
 			ON comments.user_id = users.user_id
 			LEFT JOIN posts
-			ON posts.post_id = comments.post_id` + ` ` // Adding space here to be more obvious in future there's a space
+			ON posts.post_id = comments.post_id
+			WHERE comments.ts @@ websearch_to_tsquery('english', $1)` + ` ` // Adding space here to be more obvious in future there's a space
 	if sort == "recent" {
-		if coverage == "posts" {
-			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
-		}
-		if coverage == "comments" {
-			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1) ORDER BY comments.created_at DESC`
-		}
+		sql = sql + `ORDER BY comments.created_at DESC`
 	}
-	if sort == "relevance" {
-		if coverage == "posts" {
-			sql = sql + `WHERE posts.ts @@ websearch_to_tsquery('english', $1)`
-		}
-		if coverage == "comments" {
-			sql = sql + `WHERE comments.ts @@ websearch_to_tsquery('english', $1)`
-		}
-	}
-	rows, err = database.DB.Query(sql, query)
+	rows, err := database.DB.Query(sql, query)
 	if err != nil {
-		return results, fmt.Errorf("error querying db for search comments: %w", err)
+		return nil, fmt.Errorf("error querying db for search comments: %w", err)
 	}
 	defer rows.Close()
+	var results []SearchItem
 	var row SearchComment
 	for rows.Next() {
-		if err := rows.Scan(&row.ID, &row.UserID, &row.PreferredName, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle, &row.NullFile.ID); err != nil {
+		if err := rows.Scan(&row.ID, &row.UserID, &row.PreferredName, &row.Content, &row.CreatedAt.Time, &row.PostID, &row.PostTitle); err != nil {
 			return results, fmt.Errorf("error scanning db for search comments: %w", err)
-		}
-		if row.NullFile.ID.Valid {
-			row.File.ID = row.NullFile.ID.UUID
 		}
 		results = append(results, row)
 	}
