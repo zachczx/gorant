@@ -5,7 +5,7 @@ ENV GO111MODULE=on
 ENV CGO_ENABLED=1
 RUN apk add build-base
 WORKDIR /app
-COPY ./go.mod ./go.sum tailwind.config.js package.json package-lock.json ./
+COPY ./go.mod ./go.sum package.json package-lock.json ./
 COPY ./posts/ ./posts/
 COPY ./templates/ ./templates/
 COPY ./upload/ ./upload/
@@ -34,7 +34,7 @@ RUN templ generate && \
 
 ####################################################################################
 
-FROM node:22.12 AS second
+FROM node:22.14 AS second
 WORKDIR /app
 COPY --from=first /app/tailwind.config.js /app/package.json /app/gorant /app/package-lock.json /app/
 COPY --from=first /app/templates /app/templates
@@ -42,7 +42,7 @@ COPY --from=first /app/static /app/static
 # COPY package*.json ./
 RUN npm install
 RUN npx esbuild ./static/js/admin/upload.ts ./static/js/index.ts ./static/js/sse.ts ./static/js/post.ts ./static/js/post-partial.ts ./static/js/settings.ts ./static/js/search.ts ./static/js/register-login.ts ./static/js/htmx-bundle.ts ./static/js/post-form.ts --bundle --outdir=./static/js/output --minify &&\       
-    npx @tailwindcss/cli -i ./static/css/index.css -o static/css/output/styles.css --minify &&\
+    npx @tailwindcss/cli -i ./static/css/index.css -o ./static/css/output/styles.css --minify &&\
     npx brotli-cli compress --glob /app/static/css/output/styles.css /app/static/js/ext/htmx.min.js /app/static/js/output/comment-form.js /app/static/js/output/index.js
 
 ####################################################################################
