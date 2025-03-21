@@ -20,9 +20,29 @@ templ Base(title string, currentUser *users.User) {
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr] overflow-x-hidden font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b-neutral/10 bg-primary/25 border-b p-0">
-				<div class="navbar-start" preload="mouseover">
-					<a href="/" class="text-accent flex ps-2 text-3xl font-bold lg:ps-6">
+			<header id="navbar" class="border-b-neutral/10 bg-primary/25 grid grid-cols-[1fr_auto] border-b p-0 lg:grid-cols-3">
+				<div class="flex items-center gap-x-4 ps-2 lg:ps-6" preload="mouseover">
+					<div class="lg:hidden">
+						<div class="drawer h-full content-center">
+							<input id="my-drawer" type="checkbox" class="drawer-toggle"/>
+							<div class="drawer-content">
+								<!-- Page content here -->
+								<label for="my-drawer" class="">
+									<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="material-symbols:menu" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"></path>
+									</svg>
+								</label>
+							</div>
+							<div class="drawer-side z-[1]">
+								<label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+								<div class="bg-base-200 text-base-content min-h-full w-80 p-4">
+									<!-- Sidebar content here -->
+									@Sidebar()
+								</div>
+							</div>
+						</div>
+					</div>
+					<a href="/" class="text-accent flex text-3xl font-bold">
 						<div class="me-1 scale-x-[-1]">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ri:chat-smile-2-fill text-accent/80" viewBox="0 0 24 24">
 								<path fill="currentColor" d="M7.291 20.824L2 22l1.176-5.291A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10a9.96 9.96 0 0 1-4.709-1.176M7 12a5 5 0 0 0 10 0h-2a3 3 0 1 1-6 0z"></path>
@@ -45,7 +65,7 @@ templ Base(title string, currentUser *users.User) {
 }
 
 templ NavCenterLinks(activeSection string) {
-	<div class="navbar-center text-base-content/80 hidden h-full text-center text-lg sm:flex" style="view-transition-name: navbar-center;">
+	<div class="text-base-content/80 hidden h-full content-center justify-self-center text-center text-lg lg:flex" style="view-transition-name: navbar-center;">
 		if activeSection == "posts" {
 			<a href="/" class="navbar-highlight dropdown dropdown-bottom dropdown-hover text-accent hover:bg-primary/30 relative flex h-full min-w-24 items-center justify-center gap-2 px-4 py-1 font-bold lg:min-w-48">
 				<div tabindex="0" role="button" class="">
@@ -94,11 +114,11 @@ templ NavCenterLinks(activeSection string) {
 }
 
 templ NavProfileBadge(currentUser *users.User) {
-	<div id="navbar-profile-badge" class="navbar-end gap-4 lg:pe-6">
-		<form method="get" action="/search" class="search-bar-filled-w w-full max-w-48 transition-all duration-200 ease-out">
+	<div id="navbar-profile-badge" class="flex content-center items-center gap-4 justify-self-end lg:pe-6">
+		<form method="get" action="/search" class="search-bar-filled-w hidden w-full max-w-48 transition-all duration-200 ease-out focus-within:max-w-96 lg:flex">
 			<label id="nav-search-label" class="search-bar-input-spacing input input-bordered relative flex items-center gap-1 rounded-full bg-white/40">
 				<input type="text" class="grow" name="q" placeholder="Search" autocomplete="off"/>
-				<button aria-label="search" class="cursor-pointer bg-neutral/90 text-accent-content absolute inset-y-auto right-1.5 flex h-9 w-9 items-center justify-center rounded-full">
+				<button aria-label="search" class="bg-neutral/90 text-accent-content absolute inset-y-auto right-1.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full">
 					<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="material-symbols:search-rounded" viewBox="0 0 24 24">
 						<path fill="currentColor" d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"></path>
 					</svg>
@@ -202,7 +222,7 @@ templ NavProfileBadge(currentUser *users.User) {
 }
 
 templ Sidebar() {
-	<div class="border-l-neutral/[0.0] border-r-neutral/[0.1] grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto border-r border-l px-2 lg:max-w-2xl">
+	<div class="lg:border-l-neutral/[0.0] lg:border-r-neutral/[0.1] grid h-full w-full grid-rows-[1fr_auto] content-start gap-8 overflow-x-auto px-2 lg:max-w-2xl lg:border-r lg:border-l">
 		<div>
 			<ul class="sidebar-menu text-base-content/80 text-lg">
 				<li>
@@ -317,10 +337,10 @@ templ Footer() {
 templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []string) {
 	@Base("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
-			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
+			<aside class="sidebar-min-h-offset hidden w-full lg:grid lg:max-w-[300px]">
 				@Sidebar()
 			</aside>
-			<div class="grid h-full w-full content-start justify-items-center px-8 pb-4 lg:col-span-4 lg:max-w-[1100px]">
+			<div class="grid h-full w-full content-start justify-items-center px-2 pb-4 lg:col-span-4 lg:max-w-[1100px] lg:px-8">
 				<div
 					id="content"
 					class="w-full max-w-[1200px] space-y-8 py-8"
@@ -396,7 +416,7 @@ templ MainPage(currentUser *users.User, posts posts.PostCollection, tags []strin
 										</svg>Clear All
 									</button>
 								</div>
-								<div class="flex items-center rounded-xl pt-2">
+								<div class="flex flex-wrap items-center rounded-xl pt-2">
 									<input id="mood-angry" type="checkbox" name="mood" class="hidden" value="angry"/>
 									<label
 										id="label-angry"
@@ -490,7 +510,7 @@ templ ListPosts(posts posts.PostCollection) {
 
 templ PostAsRow(post posts.Post) {
 	<a href={ templ.URL(fmt.Sprintf("/posts/%s", post.ID)) } class="border-neutral/10 flex overflow-hidden rounded-lg border bg-white/40 p-2">
-		<div class="group grid min-w-10 place-items-center overflow-hidden text-center text-3xl lg:min-w-14 lg:text-5xl">
+		<div class="group hidden min-w-10 place-items-center overflow-hidden text-center text-3xl lg:grid lg:min-w-14 lg:text-5xl">
 			<span class="group-hover:animate-wiggle inline-block transition-all delay-500">
 				if post.Mood  == "elated" {
 					😄
@@ -507,7 +527,7 @@ templ PostAsRow(post posts.Post) {
 				}
 			</span>
 		</div>
-		<div class="grow ps-6 pe-4">
+		<div class="grow lg:ps-6 lg:pe-4">
 			<h3 class="text-accent line-clamp-1 text-xl leading-loose font-medium hover:underline">
 				{ post.Title }
 			</h3>

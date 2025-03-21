@@ -19,9 +19,29 @@ templ BaseLive(title string, currentUser *users.User) {
 			<script src="/static/js/output/htmx-bundle.js"></script>
 		</head>
 		<body class="grid min-h-[100dvh] grid-rows-[auto_1fr] overflow-x-hidden font-sans" hx-ext="preload">
-			<header id="navbar" class="navbar border-b-neutral/10 bg-primary/25 border-b p-0">
-				<div class="navbar-start" preload="mouseover">
-					<a href="/" class="text-accent flex ps-2 text-3xl font-bold lg:ps-6">
+			<header id="navbar" class="border-b-neutral/10 bg-primary/25 grid grid-cols-[1fr_auto] border-b p-0 lg:grid-cols-3">
+				<div class="flex items-center gap-x-4 ps-2 lg:ps-6" preload="mouseover">
+					<div class="lg:hidden">
+						<div class="drawer h-full content-center">
+							<input id="my-drawer" type="checkbox" class="drawer-toggle"/>
+							<div class="drawer-content">
+								<!-- Page content here -->
+								<label for="my-drawer" class="">
+									<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" class="material-symbols:menu" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z"></path>
+									</svg>
+								</label>
+							</div>
+							<div class="drawer-side z-[1]">
+								<label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+								<div class="bg-base-200 text-base-content min-h-full w-80 p-4">
+									<!-- Sidebar content here -->
+									@Sidebar()
+								</div>
+							</div>
+						</div>
+					</div>
+					<a href="/" class="text-accent flex text-3xl font-bold">
 						<div class="me-1 scale-x-[-1]">
 							<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" class="ri:chat-smile-2-fill text-accent/80" viewBox="0 0 24 24">
 								<path fill="currentColor" d="M7.291 20.824L2 22l1.176-5.291A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10a9.96 9.96 0 0 1-4.709-1.176M7 12a5 5 0 0 0 10 0h-2a3 3 0 1 1-6 0z"></path>
@@ -46,7 +66,7 @@ templ BaseLive(title string, currentUser *users.User) {
 templ LiveScreenBase(currentUser *users.User) {
 	@BaseLive("Grumplr", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
-			<aside class="sidebar-min-h-offset grid w-full lg:max-w-[300px]">
+			<aside class="sidebar-min-h-offset hidden w-full lg:grid lg:max-w-[300px]">
 				@Sidebar()
 			</aside>
 			<div

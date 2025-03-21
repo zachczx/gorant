@@ -9,10 +9,10 @@ import (
 templ Post(currentUser *users.User, message string, post posts.Post, related posts.PostCollection, comments []posts.Comment, highlight string, sortComments string) {
 	@Base("Grumplr - Post", currentUser) {
 		<div class="grid w-full content-start justify-items-center gap-y-4 lg:max-w-[1400px] lg:grid-cols-5">
-			<aside class="sidebar-min-h-offset grid w-full justify-self-start lg:max-w-[300px]">
+			<aside class="sidebar-min-h-offset hidden w-full justify-self-start lg:grid lg:max-w-[300px]">
 				@PostSidebar(related)
 			</aside>
-			<div class="h-full w-full lg:col-span-4 lg:max-w-[1100px]">
+			<div class="h-full w-full px-2 lg:col-span-4 lg:max-w-[1100px] lg:px-0">
 				<!-- title -->
 				<div class="grid w-full content-start px-1 pt-8 lg:px-8">
 					// <div class="w-full overflow-hidden">
