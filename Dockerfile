@@ -34,7 +34,7 @@ RUN templ generate && \
 
 ####################################################################################
 
-FROM node:22.14 AS second
+FROM node:23.10 AS second
 WORKDIR /app
 COPY --from=first /app/tailwind.config.js /app/package.json /app/gorant /app/package-lock.json /app/
 COPY --from=first /app/templates /app/templates
